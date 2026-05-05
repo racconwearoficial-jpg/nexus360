@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getAllCompanies, updateCompany } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const [companies, setCompanies] = useState([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
