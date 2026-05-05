@@ -19,7 +19,7 @@ export default function LoginPage() {
       setError('E-mail ou senha incorretos')
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push('/system/nexus360_v2.html')
     }
   }
 
