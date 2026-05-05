@@ -143,7 +143,7 @@ export default function Home() {
             <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 17 }}>Ideal para empresas com clientes recorrentes</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16 }}>
             {[
               { icon: "💊", title: "Farmácias", desc: "Fidelidade em medicamentos contínuos e produtos" },
               { icon: "🐾", title: "Petshops", desc: "Banho, tosa e ração com programa de pontos" },
