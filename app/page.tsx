@@ -82,7 +82,7 @@ export default function Home() {
           <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 17 }}>Em 3 passos você já está gerindo sua empresa</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
           {[
             { num: "01", title: "Crie sua conta", desc: "Cadastre sua empresa em menos de 2 minutos. Sem cartão, sem burocracia.", icon: "🚀" },
             { num: "02", title: "Configure o sistema", desc: "Adicione seus produtos, defina pontos de fidelidade e personalize para seu negócio.", icon: "⚙️" },
@@ -109,7 +109,7 @@ export default function Home() {
             <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 17 }}>Em um único sistema, integrado e fácil de usar</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             {[
               { icon: "⭐", title: "Fidelidade", desc: "Pontos automáticos a cada compra. Crie recompensas e mantenha clientes voltando sempre.", color: "#3B82F6" },
               { icon: "🎯", title: "CRM Funil", desc: "Gerencie leads do primeiro contato ao fechamento. Visualize cada etapa da negociação.", color: "#8B5CF6" },
@@ -174,7 +174,7 @@ export default function Home() {
             <h2 style={{ fontSize: 48, fontWeight: 900, letterSpacing: -2, marginBottom: 14 }}>Quem usa, aprova</h2>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
             {[
               { name: "Carlos Mendes", business: "Farmácia Central", text: "Antes eu não sabia quais clientes estavam sumindo. Agora vejo tudo no dashboard e recupero clientes antes de perder.", stars: 5 },
               { name: "Ana Paula", business: "Petshop Rex", text: "O programa de fidelidade fez meus clientes voltarem todo mês. As vendas de ração aumentaram muito.", stars: 5 },
