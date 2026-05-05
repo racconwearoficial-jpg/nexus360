@@ -227,7 +227,7 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
             {[
               { name: "TRIAL", price: "Grátis", period: "7 dias", desc: "Acesso completo. Sem cartão.", items: ["Todas as funcionalidades", "Clientes ilimitados", "Suporte via WhatsApp", "Sem compromisso"], cta: "Começar grátis", href: "/register", highlight: false },
-              { name: "PRO", price: "R$49", period: "/mês", desc: "Menos que um jantar. Resultado real.", items: ["Tudo do Trial", "Uso ilimitado", "Suporte prioritário", "Cancele quando quiser"], cta: "Assinar agora", href: "/register", highlight: true },
+              { name: "PRO", price: "R\$69,90", period: "/mês", desc: "Menos que um jantar. Resultado real.", items: ["Tudo do Trial", "Uso ilimitado", "Suporte prioritário", "Cancele quando quiser"], cta: "Assinar agora", href: "/register", highlight: true },
             ].map(p => (
               <div key={p.name} style={{ background: p.highlight ? "rgba(59,130,246,0.07)" : "rgba(255,255,255,0.025)", border: p.highlight ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "40px 36px", boxShadow: p.highlight ? "0 0 60px rgba(59,130,246,0.1)" : "none" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 2, marginBottom: 16 }}>{p.name}</div>
