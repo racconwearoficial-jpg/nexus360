@@ -49,6 +49,12 @@ export default function Home() {
             Já tenho conta
           </Link>
         </div>
+        {/* MOCKUP */}
+<div style={{ position: "relative", maxWidth: 900, margin: "60px auto 0", padding: "0 24px" }}>
+  <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: 12, boxShadow: "0 0 80px rgba(59,130,246,0.2), 0 40px 80px rgba(0,0,0,0.5)" }}>
+    <img src="/dashboard1.png" alt="Dashboard Nexus360" style={{ width: "100%", borderRadius: 12, display: "block" }} />
+  </div>
+</div>
 
         {/* Stats */}
         <div style={{ display: "flex", justifyContent: "center", gap: 60, flexWrap: "wrap" }}>
