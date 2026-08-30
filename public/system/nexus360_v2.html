@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0B0F1A">
 <title>Nexus360 — Gestão Inteligente de Negócios Locais</title>
@@ -322,11 +322,11 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 2L11 13" stroke-width="2"/><path d="M22 2L15 22 11 13 2 9l20-7z" stroke-width="2"/></svg>
       Campanhas
     </div>
-    <div class="nav-item" onclick="nav('fidelidade',this)" data-role="admin">
+    <div class="nav-item" onclick="nav('fidelidade',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="2"/></svg>
       Fidelidade
     </div>
-    <div class="nav-item" onclick="nav('indicacao',this)" data-role="admin">
+    <div class="nav-item" onclick="nav('indicacao',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
       Indicação
     </div>
@@ -346,14 +346,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><path d="M16 8h4l3 5v4h-7V8z" stroke-width="2"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg>
       Entregas
     </div>
-    <div class="nav-item" onclick="nav('fidelidade-func',this)" data-role="funcionario">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="2"/></svg>
-      Fidelidade
-    </div>
-    <div class="nav-item" onclick="nav('indicacao',this)" data-role="funcionario">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
-      Indicação
-    </div>
+    <!-- Fidelidade e Indicação do funcionário foram unificadas na página principal de Fidelidade (data-role="todos") -->
     <div class="nav-item" onclick="nav('reservas',this)" data-role="todos" id="nav-reservas">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/><line x1="8" y1="14" x2="8" y2="14" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="14" x2="16" y2="14" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="8" y2="18" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="16" y2="18" stroke-width="2" stroke-linecap="round"/></svg>
       Reservas <span id="nav-reservas-badge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
@@ -362,7 +355,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><line x1="2" y1="10" x2="22" y2="10" stroke-width="2"/><line x1="6" y1="15" x2="10" y2="15" stroke-width="2" stroke-linecap="round"/></svg>
       Cobranças <span id="nav-devedores-badge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
     </div>
-    <div class="nav-item" onclick="nav('calendario',this)" data-role="admin">
+    <div class="nav-item" onclick="nav('calendario',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg>
       Calendário
     </div>
@@ -388,15 +381,87 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           style="flex:1;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s">
           Funcionário
         </button>
-        <button id="btnModoAdmin" onclick="definirModo('admin')"
+        <button id="btnModoAdmin" onclick="abrirModalSenhaAdmin()"
           style="flex:1;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s">
           Admin
         </button>
       </div>
     </div>
+    <button onclick="nexusLogout()" style="width:100%;margin-bottom:8px;padding:7px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#F87171;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px" onmouseover="this.style.background='rgba(239,68,68,.12)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair da conta
+    </button>
     <div class="conn-status conn-err" id="connStatus">
       <div class="conn-dot"></div>
       <span id="connLabel">Verificando conexão...</span>
+    </div>
+  </div>
+</div>
+
+<!-- TELA DE LOGIN -->
+<div id="tela-login" style="display:none;position:fixed;inset:0;z-index:8000;background:#030712;align-items:center;justify-content:center;padding:20px">
+  <div style="position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none"></div>
+  <div style="position:relative;background:#0D1829;border:1px solid rgba(59,130,246,.15);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6)">
+    <div style="height:3px;background:linear-gradient(90deg,#2563EB,#8B5CF6)"></div>
+    <div style="padding:40px 36px">
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#F1F5F9;letter-spacing:-0.5px;margin-bottom:6px">NEXUS<span style="color:#60A5FA">360</span></div>
+        <div style="font-size:13px;color:#475569">Acesse sua conta para continuar</div>
+      </div>
+      <div id="login-alerta-assn" style="display:none;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:#FCD34D;margin-bottom:16px;line-height:1.5"></div>
+      <div id="login-erro" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:#F87171;margin-bottom:16px"></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#475569;margin-bottom:7px">E-mail</label>
+          <input id="li-email" type="email" placeholder="seu@email.com"
+            style="width:100%;background:#111F35;border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px 15px;color:#F1F5F9;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='rgba(59,130,246,.15)'"
+            onkeydown="if(event.key==='Enter')document.getElementById('li-senha').focus()">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#475569;margin-bottom:7px">Senha</label>
+          <input id="li-senha" type="password" placeholder="••••••••"
+            style="width:100%;background:#111F35;border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px 15px;color:#F1F5F9;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='rgba(59,130,246,.15)'"
+            onkeydown="if(event.key==='Enter')nexusFazerLogin()">
+        </div>
+        <button id="li-btn" onclick="nexusFazerLogin()"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer">
+          Entrar no sistema
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:24px;font-size:12px;color:#334155;line-height:1.7">
+        Sem acesso? Fale no WhatsApp<br>
+        <a href="https://wa.me/5563981062551?text=Quero%20assinar%20o%20Nexus360" target="_blank" style="color:#60A5FA;text-decoration:none;font-weight:600">5563 9810-62551</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SENHA ADMIN -->
+<div id="modalSenhaAdmin" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0D1829;border:1px solid rgba(59,130,246,.2);border-radius:16px;width:100%;max-width:360px;overflow:hidden">
+    <div style="height:3px;background:linear-gradient(90deg,#2563EB,#8B5CF6)"></div>
+    <div style="padding:28px 24px">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#F1F5F9;margin-bottom:4px">Acesso Administrador</div>
+      <div style="font-size:12px;color:#475569;margin-bottom:20px">Digite a senha para ativar o modo admin</div>
+      <div id="modalSenhaAdmin-erro" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#F87171;margin-bottom:14px"></div>
+      <div style="position:relative;margin-bottom:16px">
+        <input id="modalSenhaAdmin-input" type="password" placeholder="Senha de administrador"
+          style="width:100%;background:#111F35;border:1px solid rgba(59,130,246,.15);border-radius:9px;padding:11px 40px 11px 14px;color:#F1F5F9;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"
+          onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='rgba(59,130,246,.15)'"
+          onkeydown="if(event.key==='Enter')confirmarSenhaAdmin()">
+        <button onclick="toggleSenhaVisivel()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#475569;cursor:pointer;padding:4px" title="Mostrar/ocultar">
+          <svg id="iconSenhaOlho" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button onclick="fecharModalSenhaAdmin()" style="flex:1;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:#94A3B8;font-size:13px;cursor:pointer;font-family:inherit">Cancelar</button>
+        <button onclick="confirmarSenhaAdmin()" style="flex:1;padding:10px;background:linear-gradient(135deg,#2563EB,#3B82F6);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Entrar</button>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:14px;text-align:center">
+        <button onclick="recuperarSenhaAdmin()" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">Esqueci minha senha</button>
+      </div>
     </div>
   </div>
 </div>
@@ -570,7 +635,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           Recuperar inativos
         </button>
       </div>
-      <div class="card">
+      <div class="card" id="clientTableWrap">
         <div class="table-wrap">
           <table>
             <thead id="clientTableHead"><tr><th style="width:36px">#</th><th>Nome</th><th>Telefone</th><th>Última compra</th><th>Pontos</th><th>Status</th><th>Aniversário</th><th>Ações</th></tr></thead>
@@ -578,6 +643,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           </table>
         </div>
       </div>
+      <div id="clientCardsMobile" style="display:none"></div>
     </div>
 
     <!-- CAMPANHAS -->
@@ -987,6 +1053,12 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
               <input type="number" id="fid-valor" placeholder="Ex: 50.00" min="0.01" step="0.01"
                 style="font-size:18px;font-weight:600" oninput="fidCalcularPontos()">
             </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="fid-categoria" onchange="fidCalcularPontos()" style="width:100%">
+                <option value="">— Padrão (geral) —</option>
+              </select>
+            </div>
             <div id="fid-pontos-preview" style="display:none;padding:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;margin-bottom:16px;text-align:center">
               <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px">Esta compra vai gerar</div>
               <div style="font-size:28px;font-weight:700;color:#10B981" id="fid-pontos-calc">+0</div>
@@ -1354,6 +1426,12 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
 
       <!-- ABA: DASHBOARD -->
       <div id="fnPanel-dashboard">
+        <!-- Filtro de período -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <label style="font-size:13px;color:var(--text2)">Período:</label>
+          <select id="fn-filtro-mes" onchange="fnRenderDashboard()" style="width:200px">
+          </select>
+        </div>
         <!-- KPIs -->
         <div id="fn-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px"></div>
         <!-- Insights -->
@@ -1704,7 +1782,27 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <button class="btn btn-ghost" style="font-size:12px" onclick="lcAddRow()">+ Adicionar categoria</button>
         </div>
       </div>
-    </div>
+
+      <!-- RECALCULAR PONTOS -->
+      <div class="card" style="margin-bottom:14px;border-color:rgba(245,158,11,.2)">
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="section-title mb4">Recalcular Pontos por Categoria</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px;line-height:1.6">
+              Recalcula os pontos acumulados de <strong style="color:rgba(255,255,255,.6)">todos os clientes</strong> com base nas regras de pontuação por categoria configuradas acima. Use quando alterar as regras de pontuação ou para corrigir pontos históricos.<br>
+              <span style="color:rgba(245,158,11,.7)">⚠️ Esta ação sobrescreve os pontos atuais. Não pode ser desfeita.</span>
+            </div>
+            <div id="recalc-log" style="display:none;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px;max-height:120px;overflow-y:auto;font-family:monospace;line-height:1.8"></div>
+            <button id="btn-recalc-pontos" class="btn btn-primary" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#F59E0B" onclick="recalcularTodosPontos()">
+              Recalcular pontos de todos os clientes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div><!-- fim page-config -->
 
     <!-- ENTREGAS -->
     <div class="page" id="page-entregas">
@@ -2422,7 +2520,7 @@ const pageNames = {
   relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários'
 };
 
-const ADMIN_PAGES = ['fidelidade','crm','relatorios','config','funcionarios'];
+const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores'];
 // ══════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2448,6 +2546,7 @@ function setBtn(id, loading, label='Salvar') {
 }
 
 let SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
+let MODO_ATUAL = 'funcionario';
 
 // Tutorial removido — funções stub para evitar erros
 function miniTutMostrar(secao) {}
@@ -2457,7 +2556,7 @@ function verTutorialSecao(secao) {}
 
 function nav(id, el) {
   // Bloqueia páginas admin se não estiver autenticado
-  if (ADMIN_PAGES.includes(id) && localStorage.getItem('nexus360_modo') !== 'admin') {
+  if (ADMIN_PAGES.includes(id) && (typeof MODO_ATUAL === 'undefined' || MODO_ATUAL !== 'admin')) {
     toast('Acesso restrito — faça login como Admin', 'error');
     const primario = document.querySelector('.nav-item[data-role="todos"]');
     if (primario && !primario.classList.contains('active')) primario.click();
@@ -2596,8 +2695,10 @@ async function loadClientes() {
   if (!state.companyId) { state.clientes = []; return; }
   const { data, error } = await db.from('clientes').select('*').eq('company_id', state.companyId).order('nome');
   if (error) throw error;
-  state.clientes = (data || []).map(c => ({ ...c, status: calcularStatus(c) }));
-  // Verifica expiração de pontos por inatividade
+  // Deduplica por ID caso haja duplicatas no banco
+  const seen = new Set();
+  const dedup = (data || []).filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+  state.clientes = dedup.map(c => ({ ...c, status: calcularStatus(c) }));
   await verificarExpiracaoPontos();
 }
 
@@ -2652,6 +2753,15 @@ async function loadConfig() {
   const { data, error } = await db.from('configuracoes').select('*').eq('company_id', state.companyId).single();
   if (error && error.code !== 'PGRST116') throw error;
   state.config = data || {};
+  // Sincroniza categorias do Supabase → localStorage
+  if (state.config.categorias_personalizadas) {
+    try {
+      const catsRemoto = JSON.parse(state.config.categorias_personalizadas);
+      const catsLocal  = JSON.parse(state.config?.categorias_personalizadas || '[]');
+      const merged = [...new Set([...catsLocal, ...catsRemoto])];
+      
+    } catch(e) {}
+  }
   applyConfig();
 }
 
@@ -2673,6 +2783,31 @@ function applyConfig() {
     } catch(e) { console.warn('fcfg parse error:', e); }
   }
   // Salva data de início do ranking no state
+  // Carregar senha admin do Supabase
+  if (c.senha_admin) {
+    SENHA_ADMIN = c.senha_admin;
+    localStorage.setItem('nexus360_senha_admin', c.senha_admin);
+  } else {
+    SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
+  }
+  if (c.senha_admin) {
+    SENHA_ADMIN = c.senha_admin;
+    localStorage.setItem('nexus360_senha_admin', c.senha_admin);
+  } else {
+    SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
+  }
+  if (c.senha_admin) {
+    SENHA_ADMIN = c.senha_admin;
+    localStorage.setItem('nexus360_senha_admin', c.senha_admin);
+  } else {
+    SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
+  }
+  if (c.senha_admin) {
+    SENHA_ADMIN = c.senha_admin;
+    localStorage.setItem('nexus360_senha_admin', c.senha_admin);
+  } else {
+    SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
+  }
   state.rankingInicio   = c.ranking_inicio   || null;
   // Prioriza localStorage (salvo localmente ao encerrar) sobre Supabase
   // pois ranking_inicio_ts pode não existir como coluna no Supabase
@@ -2700,7 +2835,8 @@ function renderDashboard() {
   const itens     = state.itens;
 
   const receitaTotal = vendas.reduce((s, v) => s + parseFloat(v.valor || 0), 0);
-  const hoje         = new Date().toISOString().split('T')[0];
+  const _hojeD = new Date();
+  const hoje         = `${_hojeD.getFullYear()}-${String(_hojeD.getMonth()+1).padStart(2,'0')}-${String(_hojeD.getDate()).padStart(2,'0')}`;
   const receitaHoje  = vendas.filter(v => v.data === hoje).reduce((s, v) => s + parseFloat(v.valor || 0), 0);
   const ticket       = vendas.length ? receitaTotal / vendas.length : 0;
   const limiteInativo = new Date(); limiteInativo.setDate(limiteInativo.getDate() - diasInativo());
@@ -2747,7 +2883,7 @@ function renderDashboard() {
   renderInsightsFunc();
   verificarImportacao();
   // Re-aplica modo para garantir visibilidade correta após dados carregarem
-  aplicarModo(localStorage.getItem('nexus360_modo') || 'funcionario');
+  aplicarModo(MODO_ATUAL);
 }
 
 function renderBarChart() {
@@ -3454,10 +3590,9 @@ function renderUpsell() {
   const linhaInativo = c => {
     const tel  = c.telefone.replace(/\D/g, '');
     const num  = tel.startsWith('55') ? tel : '55' + tel;
-    const msg  = (state.config.msg_reativacao || `Olá ${c.nome}! Sentimos sua falta em ${neg}, temos novidades esperando por você`)
-      .replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg);
+    const msg  = buildWppMsg('reativacao', c.nome);
     const dias = c.ultima_compra ? Math.floor((new Date()-new Date(c.ultima_compra))/86400000) : null;
-    const msgEsc = msg.replace(/'/g, "\\'");
+    const msgEsc = msg.replace(/"/g,'&quot;');
     return `<div class="suggestion" style="padding:8px 12px">
       <div class="suggestion-icon" style="background:rgba(239,68,68,.10);width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" fill="none" stroke="#fca5a5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg></div>
       <div class="suggestion-text">
@@ -3503,7 +3638,7 @@ function renderClients(list) {
   }
 
   const isMobile = window.innerWidth <= 768;
-  const isAdmin  = localStorage.getItem('nexus360_modo') === 'admin';
+  const isAdmin  = MODO_ATUAL === 'admin';
   const gastoNum = c => parseFloat(String(c.total_gasto||'0').replace(/[^\d.]/g,''))||0;
   const todosOrdenados = [...state.clientes].sort((a,b)=>gastoNum(b)-gastoNum(a));
   const totalTodos = todosOrdenados.length;
@@ -3646,7 +3781,7 @@ function recuperarInativos() {
 }
 
 function filterClients() {
-  const isAdmin = localStorage.getItem('nexus360_modo') === 'admin';
+  const isAdmin = MODO_ATUAL === 'admin';
 
   // Thead dinâmico — alinha com tbody
   const thead = document.getElementById('clientTableHead');
@@ -3738,7 +3873,7 @@ function toggleVendaRapida() {
 
 function _verificarLimiteVenda(valor) {
   const mx = parseFloat(state.config?.max_venda_func) || 0;
-  if (mx > 0 && localStorage.getItem('nexus360_modo') !== 'admin' && parseFloat(valor) > mx) {
+  if (mx > 0 && MODO_ATUAL !== 'admin' && parseFloat(valor) > mx) {
     toast('Valor R$ ' + parseFloat(valor).toFixed(2) + ' acima do limite de R$ ' + mx.toFixed(2) + ' para funcionário. Solicite ao admin.', 'error');
     return true;
   }
@@ -3775,30 +3910,63 @@ function vdToggleModo() {
   const rapido = document.getElementById('vd-modo-rapido').checked;
   document.getElementById('vd-modo-rapido-area').style.display = rapido ? '' : 'none';
   document.getElementById('vd-modo-normal-area').style.display = rapido ? 'none' : '';
+
+  if (rapido) {
+    const sel = document.getElementById('vd-categoria');
+    if (sel) {
+      // Mescla: categorias normais + categorias das regras de pontuação
+      const catsCfg  = getCategorias();
+      const catsLc   = (state.loyaltyCatRules || []).map(r => r.category).filter(Boolean);
+      const cats     = [...new Set([...catsCfg, ...catsLc])].sort();
+      sel.innerHTML  = '<option value="">— Selecione —</option>'
+        + cats.map(c => {
+            const taxa  = lcGetPontosPorReal(c);
+            const label = taxa !== null ? `${c} — ${taxa} pt/R$` : c;
+            return `<option value="${c}">${label}</option>`;
+          }).join('');
+    }
+    setTimeout(() => document.getElementById('vd-valor-rapido')?.focus(), 80);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CATEGORIAS
 // ══════════════════════════════════════════════════════════════════════════════
 function getCategorias() {
-  const salvas  = JSON.parse(localStorage.getItem('nexus360_categorias') || '[]');
-  const dosBanco = [...new Set(state.itens.map(i => i.categoria).filter(Boolean))];
-  return [...new Set([...salvas, ...dosBanco])].sort();
+  // Apenas categorias definidas pelo empresário — sem padrões hardcoded
+  
+  const doConfig = JSON.parse(state.config?.categorias_personalizadas || '[]');
+  const dosBanco = [...new Set((state.itens||[]).map(i => i.categoria).filter(Boolean))];
+  // Inclui categorias das regras de pontuação configuradas pelo empresário
+  const dasPts   = (state.loyaltyCatRules || []).map(r => r.category).filter(Boolean);
+  return [...new Set([...doConfig, ...dosBanco, ...dasPts])].sort();
 }
+
 function salvarCategoria(cat) {
-  const cats = JSON.parse(localStorage.getItem('nexus360_categorias') || '[]');
-  if (!cats.includes(cat)) { cats.push(cat); localStorage.setItem('nexus360_categorias', JSON.stringify(cats)); }
+  // Salva no localStorage
+  const cats = JSON.parse(state.config?.categorias_personalizadas || '[]');
+  if (!cats.includes(cat)) {
+    cats.push(cat);
+    
+  }
+  // Salva no Supabase (config)
+  _syncCatsSupabase(cats);
+}
+
+async function _syncCatsSupabase(cats) {
+  try {
+    const todas = [...new Set([...cats, ...JSON.parse(state.config?.categorias_personalizadas||'[]')])];
+    await db.from('configuracoes').update({ categorias_personalizadas: JSON.stringify(todas) }).eq('company_id', state.companyId);
+    if (state.config) state.config.categorias_personalizadas = JSON.stringify(todas);
+  } catch(e) { /* silencioso */ }
 }
 function removerCategoria(cat) {
-  // Remove do localStorage
-  try {
-    let cats = JSON.parse(localStorage.getItem('nexus360_categorias') || '[]');
-    cats = cats.filter(c => c !== cat);
-    localStorage.setItem('nexus360_categorias', JSON.stringify(cats));
-  } catch(e) {}
+  let cats = JSON.parse(state.config?.categorias_personalizadas || '[]');
+  cats = cats.filter(c => c !== cat);
+  
+  _syncCatsSupabase(cats);
 
-  // Se categoria ainda existe em produtos do banco, avisa e não remove
-  const emUso = state.itens.filter(i => i.categoria === cat);
+  const emUso = (state.itens||[]).filter(i => i.categoria === cat);
   if (emUso.length) {
     toast('Categoria "' + cat + '" está em uso em ' + emUso.length + ' produto(s). Altere os produtos primeiro.', 'error');
     renderListaCategorias();
@@ -3806,7 +3974,6 @@ function removerCategoria(cat) {
   }
   toast('Categoria removida.', 'success');
   renderListaCategorias();
-  // Atualiza autocomplete de categorias se aberto
   const inp = document.getElementById('it-categoria');
   if (inp) { const ev = new Event('input'); inp.dispatchEvent(ev); }
 }
@@ -4068,7 +4235,7 @@ async function confirmarImportacao() {
 
         if (!r.identificada) {
           // Venda não identificada — só faturamento
-          await db.from('vendas').insert({ cliente_id:null, cliente_nome:'Não identificado', valor:r.valor, data, itens:'Importado' });
+          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:null, cliente_nome:'Não identificado', valor:r.valor, data, itens:'Importado' });
           naoId++;
           continue;
         }
@@ -4103,17 +4270,18 @@ async function confirmarImportacao() {
             ultima_compra: data,
             status,
           }).eq('id', cliente.id);
-          await db.from('vendas').insert({ cliente_id:cliente.id, cliente_nome:cliente.nome, valor:r.valor, data, itens:'Importado' });
+          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:cliente.id, cliente_nome:cliente.nome, valor:r.valor, data, itens:'Importado' });
           atualizados++;
         } else {
           // Cria novo cliente
           const { data: novo, error: errC } = await db.from('clientes').insert({
+            company_id: state.companyId,
             nome: r.nome, telefone: r.tel||null,
             total_gasto: r.valor, pontos: Math.floor(r.valor * (fcfgGet().ptsReal||1)),
             ultima_compra: data, status,
           }).select().single();
           if (!errC && novo) {
-            await db.from('vendas').insert({ cliente_id:novo.id, cliente_nome:novo.nome, valor:r.valor, data, itens:'Importado' });
+            await db.from('vendas').insert({ company_id: state.companyId, cliente_id:novo.id, cliente_nome:novo.nome, valor:r.valor, data, itens:'Importado' });
             criados++;
           }
         }
@@ -4180,13 +4348,12 @@ function renderRecuperacao() {
   card.style.display = inativos.length ? '' : 'none';
   if (!inativos.length) return;
   window._recupMsgs = {};
-  const msg = state.config.msg_reativacao || 'Olá {nome}! Sentimos sua falta. Venha nos visitar!';
   const neg = state.config.nome_negocio || 'nossa loja';
   lista.innerHTML = inativos.slice(0,10).map((c,idx) => {
     const dias = c.ultima_compra ? Math.floor((hoje - new Date(c.ultima_compra+'T12:00:00'))/86400000) : null;
     const tel = (c.telefone||'').replace(/\D/g,'');
     const num = tel.startsWith('55') ? tel : '55'+tel;
-    window._recupMsgs[idx] = { num, msg: msg.replace(/{nome}/g,c.nome).replace(/{negocio}/g,neg) };
+    window._recupMsgs[idx] = { num, msg: buildWppMsg('reativacao', c.nome) };
     return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:6px">
       <div class="client-avatar">${c.nome.charAt(0).toUpperCase()}</div>
       <div style="flex:1;min-width:0">
@@ -4259,7 +4426,7 @@ async function saveCliente() {
     const conf = confirm('Já existe um cliente com o nome "' + dupNome.nome + '". Deseja cadastrar mesmo assim?');
     if (!conf) { setBtn('btnSaveCliente', false); return; }
   }
-  const isAdmin = localStorage.getItem('nexus360_modo') === 'admin';
+  const isAdmin = MODO_ATUAL === 'admin';
   const clienteExistente = id ? state.clientes.find(c => String(c.id) === String(id)) : null;
   const payload = {
     nome,
@@ -4626,7 +4793,7 @@ function renderVendas() {
     const num     = tel ? (tel.startsWith('55') ? tel : '55'+tel) : '';
     const neg     = state.config?.nome_negocio || 'nossa loja';
     const btnWpp  = num ? `<button class="btn-wpp" style="font-size:11px;padding:3px 8px;border-radius:5px;border:none;cursor:pointer" onclick="abrirModalWppVenda(${v.id})">WA</button>` : '';
-    const btnDel  = localStorage.getItem('nexus360_modo') === 'admin' ? `<button class="btn btn-red" style="padding:4px 8px;font-size:11px;margin-left:4px" onclick="deleteVenda(${v.id})">Excluir</button>` : '';
+    const btnDel  = MODO_ATUAL === 'admin' ? `<button class="btn btn-red" style="padding:4px 8px;font-size:11px;margin-left:4px" onclick="deleteVenda(${v.id})">Excluir</button>` : '';
     return `<tr>
       <td style="color:var(--text1)">${nome}</td>
       <td style="color:var(--text2)">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
@@ -4961,10 +5128,10 @@ function openModalVenda() {
   document.getElementById('vd-modo-rapido-area').style.display = 'none';
   document.getElementById('vd-modo-normal-area').style.display = '';
   document.getElementById('vd-criar-entrega').checked = false;
-  // Popular select de categorias com as categorias reais dos itens cadastrados
+  // Popular select de categorias usando getCategorias() (inclui localStorage + Supabase + itens)
   const selCat = document.getElementById('vd-categoria');
   if (selCat) {
-    const cats = [...new Set((state.itens||[]).map(i => i.categoria).filter(Boolean))].sort();
+    const cats = getCategorias();
     selCat.innerHTML = '<option value="">— Selecione —</option>' +
       cats.map(c => `<option value="${c}">${c}</option>`).join('');
   }
@@ -5232,7 +5399,7 @@ function renderItens() {
           <div style="font-size:13px;color:var(--text1)">${i.nome}</div>
           <div style="font-size:11px;color:var(--text3)">${tipo==='zero'?'Sem estoque':'Estoque baixo: '+i.estoque+' un'}</div>
         </div>
-        ${localStorage.getItem('nexus360_modo') === 'admin' ? '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="abrirReposicao('+i.id+')">Repor estoque</button>' : ''}
+        ${MODO_ATUAL === 'admin' ? '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="abrirReposicao('+i.id+')">Repor estoque</button>' : ''}
       </div>`).join('');
   }
 
@@ -5263,7 +5430,7 @@ function renderItens() {
       <td>${estTxt}</td>
       <td>${giroHtml}</td>
       <td style="display:flex;gap:6px">
-        ${localStorage.getItem('nexus360_modo') === 'admin' ? `<button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="editItem(${i.id})">Editar</button>
+        ${MODO_ATUAL === 'admin' ? `<button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="editItem(${i.id})">Editar</button>
         <button class="btn btn-red" style="padding:4px 8px;font-size:11px" onclick="deleteItem(${i.id},'${(i.nome||'').replace(/'/g,"\'")}')">Excluir</button>` : ''}
       </td>
     </tr>`;
@@ -5695,6 +5862,7 @@ function rmGetPontosMes(cliId, chave) {
 }
 
 // Ranking completo do ciclo — calculado das vendas desde o último encerramento
+// Helpers de pontuação por categoria — usados pelo ranking mensal e fidelidade
 function rmGetRanking(chave) {
   const fcfg = fcfgGet();
 
@@ -5719,14 +5887,20 @@ function rmGetRanking(chave) {
   state.vendas.forEach(v => {
     const cliId = parseInt(v.cliente_id);
     if (!v.data || !cliId || !v.valor) return;
-    // Usa created_at se disponível (mais preciso), senão usa data do dia
     const tsVenda = v.created_at
       ? new Date(v.created_at).getTime()
       : new Date(String(v.data).substring(0,10) + 'T00:00:00').getTime();
-    if (tsVenda <= tsInicio) return; // estritamente após o encerramento
-    const cli  = state.clientes.find(c => parseInt(c.id) === cliId);
-    const mult = (cli && fidIsVip(cli)) ? (fcfg.multVip || 1.1) : 1;
-    const pts  = Math.floor(parseFloat(v.valor) * (fcfg.ptsReal || 1) * mult);
+    if (tsVenda <= tsInicio) return;
+    const cli   = state.clientes.find(c => parseInt(c.id) === cliId);
+    const isVip = !!(cli && fidIsVip(cli));
+    // Categoria: campo direto ou fallback do campo itens (simples, sem vírgula)
+    const cat = v.categoria
+      || (v.itens && !v.itens.includes(',') && !v.itens.includes('(')
+          && v.itens.length < 40
+          && !['Venda rápida do dia','Não identificado','Importado','Venda rápida'].includes(v.itens.trim())
+          ? v.itens.trim() : null);
+    // Usa mesma fórmula do ranking normal: lcCalcularPontos respeita regras por categoria
+    const pts = lcCalcularPontos(parseFloat(v.valor), cat, isVip);
     if (pts > 0) pontosPorCliente[cliId] = (pontosPorCliente[cliId] || 0) + pts;
   });
 
@@ -6032,6 +6206,18 @@ function fidAba(aba) {
 
   if (aba === 'como')      fidRenderComo();
   if (aba === 'mensal')    { loadVendas().then(() => renderRankingMensal()); return; }
+  if (aba === 'registrar') {
+    // Popular select de categorias
+    const sel = document.getElementById('fid-categoria');
+    if (sel) {
+      const _catsCfg = getCategorias();
+      const _catsLc  = (state.loyaltyCatRules || []).map(r => r.category).filter(Boolean);
+      const cats = [...new Set([..._catsCfg, ..._catsLc])].sort();
+      sel.innerHTML = '<option value="">— Padrão (geral) —</option>'
+        + cats.map(c => `<option value="${c}">${c}${lcGetPontosPorReal(c) !== null ? ' — ' + lcGetPontosPorReal(c) + ' pt/R$' : ''}</option>`).join('');
+      fidCalcularPontos();
+    }
+  }
 }
 
 // Verifica bônus por marco e ativação VIP — chamado após qualquer venda
@@ -6122,6 +6308,14 @@ function fidSelecionarCliente(id, nome, tel, pontos) {
   const drop = document.getElementById('fid-cliente-drop');
   if (drop) drop.style.display = 'none';
 
+  // Popular categorias no select
+  const sel = document.getElementById('fid-categoria');
+  if (sel && getCategorias) {
+    const cats = getCategorias();
+    sel.innerHTML = '<option value="">— Padrão (geral) —</option>'
+      + cats.map(c => `<option value="${c}">${c}${lcGetPontosPorReal(c) !== null ? ' — ' + lcGetPontosPorReal(c) + ' pt/R$' : ''}</option>`).join('');
+  }
+
   const cli  = state.clientes.find(c => c.id == id);
   const isVip= cli ? fidIsVip(cli) : false;
   const card = document.getElementById('fid-cliente-card');
@@ -6193,14 +6387,19 @@ function fidCalcularPontos() {
   const cli    = state.clientes.find(c => c.id == document.getElementById('fid-cliente-id').value);
   const isVip  = cli ? fidIsVip(cli) : false;
   const val    = parseFloat(document.getElementById('fid-valor').value) || 0;
+  const catEl  = document.getElementById('fid-categoria');
+  const cat    = catEl ? catEl.value : null;
   const prev   = document.getElementById('fid-pontos-preview');
   const calc   = document.getElementById('fid-pontos-calc');
   const mult   = document.getElementById('fid-pontos-mult');
   if (val > 0) {
-    const _fidFcfg = fcfgGet(); const pts = isVip ? Math.floor(val * (_fidFcfg.multVip||1.1) * (_fidFcfg.ptsReal||1)) : Math.floor(val * (_fidFcfg.ptsReal||1));
+    const pts = lcCalcularPontos(val, cat || null, isVip);
+    const taxaCat = lcGetPontosPorReal(cat);
+    const taxa = taxaCat !== null ? taxaCat : (fcfgGet().ptsReal || 1);
+    const labelTaxa = cat ? `${cat}: R$1 = ${taxa} pt${isVip ? ' (+VIP)' : ''}` : `Padrão: R$1 = ${taxa} pt${isVip ? ' (+VIP)' : ''}`;
     prev.style.display   = '';
     calc.textContent     = '+' + pts;
-    if (mult) mult.textContent = isVip ? '(VIP +10%)' : '(R$1 = 1 ponto)';
+    if (mult) mult.textContent = labelTaxa;
   } else {
     prev.style.display = 'none';
   }
@@ -6259,9 +6458,19 @@ async function fidRegistrarCompra() {
     cli.total_gasto = (parseFloat(cli.total_gasto)||0) + val;
     cli.status      = novoStatus;
 
-    // Adiciona venda ao state para ranking atualizar imediatamente
+    // Salvar venda no Supabase para ranking mensal atualizar corretamente
     const hoje = new Date().toISOString().split('T')[0];
-    state.vendas.unshift({ id: Date.now(), cliente_id: parseInt(cliId), valor: val, data: hoje });
+    const vendaObj = {
+      company_id:  state.companyId,
+      cliente_id:  parseInt(cliId),
+      valor:       val,
+      data:        hoje,
+      categoria:   _catSel || null,
+      itens:       'Registrado via Fidelidade',
+      funcionario: null
+    };
+    const { data: vendaSalva } = await db.from('vendas').insert(vendaObj).select().single();
+    state.vendas.unshift(vendaSalva || { ...vendaObj, id: Date.now() });
 
     if (msgVip)        setTimeout(() => toast(msgVip, 'success'), 600);
     if (mensagemBonus) setTimeout(() => toast(mensagemBonus, 'success'), 300);
@@ -6271,6 +6480,7 @@ async function fidRegistrarCompra() {
     document.getElementById('fid-pontos-preview').style.display = 'none';
     fidSelecionarCliente(cliId, cli.nome, cli.telefone, novosPontos);
     renderFidelidade();
+    renderRankingMensal();
     await indVerificarIndicacao(cliId);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
 }
@@ -6517,36 +6727,6 @@ function fidFuncAba(aba) {
 
 
 // ── Indicações no Supabase ──────────────────────────────────────────────────
-async function loadIndicacoes() {
-  const { data } = await db.from('indicacoes')
-    .select('*')
-    .eq('company_id', state.companyId)
-    .order('created_at', { ascending: false });
-  return (data || []).map(r => ({
-    quemId: r.quem_id,
-    quemNome: r.quem_nome,
-    amigoId: r.amigo_id,
-    amigoNome: r.amigo_nome,
-    amigoTel: r.amigo_tel,
-    aniversario: r.aniversario || null,
-    status: r.status,
-    data: r.created_at,
-    id: r.id
-  }));
-}
-
-async function salvarIndicacao(quem, nomeAmigo, telFmt, aniv) {
-  // Pontos só são dados na validação da indicação, não no registro
-  await db.from('indicacoes').insert({
-    company_id: state.companyId,
-    quem_id: quem?.id || null,
-    quem_nome: quem?.nome || '',
-    amigo_nome: nomeAmigo,
-    amigo_tel: telFmt,
-    aniversario: aniv || null,
-    status: 'pendente'
-  });
-}
 
 // Registrar indicação — funcionário (ff-)
 async function ffIndRegistrar() {
@@ -6810,13 +6990,22 @@ async function verificarIndicacaoPorCliente(cliente) {
 
 async function indVerificarIndicacao(indId) {
   try {
-    const { data: indicacoes } = await db.from('indicacoes')
+    // Se chamado com ID de cliente (do fidRegistrarCompra), busca por amigo_id
+    // Se chamado com ID de indicação (do botão Validar), busca por id
+    const { data: indicacoesPorCliente } = await db.from('indicacoes')
+      .select('*')
+      .eq('company_id', state.companyId)
+      .eq('amigo_id', indId)
+      .eq('status', 'pendente');
+
+    const { data: indicacoesPorId } = await db.from('indicacoes')
       .select('*')
       .eq('company_id', state.companyId)
       .eq('id', indId)
       .eq('status', 'pendente');
-    const ind = indicacoes?.[0];
-    if (!ind) { toast('Indicação não encontrada ou já validada', 'error'); return; }
+
+    const ind = indicacoesPorCliente?.[0] || indicacoesPorId?.[0];
+    if (!ind) return; // Silencioso — cliente pode não ter sido indicado
 
     const indPts = window.FCFG_IND_PTS || 40;
     let amigoId = ind.amigo_id;
@@ -7627,6 +7816,11 @@ function alterarSenhaAdmin() {
   if (nova.length < 4) { toast('Nova senha deve ter pelo menos 4 caracteres', 'error'); return; }
   SENHA_ADMIN = nova;
   try { localStorage.setItem('nexus360_senha_admin', nova); } catch(e) {}
+  // Salvar no Supabase também
+  if (state.companyId) {
+    db.from('configuracoes').upsert({ company_id: state.companyId, senha_admin: nova }, { onConflict: 'company_id' })
+      .then(({ error }) => { if (error) console.warn('Erro ao salvar senha:', error.message); });
+  }
   document.getElementById('cfg-senha-atual').value = '';
   document.getElementById('cfg-senha-nova').value  = '';
   document.getElementById('cfg-senha-conf').value  = '';
@@ -7641,6 +7835,10 @@ async function saveConfig() {
     dias_inativo:     parseInt(document.getElementById('cfg-inativo').value) || 30,
     expira_pontos:    parseInt(document.getElementById('cfg-expira-pontos').value) || 365,
     max_venda_func:   parseFloat(document.getElementById('cfg-max-venda-func').value) || null,
+    senha_admin:      SENHA_ADMIN || 'admin123',
+    senha_admin:      SENHA_ADMIN || 'admin123',
+    senha_admin:      SENHA_ADMIN || 'admin123',
+    senha_admin:      SENHA_ADMIN || 'admin123',
     ranking_inicio:    state.rankingInicio   || null,
     ranking_inicio_ts: state.rankingInicioTs  || 0,
     msg_reativacao:   document.getElementById('cfg-msg-reativacao').value.trim() || null,
@@ -7851,13 +8049,16 @@ function confirmarWpp() {
 }
 
 function buildWppMsg(tipo, nome='') {
+  const neg = state.config.nome_negocio || 'nossa loja';
   const msgs = {
-    reativacao:  state.config.msg_reativacao  || `Olá ${nome}! Sentimos sua falta. Temos uma oferta especial: 15% de desconto na próxima compra!`,
-    aniversario: state.config.msg_aniversario || `Feliz aniversário, ${nome}! 🎂 Seu presente: 20% de desconto com o cupom ANIVER20!`,
-    pontos:      `Olá ${nome}! Você tem pontos acumulados. Resgate e aproveite benefícios exclusivos!`,
-    VIP:         state.config.msg_vip         || `Olá ${nome}, cliente VIP! Preparamos uma oferta exclusiva só para você. Entre em contato!`,
+    reativacao:  state.config.msg_reativacao  || `Olá ${nome}! Sentimos sua falta em ${neg}. Temos uma oferta especial esperando por você!`,
+    aniversario: state.config.msg_aniversario || `Feliz aniversário, ${nome}! Seu presente: 20% de desconto na próxima compra!`,
+    pontos:      `Olá ${nome}! Você tem pontos acumulados em ${neg}. Resgate e aproveite benefícios exclusivos!`,
+    VIP:         state.config.msg_vip         || `Olá ${nome}, cliente VIP! Preparamos uma oferta exclusiva só para você em ${neg}!`,
   };
-  return (msgs[tipo] || msgs.reativacao).replace(/{nome}/g, nome).replace(/{negocio}/g, state.config.nome_negocio||'nossa loja');
+  return (msgs[tipo] || msgs.reativacao)
+    .replace(/\{nome\}/g, nome).replace(/\[nome\]/g, nome)
+    .replace(/\{negocio\}/g, neg).replace(/\[negocio\]/g, neg);
 }
 function openWpp(tipo) {
   const numero = (state.config.whatsapp || '').replace(/\D/g,'');
@@ -8207,16 +8408,56 @@ function aplicarModo(modo) {
   }
 }
 
-function definirModo(modo) {
-  if (modo === 'admin') {
-    const senha = prompt('Digite a senha de administrador:');
-    if (senha === null) return; // cancelou
-    if (senha !== SENHA_ADMIN) {
-      toast('Senha incorreta — acesso negado', 'error');
-      return;
-    }
+function abrirModalSenhaAdmin() {
+  // Se já está em modo admin, só volta para funcionário
+  if (MODO_ATUAL === 'admin') {
+    definirModo('funcionario'); return;
   }
-  localStorage.setItem('nexus360_modo', modo);
+  const modal = document.getElementById('modalSenhaAdmin');
+  const input = document.getElementById('modalSenhaAdmin-input');
+  const erro  = document.getElementById('modalSenhaAdmin-erro');
+  erro.style.display = 'none';
+  input.value = '';
+  modal.style.display = 'flex';
+  setTimeout(() => input.focus(), 100);
+}
+
+function fecharModalSenhaAdmin() {
+  document.getElementById('modalSenhaAdmin').style.display = 'none';
+  document.getElementById('modalSenhaAdmin-input').value = '';
+  document.getElementById('modalSenhaAdmin-erro').style.display = 'none';
+}
+
+function toggleSenhaVisivel() {
+  const input = document.getElementById('modalSenhaAdmin-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function confirmarSenhaAdmin() {
+  const input = document.getElementById('modalSenhaAdmin-input');
+  const erro  = document.getElementById('modalSenhaAdmin-erro');
+  const senha = input.value;
+  if (!senha) { erro.textContent = 'Digite a senha.'; erro.style.display = 'block'; return; }
+  if (senha !== SENHA_ADMIN) {
+    erro.textContent = 'Senha incorreta. Tente novamente.';
+    erro.style.display = 'block';
+    input.value = '';
+    input.focus();
+    return;
+  }
+  fecharModalSenhaAdmin();
+  definirModo('admin');
+}
+
+function recuperarSenhaAdmin() {
+  const neg = localStorage.getItem('nexus360_nome_negocio') || 'Não identificado';
+  const msg = encodeURIComponent(`Olá! Esqueci a senha de administrador do Nexus360.\n\nNegócio: ${neg}\n\nPoderia me ajudar a recuperar?`);
+  window.open(`https://wa.me/5563981062551?text=${msg}`, '_blank');
+  fecharModalSenhaAdmin();
+}
+
+function definirModo(modo) {
+  MODO_ATUAL = modo;
   aplicarModo(modo);
   if (modo !== 'admin') { const vr = document.getElementById('vendaRapidaBar'); if(vr) vr.style.display='none'; }
   if(typeof filterClients==='function') filterClients();
@@ -8262,7 +8503,7 @@ function _chatAdicionarMsg(tipo, texto) {
 
 function _chatContexto() {
   const paginaAtual    = localStorage.getItem('nexus360_pagina') || 'dashboard';
-  const modo           = localStorage.getItem('nexus360_modo') || 'funcionario';
+  const modo           = MODO_ATUAL;
   const totalClientes  = state.clientes.length;
   const inativos       = state.clientes.filter(c => c.status === 'inativo').length;
   const vips           = state.clientes.filter(c => c.status === 'vip').length;
@@ -8356,7 +8597,7 @@ CONFIGURAÇÕES (só admin): nome do negócio, WhatsApp, segmento, dias inativo,
 
 PRODUTOS vs SERVIÇOS: ambos ficam em Produtos/Serviços. Serviços não têm estoque. Ambos podem ser adicionados em vendas.
 
-SENHA ADMIN: admin123 (botão "Admin" no canto inferior esquerdo para trocar de modo).`;
+SENHA ADMIN: definida no primeiro acesso (botão "Admin" no canto inferior esquerdo).`;
 }
 
 async function enviarMsgChat() {
@@ -8428,7 +8669,7 @@ async function rsvInit() {
 }
 
 function rsvPopularSelects() {
-  var clis = state.clientes.filter(function(c) { return c.status !== 'inativo'; })
+  var clis = state.clientes.slice()
     .sort(function(a,b) { return a.nome.localeCompare(b.nome); });
   var prods = state.itens.slice().sort(function(a,b) { return a.nome.localeCompare(b.nome); });
 
@@ -8944,52 +9185,284 @@ function iniciarRealtimeSync() {
   });
 }
 
-window.onload = async function() {
-  document.querySelectorAll('.modal-overlay').forEach(m =>
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); })
-  );
+// ══════════════════════════════════════════════════════════════════════════════
+// RECALCULAR PONTOS POR CATEGORIA — corrige histórico completo
+// ══════════════════════════════════════════════════════════════════════════════
+async function recalcularTodosPontos() {
+  const btn = document.getElementById('btn-recalc-pontos');
+  const log = document.getElementById('recalc-log');
 
-  aplicarModo(localStorage.getItem('nexus360_modo') || 'funcionario');
-  fcfgAplicar(fcfgGet());
+  if (!confirm('Isso vai recalcular os pontos de todos os clientes com base nas regras de categoria.\n\nOs pontos atuais serão substituídos. Confirma?')) return;
 
-  // Se abrindo via file://, tenta conectar mas não bloqueia
-  const isFile = window.location.protocol === 'file:';
+  // Garantir que temos vendas e clientes carregados
+  if (!state.vendas.length || !state.clientes.length) {
+    toast('Aguarde o carregamento dos dados.', 'error'); return;
+  }
+  if (!state.loyaltyCatRules) {
+    toast('Configure as regras de pontuação por categoria primeiro.', 'error'); return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Recalculando...';
+  log.style.display = 'block';
+  log.innerHTML = '';
+
+  const logLine = (txt) => {
+    log.innerHTML += txt + '<br>';
+    log.scrollTop = log.scrollHeight;
+  };
+
+  logLine('Iniciando recálculo...');
 
   try {
-    if (!isFile) {
-      await checkConnection();
-    } else {
-      // Via file:// tenta conexão em background com timeout de 3s
-      await Promise.race([
-        checkConnection(),
-        new Promise(r => setTimeout(r, 3000))
-      ]).catch(() => {});
-    }
-  } catch(e) {}
+    // 1. Agrupar todas as vendas por cliente e somar pontos por categoria
+    const pontosPorCliente = {}; // { clienteId: totalPontos }
 
-  // Sempre mostra a UI independente de conexão
+    state.vendas.forEach(v => {
+      const cliId = parseInt(v.cliente_id);
+      if (!cliId || !v.valor) return;
+
+      const cli   = state.clientes.find(c => parseInt(c.id) === cliId);
+      if (!cli) return;
+
+      const isVip = fidIsVip(cli);
+
+      // Categoria: campo categoria > campo itens simples > null
+      const catVenda = v.categoria
+        || (v.itens && !v.itens.includes(',') && !v.itens.includes('(')
+            && !v.itens.includes('Importado') && !v.itens.includes('rápida')
+            && v.itens.trim().length < 40
+            ? v.itens.trim() : null);
+
+      const pts = lcCalcularPontos(parseFloat(v.valor), catVenda || null, isVip);
+      if (pts > 0) {
+        pontosPorCliente[cliId] = (pontosPorCliente[cliId] || 0) + pts;
+      }
+    });
+
+    const clientesParaAtualizar = Object.entries(pontosPorCliente);
+    logLine(`${clientesParaAtualizar.length} clientes com vendas encontrados.`);
+
+    // 2. Atualizar cada cliente no Supabase em lotes de 5
+    let atualizados = 0;
+    let erros = 0;
+
+    for (let i = 0; i < clientesParaAtualizar.length; i += 5) {
+      const lote = clientesParaAtualizar.slice(i, i + 5);
+      await Promise.all(lote.map(async ([cliId, novosPontos]) => {
+        const cli = state.clientes.find(c => parseInt(c.id) === parseInt(cliId));
+        if (!cli) return;
+        const { error } = await db.from('clientes')
+          .update({ pontos: novosPontos })
+          .eq('id', parseInt(cliId))
+          .eq('company_id', state.companyId);
+        if (error) {
+          erros++;
+          logLine(`❌ Erro em ${cli.nome}: ${error.message}`);
+        } else {
+          cli.pontos = novosPontos; // atualiza state local
+          atualizados++;
+        }
+      }));
+      logLine(`Progresso: ${Math.min(i + 5, clientesParaAtualizar.length)}/${clientesParaAtualizar.length}`);
+    }
+
+    // 3. Clientes sem nenhuma venda — zerar pontos se > 0
+    const semVenda = state.clientes.filter(c => !pontosPorCliente[parseInt(c.id)] && (parseInt(c.pontos) || 0) > 0);
+    if (semVenda.length) {
+      logLine(`Zerando pontos de ${semVenda.length} clientes sem vendas...`);
+      for (const cli of semVenda) {
+        await db.from('clientes').update({ pontos: 0 }).eq('id', cli.id).eq('company_id', state.companyId);
+        cli.pontos = 0;
+      }
+    }
+
+    logLine(`✅ Concluído! ${atualizados} clientes atualizados${erros ? ', ' + erros + ' erros' : ''}.`);
+    toast('Pontos recalculados com sucesso!', 'success');
+
+    // Re-renderizar fidelidade e ranking
+    await loadClientes();
+    renderFidelidade();
+    renderRankingMensal();
+
+  } catch(e) {
+    logLine('❌ Erro geral: ' + e.message);
+    toast('Erro ao recalcular: ' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Recalcular pontos de todos os clientes';
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// AUTH MULTI-TENANT
+// ══════════════════════════════════════════════════════════════════
+
+function mostrarTelaLogin(msg) {
+  const tela = document.getElementById('tela-login');
+  if (!tela) return;
+  tela.style.display = 'flex';
+  const sid = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  if (sid) sid.style.display = 'none';
+  if (main) main.style.display = 'none';
+  if (msg) {
+    const alerta = document.getElementById('login-alerta-assn');
+    if (alerta) { alerta.textContent = msg; alerta.style.display = 'block'; }
+  }
+}
+
+function esconderTelaLogin() {
+  const tela = document.getElementById('tela-login');
+  if (tela) tela.style.display = 'none';
+  const sid = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  if (sid) sid.style.display = '';
+  if (main) main.style.display = '';
+}
+
+async function nexusFazerLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const senha  = document.getElementById('li-senha').value;
+  const btn    = document.getElementById('li-btn');
+  const erro   = document.getElementById('login-erro');
+  erro.style.display = 'none';
+  if (!email || !senha) { erro.textContent = 'Preencha e-mail e senha.'; erro.style.display = 'block'; return; }
+  btn.textContent = 'Entrando...'; btn.style.opacity = '.7'; btn.disabled = true;
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password: senha });
+    if (error) {
+      erro.textContent = (error.message.includes('Invalid') || error.message.includes('credentials'))
+        ? 'E-mail ou senha incorretos.' : 'Erro ao entrar. Tente novamente.';
+      erro.style.display = 'block';
+      btn.textContent = 'Entrar no sistema'; btn.style.opacity = '1'; btn.disabled = false;
+      return;
+    }
+    btn.textContent = 'Verificando acesso...';
+    await iniciarSistema();
+  } catch(e) {
+    erro.textContent = 'Erro de conexão.';
+    erro.style.display = 'block';
+    btn.textContent = 'Entrar no sistema'; btn.style.opacity = '1'; btn.disabled = false;
+  }
+}
+
+async function nexusLogout() {
+  if (!confirm('Deseja sair da sua conta?')) return;
+  await db.auth.signOut();
+  state.companyId = '720e05bf-16de-428d-b6f1-1cb122a55be9';
+  mostrarTelaLogin();
+}
+
+async function verificarAssinatura(companyId) {
+  try {
+    const { data, error } = await db
+      .from('subscriptions')
+      .select('status,expires_at')
+      .eq('company_id', companyId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Se não encontrou registro → assinatura não existe/não ativa
+    if (error || !data) {
+      return { ok: false, msg: 'Acesso pendente de ativação. Após confirmar o pagamento, seu acesso é liberado em até 24h. Dúvidas: WhatsApp (63) 98108-0070.' };
+    }
+
+    if (data.status !== 'active') {
+      return { ok: false, msg: 'Sua assinatura está suspensa. Entre em contato pelo WhatsApp (63) 98108-0070.' };
+    }
+
+    if (data.expires_at) {
+      const expira = new Date(data.expires_at);
+      expira.setHours(23, 59, 59);
+      if (expira < new Date()) {
+        const dias = Math.floor((new Date() - expira) / 86400000);
+        return { ok: false, msg: `Seu acesso expirou há ${dias} dia${dias>1?'s':''}. Renove pelo WhatsApp (63) 98108-0070.` };
+      }
+      const restam = Math.floor((expira - new Date()) / 86400000);
+      if (restam <= 7) setTimeout(() => toast(`Seu acesso expira em ${restam} dia${restam>1?'s':''}. Renove!`, 'warning', 8000), 3000);
+    }
+
+    return { ok: true };
+  } catch(e) {
+    return { ok: true };
+  }
+}
+
+async function iniciarSistema() {
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) {
+    hideLoading();
+    mostrarTelaLogin();
+    return;
+  }
+
+  // Buscar company_id
+  const DROGARIA_ID = '720e05bf-16de-428d-b6f1-1cb122a55be9';
+  const { data: cu, error: cuErr } = await db.from('company_users').select('company_id,role').eq('user_id', user.id).single();
+
+  if (cuErr || !cu) {
+    // Sem company_users → usuário novo que ainda não foi ativado
+    await db.auth.signOut();
+    hideLoading();
+    mostrarTelaLogin('Acesso pendente de ativação. Após confirmar o pagamento, seu acesso é liberado em até 24h. Dúvidas: WhatsApp (63) 98108-0070.');
+    return;
+  }
+
+  state.companyId = cu.company_id;
+
+  // Drogaria 208 Sul nunca é bloqueada
+  if (cu.company_id !== DROGARIA_ID) {
+    const assnCheck = await verificarAssinatura(cu.company_id);
+    if (!assnCheck.ok) {
+      await db.auth.signOut();
+      hideLoading();
+      mostrarTelaLogin(assnCheck.msg);
+      return;
+    }
+  }
+
+  esconderTelaLogin();
+  MODO_ATUAL = 'funcionario';
+  aplicarModo('funcionario');
+  fcfgAplicar(fcfgGet());
+  await checkConnection();
   if (state.connected) {
     await loadAll();
     iniciarRealtimeSync();
   } else {
     hideLoading();
     nav(localStorage.getItem('nexus360_pagina') || 'dashboard');
-    aplicarModo(localStorage.getItem('nexus360_modo') || 'funcionario');
     renderDashboard();
-    const phrase = document.getElementById('dashPhrase');
-    if (phrase) phrase.textContent = isFile
-      ? 'Abra pelo servidor local para carregar os dados: npx serve .'
-      : 'Sem conexão. Verifique sua internet e recarregue.';
   }
+  iniciarTutorialSeNecessario();
+  const badge = document.getElementById('topbarBusiness');
+  if (badge && user.email) badge.title = user.email;
+}
 
-  // Toast de lembrete se dados desatualizados
+window.onload = async function() {
+  document.querySelectorAll('.modal-overlay').forEach(m =>
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); })
+  );
+
+  // Esconder UI até confirmar login
+  const sid = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  if (sid) sid.style.display = 'none';
+  if (main) main.style.display = 'none';
+
+  showLoading('Verificando acesso...');
+  await iniciarSistema();
+
   const ultimaImp = localStorage.getItem('nexus360_ultima_importacao');
   if (ultimaImp) {
     const dias = Math.floor((new Date() - new Date(ultimaImp)) / 86400000);
     if (dias >= 1) setTimeout(() => toast(`Dados sem atualização há ${dias} dia${dias>1?'s':''}. Importe um CSV.`, 'info'), 2000);
   }
-
-  iniciarTutorialSeNecessario();
 };
 </script>
 <!-- ASSISTENTE IA -->
@@ -9151,14 +9624,16 @@ window.onload = async function() {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 54px;
+  height: calc(54px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   background: rgba(6,10,18,.97);
   border-bottom: 1px solid rgba(255,255,255,.06);
   backdrop-filter: blur(20px);
   z-index: 600;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding-left: 14px;
+  padding-right: 14px;
   gap: 10px;
 }
 #mTopbar .m-logo {
@@ -9330,7 +9805,7 @@ window.onload = async function() {
   /* Main layout */
   #main {
     margin-left: 0 !important;
-    padding-top: 54px !important;
+    padding-top: calc(54px + env(safe-area-inset-top)) !important;
   }
 
   /* Content padding */
@@ -9342,7 +9817,7 @@ window.onload = async function() {
   body, #main, #content { overflow-x: hidden !important; }
 
   /* Page headers */
-  .page-header { padding: 14px 2px 10px !important; }
+  .page-header { padding: 20px 2px 10px !important; }
   .page-header-title { font-size: 17px !important; }
   .page-header-sub { font-size: 12px !important; }
 
@@ -9803,41 +10278,45 @@ function openClientDrawer(clientId) {
   const last5 = [...vendas].sort((a,b)=>new Date(b.data||b.created_at)-new Date(a.data||a.created_at)).slice(0,5);
   document.getElementById('drawerPurchases').innerHTML = last5.length===0
     ? '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Sem compras registradas</div>'
-    : last5.map(v=>`<div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px"><div style="font-weight:600;color:var(--text1)">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div style="color:var(--text3)">${v.data?new Date(v.data).toLocaleDateString('pt-BR'):'—'}</div></div>`).join('');
+    : last5.map(v => {
+        const valor = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+        const data  = v.data ? new Date(v.data).toLocaleDateString('pt-BR') : '—';
+        // Categoria ou tipo de venda
+        const cat   = v.categoria || null;
+        // Itens — mostrar se não for genérico demais
+        const itens = v.itens && !['Importado','Não identificado','Venda rápida do dia',''].includes(v.itens.trim())
+          ? v.itens.trim() : null;
+        const label = cat || itens || 'Venda geral';
+        // Gera cor automaticamente a partir do texto — funciona para qualquer segmento
+        const _hashCor = str => {
+          let h = 0;
+          for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+          const paleta = [
+            { bg:'rgba(59,130,246,.12)',  color:'#60A5FA' }, // azul
+            { bg:'rgba(16,185,129,.12)', color:'#34D399' }, // verde
+            { bg:'rgba(139,92,246,.12)', color:'#A78BFA' }, // roxo
+            { bg:'rgba(236,72,153,.12)', color:'#F472B6' }, // rosa
+            { bg:'rgba(245,158,11,.12)', color:'#FCD34D' }, // amarelo
+            { bg:'rgba(6,182,212,.12)',  color:'#22D3EE' }, // ciano
+            { bg:'rgba(239,68,68,.12)',  color:'#F87171' }, // vermelho
+            { bg:'rgba(251,146,60,.12)', color:'#FB923C' }, // laranja
+          ];
+          return paleta[Math.abs(h) % paleta.length];
+        };
+        const cor = label !== 'Venda geral' ? _hashCor(label) : { bg:'rgba(255,255,255,.06)', color:'var(--text3)' };
+        return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="font-size:14px;font-weight:700;color:var(--text1)">R$ ${valor}</div>
+            <div style="font-size:11px;color:var(--text3)">${data}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:${cor.bg};color:${cor.color}">${label}</span>
+          </div>
+        </div>`;
+      }).join('');
   document.getElementById('clientDrawer').style.transform='translateX(0)';
   document.getElementById('drawerOverlay').style.opacity='1';
   document.getElementById('drawerOverlay').style.pointerEvents='all';
-}
-
-function closeClientDrawer() {
-  document.getElementById('clientDrawer').style.transform='translateX(100%)';
-  document.getElementById('drawerOverlay').style.opacity='0';
-  document.getElementById('drawerOverlay').style.pointerEvents='none';
-  drawerClient=null;
-}
-
-function drawerOpenWpp() {
-  if (!drawerClient) return;
-  const c = drawerClient;
-  const num = (c.telefone||'').replace(/\D/g,'');
-  if (!num) { toast('Sem telefone','error'); return; }
-  const neg = (state.config&&state.config.nome_negocio)||'nossa loja';
-  const st = window.calcularStatus?window.calcularStatus(c):c.status;
-  let msg = st==='inativo'?((state.config&&state.config.msg_reativacao)||'Oi, '+c.nome+'! Sentimos sua falta em '+neg+'.'):st==='vip'?((state.config&&state.config.msg_vip)||'Oi, '+c.nome+'! Temos oferta VIP em '+neg+'!'):'Oi, '+c.nome+'! Você tem '+(c.pontos||0)+' pontos em '+neg+'.';
-  msg = msg.replace(/{nome}/g,c.nome).replace(/{negocio}/g,neg);
-  wppAbrir(num,msg);
-}
-
-function drawerOpenVenda() {
-  if (!drawerClient) return;
-  const c = drawerClient; closeClientDrawer();
-  setTimeout(()=>{ openModalVenda(); setTimeout(()=>{ if(typeof vdSelecionarCliente==='function') vdSelecionarCliente(c.id); },150); },100);
-}
-
-function drawerEdit() {
-  if (!drawerClient) return;
-  const id = drawerClient.id; closeClientDrawer();
-  setTimeout(()=>editCliente(id),100);
 }
 
 </script>
@@ -10689,7 +11168,11 @@ function calEventsForWeek(startDate) {
 }
 
 function calDateStr(d) {
-  return d.toISOString().split('T')[0];
+  // Usar data local (não UTC) para evitar problemas de fuso horário
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
 }
 
 function calSetView(v) {
@@ -11216,116 +11699,6 @@ async function calConcluirDoModal() {
   await calSalvar();
 }
 
-function calRenderAgendaDia(dateStr) {
-  calAgendaDiaAtual = dateStr;
-  const eventos = calEventsForDate(dateStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));
-  const d = new Date(dateStr+'T12:00:00');
-  const hoje = calDateStr(new Date());
-  const isHoje = dateStr === hoje;
-  const fmtDia = d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
-
-  const tituloEl   = document.getElementById('calAgendaTitulo');
-  const subEl      = document.getElementById('calAgendaSubtitulo');
-  const badgeEl    = document.getElementById('calAgendaBadge');
-  const listaEl    = document.getElementById('calAgendaLista');
-  const iaEl       = document.getElementById('calIaPanel');
-  const insightsEl = document.getElementById('calIaInsights');
-
-  if (tituloEl) tituloEl.textContent = isHoje ? 'Agenda de Hoje' : 'Agenda — '+fmtDia;
-  if (subEl) subEl.textContent = eventos.length + ' compromisso' + (eventos.length!==1?'s':'');
-  if (badgeEl) {
-    badgeEl.textContent = eventos.length ? eventos.length+' evento'+(eventos.length!==1?'s':'') : 'Dia livre';
-    badgeEl.style.background = eventos.length ? 'rgba(59,130,246,.12)' : 'rgba(16,185,129,.1)';
-    badgeEl.style.color = eventos.length ? '#60A5FA' : '#10B981';
-  }
-
-  if (iaEl && insightsEl) {
-    if (eventos.length) {
-      const vips       = eventos.filter(e=>{ const c=(state.clientes||[]).find(x=>x.id==e.cliente_id); return c?.status==='vip'; });
-      const atrasados  = eventos.filter(e=>e.status==='atrasado');
-      const finalizados= eventos.filter(e=>e.status==='finalizado');
-      const insights   = [];
-      insights.push({cor:'#3B82F6',txt:`${eventos.length} compromisso${eventos.length!==1?'s':''} neste dia`});
-      if (vips.length) insights.push({cor:'#8B5CF6',txt:`${vips.length} cliente${vips.length!==1?'s':''} VIP agendado${vips.length!==1?'s':''}`});
-      if (atrasados.length) insights.push({cor:'#EF4444',txt:`${atrasados.length} atrasado${atrasados.length!==1?'s':''}`});
-      if (finalizados.length) insights.push({cor:'#10B981',txt:`${finalizados.length} finalizado${finalizados.length!==1?'s':''}`});
-      for (let h=8;h<=18;h++) { if (!eventos.some(e=>e.inicio&&parseInt(e.inicio.split(':')[0])===h)) { insights.push({cor:'#94A3B8',txt:`Horário das ${h.toString().padStart(2,'0')}h livre`}); break; } }
-      insightsEl.innerHTML = insights.map(i=>`<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div style="width:6px;height:6px;border-radius:50%;background:${i.cor};flex-shrink:0"></div>${i.txt}</div>`).join('');
-      iaEl.style.display = 'block';
-    } else iaEl.style.display = 'none';
-  }
-
-  if (!listaEl) return;
-  if (!eventos.length) {
-    listaEl.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--text3)"><div style="font-size:14px;font-weight:600;margin-bottom:4px">Dia livre</div><div style="font-size:12px">Clique em "+ Evento" para adicionar</div></div>`;
-    return;
-  }
-
-  listaEl.innerHTML = `<div class="cal-timeline">` + eventos.map((e,i) => {
-    const cat    = CAL_CATS[e.categoria] || CAL_CATS.personalizado;
-    const status = CAL_STATUS[e.status||'agendado'] || CAL_STATUS.agendado;
-    const cli    = (state.clientes||[]).find(c=>c.id==e.cliente_id);
-    const prioMap= {urgente:{cor:'#EF4444',lbl:'Urgente'},alta:{cor:'#F59E0B',lbl:'Alta'},normal:{cor:'#94A3B8',lbl:'Normal'}};
-    const prio   = prioMap[e.prioridade||'normal'];
-    const isFin  = e.status==='finalizado'||e.status==='cancelado';
-    const tel    = (cli?.telefone||'').replace(/\D/g,'');
-    const eid    = e.id;
-    return `<div class="cal-agenda-card${isFin?' cal-agenda-card--done':''}">
-      <div class="cal-timeline-line">
-        <div class="cal-timeline-dot" style="background:${cat.dot};box-shadow:0 0 8px ${cat.dot}60"></div>
-        ${i<eventos.length-1?'<div class="cal-timeline-connector"></div>':''}
-      </div>
-      <div class="cal-agenda-body">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-          ${e.inicio?`<span style="font-size:12px;font-weight:700;color:#60A5FA">${e.inicio.slice(0,5)}${e.fim?' – '+e.fim.slice(0,5):''}</span>`:''}
-          <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${status.bg};color:${status.cor};font-weight:600">${status.label}</span>
-          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.05);color:${prio.cor};font-weight:600">${prio.lbl}</span>
-        </div>
-        <div style="font-size:14px;font-weight:700;color:${isFin?'var(--text3)':'var(--text1)'};${isFin?'text-decoration:line-through':''};margin-bottom:6px">${e.titulo}</div>
-        ${(cli||e.funcionario||e.obs)?`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:12px;color:var(--text3)">
-          ${cli?`<span>Cliente: <strong style="color:var(--text2)">${cli.nome}${cli.status==='vip'?' ★':''}</strong></span>`:''}
-          ${e.funcionario?`<span>Resp: <strong style="color:var(--text2)">${e.funcionario}</strong></span>`:''}
-          ${e.obs?`<span style="font-style:italic">${e.obs}</span>`:''}
-        </div>`:''}
-        <div class="cal-agenda-actions">
-          ${!isFin?`<button class="cal-action-btn cal-action-btn--green" onclick="calConcluirRapido('${eid}')">Concluir</button>`:''}
-          <button class="cal-action-btn" onclick="calOpenEdit('${eid}')">Editar</button>
-          ${tel?`<button class="cal-action-btn cal-action-btn--wpp" onclick="openWppCalendario('${(cli?.nome||e.titulo).replace(/'/g,"\\'")}','${tel}','${e.titulo.replace(/'/g,"\\'").replace(/"/g,'')}','${e.data||''}','${e.inicio?e.inicio.slice(0,5):''}')">WhatsApp</button>`:''}
-          ${tel?`<button class="cal-action-btn" onclick="window.open('tel:+55${tel}','_self')">Ligar</button>`:''}
-          ${!isFin?`<button class="cal-action-btn cal-action-btn--red" onclick="calCancelarRapido('${eid}')">Cancelar</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  }).join('') + '</div>';
-}
-
-async function calConcluirRapido(id) {
-  try {
-    await db.from('eventos').update({status:'finalizado'}).eq('id', id);
-    const e = calData.find(x=>String(x.id)===String(id));
-    if (e) e.status = 'finalizado';
-    calRenderAgendaDia(calAgendaDiaAtual);
-    calRender();
-    toast('Compromisso concluído!','success');
-  } catch(err) { toast('Erro: '+err.message,'error'); }
-}
-
-async function calCancelarRapido(id) {
-  if (!confirm('Cancelar este evento?')) return;
-  try {
-    await db.from('eventos').update({status:'cancelado'}).eq('id', id);
-    const e = calData.find(x=>String(x.id)===String(id));
-    if (e) e.status = 'cancelado';
-    calRenderAgendaDia(calAgendaDiaAtual);
-    toast('Evento cancelado','success');
-  } catch(err) { toast('Erro: '+err.message,'error'); }
-}
-
-async function calConcluirDoModal() {
-  const statusEl = document.getElementById('cal-status');
-  if (statusEl) statusEl.value = 'finalizado';
-  await calSalvar();
-}
 
 // Mostrar agenda do dia atual ao iniciar
 const _calInitOrig = calInit;
@@ -11495,7 +11868,7 @@ function rsvWppEnviar() {
   <div class="md-bottom">
     <div class="md-modes">
       <button class="md-mode-btn" id="mBtnFunc" onclick="definirModo('funcionario');mClose()">Funcionário</button>
-      <button class="md-mode-btn" id="mBtnAdmin" onclick="definirModo('admin');mClose()">Admin</button>
+      <button class="md-mode-btn" id="mBtnAdmin" onclick="mClose();setTimeout(()=>abrirModalSenhaAdmin(),200)">Admin</button>
     </div>
   </div>
 </div>
@@ -11515,7 +11888,7 @@ function rsvWppEnviar() {
 function mOpen() {
   document.getElementById('mDrawer').classList.add('open');
   document.getElementById('mOverlay').classList.add('open');
-  const modo = localStorage.getItem('nexus360_modo') || 'funcionario';
+  const modo = MODO_ATUAL;
   document.getElementById('mBtnFunc').classList.toggle('active', modo !== 'admin');
   document.getElementById('mBtnAdmin').classList.toggle('active', modo === 'admin');
   mSyncDrawerNav();
@@ -11559,7 +11932,7 @@ function mNav(page) {
 }
 
 function mSyncDrawerNav() {
-  const modo = localStorage.getItem('nexus360_modo') || 'funcionario';
+  const modo = MODO_ATUAL;
   const isAdmin = modo === 'admin';
   // Pages only for admin
   const adminOnly = ['campanhas','crm','devedores','calendario','relatorios','config','funcionarios'];
@@ -11599,7 +11972,7 @@ function mVendaRapida() {
   // Remove modal anterior para sempre recriar com dados atualizados
   document.getElementById('mModalVendaRapida')?.remove();
 
-  const cats = [...new Set((state.itens||[]).map(i=>i.categoria).filter(Boolean))].sort();
+  const cats = getCategorias();
   const catsHtml = '<option value="">— Sem categoria —</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 
   const m = document.createElement('div');
@@ -12319,9 +12692,33 @@ async function fnLoadAll() {
 // ══════════════════════════════════════════════════════════════════════
 // HELPERS DE MÉTRICAS REAIS
 // ══════════════════════════════════════════════════════════════════════
-function fnVendasDoMes(fnId, fnNome) {
+function fnGetPeriodoSelecionado() {
+  const sel = document.getElementById('fn-filtro-mes');
+  if (!sel || !sel.value) {
+    const h = new Date();
+    return { mes: h.getMonth(), ano: h.getFullYear() };
+  }
+  const [ano, mes] = sel.value.split('-').map(Number);
+  return { mes: mes - 1, ano };
+}
+
+function fnPopularSelectMes() {
+  const sel = document.getElementById('fn-filtro-mes');
+  if (!sel) return;
   const hoje = new Date();
-  const mes  = hoje.getMonth(); const ano = hoje.getFullYear();
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const opts = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = i === 0 ? `${meses[d.getMonth()]} ${d.getFullYear()} (atual)` : `${meses[d.getMonth()]} ${d.getFullYear()}`;
+    opts.push(`<option value="${val}">${label}</option>`);
+  }
+  sel.innerHTML = opts.join('');
+}
+
+function fnVendasDoMes(fnId, fnNome) {
+  const { mes, ano } = fnGetPeriodoSelecionado();
   return (state.vendas || []).filter(v => {
     if (!v.data) return false;
     const d = new Date(v.data + 'T12:00:00');
@@ -12474,7 +12871,7 @@ function fnAba(aba) {
     }
   });
   switch(aba) {
-    case 'dashboard':  fnRenderDashboard(); break;
+    case 'dashboard':  fnPopularSelectMes(); fnRenderDashboard(); break;
     case 'equipe':     fnRenderEquipe(); break;
     case 'metas':      fnRenderMetas(); break;
     case 'ranking':    fnRenderRanking(); break;
@@ -12893,7 +13290,7 @@ function fnRenderHistorico() {
     return true;
   }).forEach(v => {
     const cli = (state.clientes||[]).find(c=>c.id==v.cliente_id);
-    eventos.push({ ts: v.data+'T12:00:00', icon:'$', cor:'rgba(16,185,129,.15)', txt:`<strong>${v.funcionario||''}</strong> registrou venda de <strong>${fnFmt(v.valor)}</strong>${cli?' para '+cli.nome:''}`, sub: v.itens||'' });
+    eventos.push({ ts: v.created_at || v.data+'T12:00:00', icon:'$', cor:'rgba(16,185,129,.15)', txt:`<strong>${v.funcionario||''}</strong> registrou venda de <strong>${fnFmt(v.valor)}</strong>${cli?' para '+cli.nome:''}`, sub: v.itens||'' });
   });
 
   // Follow-ups
@@ -13207,7 +13604,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.nav = function(id, el) {
       origNav(id, el);
       if (id === 'funcionarios') {
-        fnLoadAll().then(() => fnAba('dashboard'));
+        fnLoadAll().then(() => { fnPopularSelectMes(); fnAba('dashboard'); });
       }
     };
   }
