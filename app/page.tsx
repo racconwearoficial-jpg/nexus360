@@ -37,42 +37,6 @@ const Grid = ({ o = 0.35 }: { o?: number }) => (
   </svg>
 );
 
-/* ============ ilustração: celular com WhatsApp ============ */
-function PhoneWhats() {
-  const bubbleOut = { background: "#10604F", color: "#E9F5F1", alignSelf: "flex-end" as const, borderRadius: "12px 12px 3px 12px" };
-  const bubbleIn = { background: "#1E2C35", color: "#DDE5EA", alignSelf: "flex-start" as const, borderRadius: "12px 12px 12px 3px" };
-  const base = { maxWidth: "86%", padding: "9px 12px 7px", fontSize: 12.6, lineHeight: 1.45, boxShadow: "0 1px 2px rgba(0,0,0,.3)" };
-  return (
-    <div style={{ width: 272, margin: "0 auto", borderRadius: 36, border: "9px solid #161C26", background: "#0B141A", boxShadow: "0 40px 80px rgba(0,0,0,.65), 0 0 60px rgba(16,185,129,.09)", overflow: "hidden" }}>
-      <div style={{ background: "#1E2C35", padding: "11px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#3B82F6,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>F</div>
-        <div>
-          <div style={{ fontSize: 12.6, fontWeight: 700, color: "#EAF0F4" }}>Marcos</div>
-          <div style={{ fontSize: 10, color: "#7C8B95" }}>online</div>
-        </div>
-      </div>
-      <div style={{ padding: "14px 12px 16px", display: "flex", flexDirection: "column", gap: 8, background: "#0B141A", minHeight: 300 }}>
-        <div style={{ ...base, ...bubbleOut }}>
-          Oi Marcos! Aqui é da farmácia. Vi que faz uns 2 meses que você não passa por aqui.
-          <div style={{ fontSize: 9, color: "rgba(233,245,241,.45)", textAlign: "right", marginTop: 3 }}>09:12 ✓✓</div>
-        </div>
-        <div style={{ ...base, ...bubbleOut }}>
-          Separei 20% pra cliente antigo, válido até sábado. Quer que eu guarde?
-          <div style={{ fontSize: 9, color: "rgba(233,245,241,.45)", textAlign: "right", marginTop: 3 }}>09:12 ✓✓</div>
-        </div>
-        <div style={{ ...base, ...bubbleIn }}>
-          Opa, que bom! Pode guardar sim
-          <div style={{ fontSize: 9, color: "rgba(221,229,234,.4)", textAlign: "right", marginTop: 3 }}>09:26</div>
-        </div>
-        <div style={{ ...base, ...bubbleOut }}>
-          Guardado! Te espero até sábado
-          <div style={{ fontSize: 9, color: "rgba(233,245,241,.45)", textAlign: "right", marginTop: 3 }}>09:27 ✓✓</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ============ ilustração: Google antes x depois ============ */
 function GoogleCard({ depois }: { depois: boolean }) {
   const dim = "rgba(255,255,255,.28)";
@@ -118,33 +82,6 @@ function GoogleCard({ depois }: { depois: boolean }) {
   );
 }
 
-/* ============ ilustração: lista de quem chamar ============ */
-function ListaContatos() {
-  const linhas = [
-    { n: "Marcos A.", d: "92 dias sem comprar" },
-    { n: "Juliana R.", d: "88 dias sem comprar" },
-    { n: "Pedro S.", d: "76 dias sem comprar" },
-    { n: "Ana C.", d: "68 dias sem comprar" },
-  ];
-  return (
-    <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, padding: 16, boxShadow: "0 24px 60px rgba(0,0,0,.45)" }}>
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#93C5FD", marginBottom: 14 }}>Clientes para contatar hoje</div>
-      <div style={{ display: "grid", gap: 8 }}>
-        {linhas.map(l => (
-          <div key={l.n} style={{ display: "flex", alignItems: "center", gap: 11, background: "rgba(255,255,255,.025)", borderRadius: 10, padding: "10px 12px" }}>
-            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(139,92,246,.18)", color: "#C4B5FD", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{l.n[0]}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{l.n}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.32)" }}>{l.d}</div>
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "#04140E", background: "#10B981", padding: "6px 11px", borderRadius: 7, flexShrink: 0 }}>WhatsApp</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ============ dados ============ */
 const PROBLEMAS = [
   { n: "01", t: "Você não aparece no “perto de mim”", d: "Quem digita “farmácia perto de mim” está com o dinheiro na mão. Perfil do Google incompleto ou na categoria errada te deixa fora dessa lista." },
@@ -153,21 +90,14 @@ const PROBLEMAS = [
   { n: "04", t: "Ninguém sabe quem é seu melhor cliente", d: "Sem cadastro e sem histórico, quem compra todo mês recebe o mesmo tratamento de quem apareceu uma vez." },
 ];
 
-const PASSOS = [
-  { n: "01", q: "24 horas · gratuito", t: "Diagnóstico", d: "Analiso seu Google, seu WhatsApp, seu Instagram e os três concorrentes mais próximos e mostro onde está vazando cliente. Você recebe mesmo que não feche nada." },
-  { n: "02", q: "48 horas", t: "Arrumação", d: "Monto tudo do meu lado: Google otimizado, textos, artes e mensagens prontas. O que precisar sair do seu celular, eu te direciono passo a passo." },
-  { n: "03", q: "primeira semana", t: "Reativação", d: "Campanha que chama de volta seus clientes antigos, com oferta e prazo. Mensagens escritas uma a uma, no seu tom, saindo do seu número." },
-  { n: "04", q: "todo mês", t: "Manutenção", d: "Google atualizado, avaliações entrando, artes novas, campanha mensal, e o Nexus 360 rodando seu cadastro e sua fidelidade." },
-];
 
 const SERVICOS = [
   { i: Ico.pin, c: "#3B82F6", t: "Google Meu Negócio", d: "Perfil reivindicado, categoria certa, fotos, serviços com preço e botão de WhatsApp." },
-  { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "Campanha para trazer de volta quem já comprou e sumiu. A venda mais rápida do seu negócio." },
+  { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "O sistema marca quem parou de comprar e deixa a campanha de retorno pronta. A venda mais rápida do seu negócio." },
   { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca." },
-  { i: Ico.clock, c: "#8B5CF6", t: "WhatsApp que converte", d: "Link direto, mensagem pronta, catálogo com preço e respostas rápidas. Nenhum contato se perde." },
+  { i: Ico.clock, c: "#8B5CF6", t: "WhatsApp que converte", d: "Saudação automática, mensagem de ausência, atalhos de resposta, catálogo com preço e link direto. Configurado e testado." },
   { i: Ico.brush, c: "#EC4899", t: "Identidade visual", d: "Logo, cores e tipografia em arquivo pronto para placa, cartão, rede social e fachada." },
   { i: Ico.play, c: "#EF4444", t: "Artes, posts e Reels", d: "Artes com a sua identidade e vídeos curtos editados a partir do que você grava no celular." },
-  { i: Ico.chart, c: "#3B82F6", t: "Sistema Nexus 360", d: "Cadastro, fidelidade com pontos, ranking, funil e relatórios. Incluso nos planos mensais." },
   { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta e no Google para quem já tem o básico arrumado. Verba paga direto por você." },
   { i: Ico.insta, c: "#8B5CF6", t: "Instagram profissional", d: "Bio que explica o que você vende, destaques organizados e perfil pronto para quem chega decidir comprar." },
 ];
@@ -176,7 +106,7 @@ const RECURSOS = [
   { t: "Cadastro de clientes", d: "Histórico de compra, contato e observações de cada um" },
   { t: "Fidelidade com pontos", d: "Quem compra mais junta pontos e troca por desconto" },
   { t: "Ranking e níveis", d: "Você enxerga na hora quem é VIP e quem sumiu" },
-  { t: "Campanhas de WhatsApp", d: "Listas prontas de quem chamar, com a mensagem escrita" },
+  { t: "Campanhas de WhatsApp", d: "Separa o público certo e deixa a campanha pronta para disparar" },
   { t: "Programa de indicação", d: "Cliente indica amigo, os dois ganham, você cresce sem anúncio" },
   { t: "Relatórios de verdade", d: "Faturamento, ticket médio e vendas, atualizado sozinho" },
 ];
@@ -184,12 +114,12 @@ const RECURSOS = [
 const PACOTES = [
   {
     tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
-    desc: "Para quem precisa de movimento essa semana",
-    itens: ["Campanha de reativação com as mensagens escritas", "Google Meu Negócio otimizado", "Link de avaliação + arte com QR code", "WhatsApp organizado com respostas rápidas", "Bônus: 10 artes com a cara do seu negócio"],
+    desc: "Para quem quer ser encontrado e parar de perder contato",
+    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "WhatsApp organizado: saudação, ausência e atalhos", "Bônus: 10 artes com a cara do seu negócio"],
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
-    tag: "Pacote avulso", nome: "Presença Completa", preco: "R$ 450", periodo: "pagamento único · até 2x",
+    tag: "Pacote avulso", nome: "Presença Completa", preco: "R$ 450", periodo: "pagamento único",
     desc: "Para quem começa do zero ou quer parar de parecer amador",
     itens: ["Tudo do Recomeço", "Identidade visual: logo, cores e tipografia", "15 artes com legendas prontas", "Instagram reescrito: bio, destaques e posts", "Site de uma página, feito para celular"],
     selo: "Entrega em 7 dias · arquivos são seus", destaque: false,
@@ -197,8 +127,8 @@ const PACOTES = [
   {
     tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 497", periodo: "por mês · sem fidelidade",
     desc: "Arrumar uma vez traz cliente, manter faz o movimento parar de oscilar",
-    itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório com os números reais do seu negócio"],
-    selo: "Implantação R$ 400 (única) · cancele quando quiser", destaque: true,
+    itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório mensal do seu Google: visualizações, cliques e pedidos de rota"],
+    selo: "Implantação gratuita · cancele quando quiser", destaque: true,
   },
   {
     tag: "Plano mensal", nome: "Aceleração", preco: "R$ 897", periodo: "por mês + verba de anúncio",
@@ -206,6 +136,22 @@ const PACOTES = [
     itens: ["Tudo do Crescimento", "Criação e gestão de anúncios no Meta e Google", "Criativos e textos testados", "4 Reels por mês, editados e legendados", "Ajuste semanal do custo por contato"],
     selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
   },
+];
+
+const VE = [
+  { t: "Vendas do dia", d: "o número que fecha o caixa à noite" },
+  { t: "Estoque acabando", d: "o que precisa repor essa semana" },
+  { t: "Contas a pagar", d: "fornecedor, aluguel e folha" },
+  { t: "Movimento na loja", d: "quem entrou pela porta hoje" },
+  { t: "Equipe e escala", d: "quem está no balcão em cada turno" },
+];
+
+const NAO_VE = [
+  "Quem procurou seu serviço no Google e clicou no concorrente da esquina",
+  "Os R$ 50 que você impulsionou naquele post e nunca soube se trouxeram alguém",
+  "O cliente que comprava todo mês e parou de aparecer há 70 dias",
+  "Quantos clientes você ganhou e quantos deixaram de voltar neste mês",
+  "Quem abriu seu Instagram, não achou preço nem horário e desistiu de perguntar",
 ];
 
 const GARANTIAS = [
@@ -217,12 +163,12 @@ const GARANTIAS = [
 
 const FAQ = [
   { q: "Preciso ter CNPJ?", a: "Não. Dá para fazer tudo com negócio informal, inclusive o perfil no Google." },
-  { q: "E se eu não souber mexer em nada?", a: "Melhor ainda. Eu faço o que dá para fazer do meu lado e te direciono passo a passo no que precisa sair do seu celular." },
-  { q: "Preciso te dar acesso ao meu WhatsApp?", a: "Não. Eu preparo tudo e te oriento; o envio sai sempre do seu número, com você no controle." },
+  { q: "E se eu não souber mexer em nada?", a: "Melhor ainda. Eu entrego tudo montado e funcionando. Uma ou outra coisa depende do seu login, como a verificação do Google — nessas eu ligo e a gente resolve junto em poucos minutos." },
+  { q: "Preciso te dar acesso ao meu WhatsApp?", a: "Não preciso do seu aparelho. O sistema trabalha com a sua base de clientes e deixa as campanhas montadas; quem dispara é você, em nome do seu negócio. O seu WhatsApp do dia a dia continua sendo só seu." },
   { q: "Em quanto tempo aparece resultado?", a: "A reativação costuma dar retorno na mesma semana, porque fala com quem já te conhece. O Google leva de duas a seis semanas para firmar posição." },
   { q: "O sistema é difícil de usar?", a: "Não. Eu cadastro sua base e acompanho a primeira semana. Funciona no celular e no computador." },
   { q: "Sou obrigado a assinar mensalidade?", a: "Não. Os pacotes avulsos são completos e funcionam sozinhos. O plano mensal só existe para quem quiser manter." },
-  { q: "Como eu pago?", a: "Pix ou cartão. Nos pacotes avulsos, metade para começar e metade na entrega." },
+  { q: "Como eu pago?", a: "Só Pix. Nos pacotes avulsos, metade para começar e metade na entrega." },
 ];
 
 /* ============ estilos ============ */
@@ -247,13 +193,12 @@ export default function Home() {
         details>summary::-webkit-details-marker{display:none}
         details[open] .chev{transform:rotate(45deg)}
         .grid{display:grid;gap:18px}
-        .g-serv{grid-template-columns:repeat(3,1fr)}
+        .g-serv{grid-template-columns:repeat(4,1fr)}
         .g-pac{grid-template-columns:repeat(4,1fr);align-items:stretch}
         .g-passos{grid-template-columns:repeat(4,1fr)}
         .g-gar{grid-template-columns:repeat(2,1fr)}
-        @media (max-width:1120px){ .g-pac{grid-template-columns:repeat(2,1fr)} .g-passos{grid-template-columns:repeat(2,1fr)} }
-        @media (max-width:920px){ .g-serv{grid-template-columns:1fr} }
-        @media (max-width:660px){ .g-pac,.g-passos,.g-gar{grid-template-columns:1fr} }
+        @media (max-width:1120px){ .g-pac,.g-serv{grid-template-columns:repeat(2,1fr)} }
+        @media (max-width:660px){ .g-pac,.g-serv,.g-gar{grid-template-columns:1fr} }
         .float{position:absolute;z-index:3}
         @media (max-width:900px){ .float{display:none} }
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
@@ -309,8 +254,8 @@ export default function Home() {
               <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(52,211,153,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>{Ico.checkG}</div>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>Lista de quem chamar hoje</div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.35)" }}>pronta toda manhã</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>Alerta de cliente inativo</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.35)" }}>avisa quem parou de voltar</div>
                 </div>
               </div>
             </div>
@@ -338,10 +283,10 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 56, alignItems: "center", marginBottom: 64 }}>
             <div>
-              <p style={S.eyebrow}>O que está acontecendo</p>
-              <h2 style={{ ...S.h2, marginBottom: 18 }}>Seu cliente procura no celular<br />e não te encontra</h2>
+              <p style={{ ...S.eyebrow, color: "#FCA5A5" }}>O buraco no seu caixa</p>
+              <h2 style={{ ...S.h2, marginBottom: 18 }}>Todo mês entra menos<br />do que deveria</h2>
               <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 22 }}>
-                Não é falta de qualidade no seu serviço. O caminho até você está quebrado em quatro pontos, e os quatro têm conserto sem gastar um real em anúncio.
+                E quase nunca é o produto. É que o caminho entre o cliente e a sua porta está quebrado em quatro pontos, ao mesmo tempo, e nenhum deles aparece no seu balanço no fim do mês.
               </p>
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
                 <div>
@@ -370,56 +315,60 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ REATIVAÇÃO / CELULAR ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(16,185,129,0.025)" }}>
+      {/* ============ O QUE NAO APARECE NO CAIXA ============ */}
+      <section className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(255,255,255,0.014)" }}>
         <Grid o={0.4} />
-        <div style={{ maxWidth: 1080, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 56, alignItems: "center" }}>
-            <div>
-              <p style={{ ...S.eyebrow, color: "#6EE7B7" }}>A venda mais rápida que existe</p>
-              <h2 style={{ ...S.h2, marginBottom: 18 }}>Seus clientes antigos<br />estão no seu WhatsApp</h2>
-              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 26 }}>
-                Dezenas de pessoas já compraram de você, gostaram e simplesmente pararam de voltar. Elas não precisam ser convencidas de nada, só lembradas.
-              </p>
-              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 30 }}>
-                Eu monto a lista de quem sumiu, escrevo a mensagem de cada um com nome e motivo, e você envia do seu próprio número. Sem anúncio, sem custo por clique.
-              </p>
-              <div style={{ marginBottom: 28 }}><ListaContatos /></div>
-              <a href={WA_DIAG} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "rgba(16,185,129,.14)", border: "1px solid rgba(16,185,129,.35)", color: "#6EE7B7", textDecoration: "none", fontSize: 15, fontWeight: 700, padding: "14px 28px", borderRadius: 11, display: "inline-block" }}>
-                Quero reativar meus clientes →
-              </a>
-            </div>
-            <div><PhoneWhats /></div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ COMO FUNCIONA ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(59,130,246,0.025)" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={S.eyebrow}>Como funciona</p>
-            <h2 style={S.h2}>Quatro passos, sem enrolação</h2>
+          <div style={{ textAlign: "center", marginBottom: 52, maxWidth: 720, marginLeft: "auto", marginRight: "auto" }}>
+            <p style={S.eyebrow}>A conta que ninguém fecha</p>
+            <h2 style={{ ...S.h2, marginBottom: 18 }}>Existe um lucro no seu negócio<br />que você nunca viu</h2>
+            <p style={{ ...S.dim, fontSize: 16.5 }}>
+              Seu caixa mostra o que entrou. Ele nunca mostra o que quase entrou e foi embora. Não existe linha de "vendas que eu perdi" em relatório nenhum, e é justamente por isso que parece que está tudo bem.
+            </p>
           </div>
 
-          <div className="grid g-passos">
-            {PASSOS.map(s => (
-              <div key={s.n} className="lift" style={{ ...S.card, padding: "32px 26px", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(59,130,246,.5), transparent)" }} />
-                <div style={{ position: "absolute", top: 18, right: 22, fontSize: 46, fontWeight: 900, color: "rgba(59,130,246,0.08)", letterSpacing: -2 }}>{s.n}</div>
-                <div style={{ fontSize: 11, color: "#3B82F6", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 12 }}>{s.q}</div>
-                <h3 style={{ fontSize: 19, fontWeight: 800, marginBottom: 10 }}>{s.t}</h3>
-                <p style={{ ...S.dim, fontSize: 14 }}>{s.d}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
+            <div style={{ ...S.card, padding: "30px 28px", display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 20 }}>O que você vê todo dia</div>
+              <div style={{ display: "grid", gap: 13 }}>
+                {VE.map(v => (
+                  <div key={v.t} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,.22)", flexShrink: 0, marginTop: 8 }} />
+                    <div>
+                      <div style={{ color: "rgba(255,255,255,.62)", fontSize: 15, fontWeight: 600 }}>{v.t}</div>
+                      <div style={{ color: "rgba(255,255,255,.3)", fontSize: 13.2, lineHeight: 1.5 }}>{v.d}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: 44 }}>
-            <div style={{ display: "inline-block", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.22)", borderRadius: 14, padding: "18px 28px" }}>
-              <p style={{ fontSize: 15.5, color: "rgba(255,255,255,0.8)" }}>
-                <strong style={{ color: "#93C5FD" }}>O passo 1 é de graça e sem compromisso.</strong> Você vê o que está errado antes de decidir qualquer coisa.
+              <div style={{ flex: 1, minHeight: 16 }} />
+              <p style={{ marginTop: 24, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.06)", color: "rgba(255,255,255,.3)", fontSize: 13.5, lineHeight: 1.6 }}>
+                Tudo isso você controla bem, e é por isso que dói: não é aqui que está o problema.
               </p>
             </div>
+
+            <div style={{ ...S.card, padding: "30px 28px", background: "rgba(239,68,68,.045)", borderColor: "rgba(239,68,68,.18)", display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#FCA5A5", marginBottom: 20 }}>O que passa batido</div>
+              <div style={{ display: "grid", gap: 13 }}>
+                {NAO_VE.map(v => (
+                  <div key={v} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#EF4444", flexShrink: 0, marginTop: 8 }} />
+                    <span style={{ color: "rgba(255,255,255,.68)", fontSize: 15, lineHeight: 1.5 }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ flex: 1, minHeight: 16 }} />
+              <p style={{ marginTop: 24, paddingTop: 18, borderTop: "1px solid rgba(239,68,68,.15)", color: "rgba(255,255,255,.5)", fontSize: 13.5, lineHeight: 1.6 }}>
+                Nenhum desses aparece no seu relatório. Todos custam dinheiro.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 30, background: "rgba(59,130,246,.07)", border: "1px solid rgba(59,130,246,.22)", borderRadius: 16, padding: "26px 30px", textAlign: "center" }}>
+            <p style={{ fontSize: 16.5, color: "rgba(255,255,255,.82)", lineHeight: 1.65, maxWidth: 760, margin: "0 auto" }}>
+              <strong style={{ color: "#93C5FD" }}>É na segunda coluna que está o lucro que você ainda não teve.</strong>{" "}
+              Ela não pede produto novo, nem funcionário novo, nem verba de anúncio. Pede só que alguém olhe para ela todo dia. É exatamente esse o meu trabalho.
+            </p>
           </div>
         </div>
       </section>
@@ -432,6 +381,11 @@ export default function Home() {
             <p style={S.eyebrow}>O que eu faço</p>
             <h2 style={{ ...S.h2, marginBottom: 14 }}>Oito serviços, avulsos ou em pacote</h2>
             <p style={{ ...S.dim, fontSize: 16 }}>Você escolhe o que precisa, ou pega tudo junto e paga menos</p>
+
+            <div style={{ marginTop: 26, display: "inline-flex", flexWrap: "wrap", gap: 8, justifyContent: "center", alignItems: "center", background: "rgba(59,130,246,.06)", border: "1px solid rgba(59,130,246,.2)", borderRadius: 100, padding: "12px 26px" }}>
+              <span style={{ fontSize: 14.5, color: "rgba(255,255,255,.65)" }}>Em qualquer um deles:</span>
+              <span style={{ fontSize: 14.5, color: "#93C5FD", fontWeight: 600 }}>eu monto do meu lado e te entrego funcionando</span>
+            </div>
           </div>
 
           <div className="grid g-serv">
@@ -457,7 +411,7 @@ export default function Home() {
               <p style={{ ...S.eyebrow, color: "#C4B5FD" }}>O diferencial</p>
               <h2 style={{ ...S.h2, marginBottom: 18 }}>Marketing traz cliente<br />o sistema faz ele voltar</h2>
               <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 28 }}>
-                O Nexus 360 guarda quem comprou, quanto gastou e quando sumiu, e te entrega a lista de quem chamar hoje com a mensagem já escrita. Seu negócio inteiro num painel, no celular ou no computador.
+                O Nexus 360 guarda quem comprou, quanto gastou e quando foi a última vez, e acende o alerta assim que alguém passa do prazo sem voltar. Seu negócio inteiro num painel, no celular ou no computador.
               </p>
 
               <div style={{ display: "grid", gap: 14, marginBottom: 30 }}>
