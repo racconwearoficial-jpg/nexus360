@@ -119,9 +119,9 @@ const PACOTES = [
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
-    tag: "Pacote avulso", nome: "Presença Completa", preco: "R$ 450", periodo: "pagamento único",
+    tag: "Pacote avulso", nome: "Presença", preco: "R$ 297", periodo: "pagamento único",
     desc: "Para quem começa do zero ou quer parar de parecer amador",
-    itens: ["Tudo do Recomeço", "Identidade visual: logo, cores e tipografia", "15 artes com legendas prontas", "Instagram reescrito: bio, destaques e posts", "Site de uma página, feito para celular"],
+    itens: ["Tudo do Recomeço", "Identidade visual: logo, cores e tipografia", "Catálogo digital dos seus produtos, com pedido direto pelo WhatsApp", "12 artes com legendas prontas", "Instagram reescrito: bio, destaques e posts"],
     selo: "Entrega em 7 dias · arquivos são seus", destaque: false,
   },
   {
@@ -156,7 +156,7 @@ const NAO_VE = [
 
 const GARANTIAS = [
   { t: "Garantia de 7 dias", d: "No Recomeço: se em 7 dias você não tiver nenhum contato ou agendamento novo, devolvo o valor integral." },
-  { t: "Prazo por escrito", d: "Recomeço em 48h, Presença Completa em 7 dias. Se atrasar por minha causa, você tem 20% de desconto." },
+  { t: "Prazo por escrito", d: "Recomeço em 48h, Presença em 7 dias. Se atrasar por minha causa, você tem 20% de desconto." },
   { t: "Sem fidelidade", d: "Mensal é mensal. Avisou, encerra no fim do mês corrente. Sem multa e sem contrato longo." },
   { t: "Seus dados são seus", d: "Google, contas de anúncio, arquivos da marca e a base de clientes: tudo no seu nome, e você exporta quando quiser." },
 ];

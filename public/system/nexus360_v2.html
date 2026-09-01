@@ -2853,10 +2853,10 @@ function renderDashboard() {
   });
   const campAtivas = campanhas.filter(c => c.ativa !== false);
 
-  document.getElementById('m-receita').textContent         = 'R$ ' + receitaTotal.toLocaleString('pt-BR', {minimumFractionDigits:2});
-  document.getElementById('m-hoje').textContent            = 'R$ ' + receitaHoje.toLocaleString('pt-BR', {minimumFractionDigits:2});
+  document.getElementById('m-receita').textContent         = 'R$ ' + receitaTotal.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('m-hoje').textContent            = 'R$ ' + receitaHoje.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('m-vendas-total').textContent    = vendas.length;
-  document.getElementById('m-ticket').textContent          = 'R$ ' + ticket.toLocaleString('pt-BR', {minimumFractionDigits:2});
+  document.getElementById('m-ticket').textContent          = 'R$ ' + ticket.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('m-ativos').textContent          = ativos.length;
   document.getElementById('m-inativos').textContent        = inativos.length;
   document.getElementById('m-produtos').textContent        = itens.length;
@@ -2919,7 +2919,7 @@ function renderBarChart() {
       wrap.parentElement.appendChild(totalEl);
     }
   }
-  totalEl.textContent = `Total 7 dias: R$ ${soma.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+  totalEl.textContent = `Total 7 dias: R$ ${soma.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 }
 
 function _renderPremiumChart(vals, labels, dates) {
@@ -3032,7 +3032,7 @@ function _chartHover(e, idx, uid) {
   });
 
   tip.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:5px;font-family:Inter,system-ui">' + dates[idx] + '</div>'
-    + '<div style="font-size:18px;font-weight:700;color:#60A5FA;font-family:Inter,system-ui">R$ ' + vals[idx].toLocaleString('pt-BR',{minimumFractionDigits:2}) + '</div>';
+    + '<div style="font-size:18px;font-weight:700;color:#60A5FA;font-family:Inter,system-ui">R$ ' + vals[idx].toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>';
   tip.style.display = '';
 
   var wrapRect = wrap.getBoundingClientRect();
@@ -3130,7 +3130,7 @@ function renderInsights() {
     const alta = Math.round((hoje$/ontem$-1)*100);
     insights.push({ cor:'#10B981', dot:'rgba(16,185,129,.7)', texto: `Faturamento hoje ${alta}% acima de ontem.` });
   } else if (hoje$ > 0) {
-    insights.push({ cor:'#10B981', dot:'rgba(16,185,129,.7)', texto: `Vendas em andamento hoje — R$ ${hoje$.toLocaleString('pt-BR',{minimumFractionDigits:2})}.` });
+    insights.push({ cor:'#10B981', dot:'rgba(16,185,129,.7)', texto: `Vendas em andamento hoje — R$ ${hoje$.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}.` });
   }
 
   // TENDÊNCIA 7 DIAS
@@ -3544,7 +3544,7 @@ function renderActivity() {
     const cliente = state.clientes.find(c => c.id === v.cliente_id);
     const nome    = cliente ? cliente.nome : (v.cliente_nome || 'Avulso');
     const dt      = v.data ? new Date(v.data+'T12:00:00').toLocaleDateString('pt-BR') : '';
-    const valor   = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const valor   = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     const nomeEsc = nome.replace(/'/g,"\\'");
     const tel     = cliente?.telefone || '';
     return `<div class="activity-item" style="justify-content:space-between">
@@ -3684,7 +3684,7 @@ function renderClients(list) {
             <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Pontos</div><div style="font-size:14px;font-weight:700;color:var(--accent)">${c.pontos||0}</div></div>
             <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Últ. compra</div><div style="font-size:13px;color:var(--text1)">${diasTxt}</div></div>
             <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Aniversário</div><div style="font-size:13px;color:${anivFmt?'#60A5FA':'var(--text3)'}">${anivFmt||'—'}</div></div>
-            ${isAdmin?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Gasto</div><div style="font-size:13px;color:#10B981">R$ ${gasto.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>`:''}
+            ${isAdmin?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Gasto</div><div style="font-size:13px;color:#10B981">R$ ${gasto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>`:''}
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${c.telefone?`<button class="btn-wpp" style="font-size:12px;padding:7px 12px" onclick="openWppClient('${nomeEsc}','${telEsc}','reativacao')">WhatsApp</button>`:''}
@@ -3722,7 +3722,7 @@ function renderClients(list) {
       <td><div style="display:flex;align-items:center;gap:10px"><div class="client-avatar">${c.nome.charAt(0).toUpperCase()}</div><strong style="color:var(--text1)">${c.nome}</strong>${badges ? '<br><span style="display:inline-flex;gap:4px;margin-top:3px">'+badges+'</span>' : ''}</div></td>
       <td>${c.telefone || '—'}</td>
       <td>${diasTxt}</td>
-      ${isAdmin ? `<td style="color:var(--green)">R$ ${gasto.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>` : ''}
+      ${isAdmin ? `<td style="color:var(--green)">R$ ${gasto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>` : ''}
       <td><strong style="color:var(--accent)">${c.pontos || 0}</strong> <span style="font-size:11px;color:rgba(255,255,255,.3)">pts</span></td>
       <td><span class="tag ${tagMap[status]}">${status.toUpperCase()}</span></td>
       <td>${anivFmt}</td>
@@ -4503,7 +4503,7 @@ function renderCampanhas() {
   document.getElementById('cm-ativas').textContent   = camp.filter(c=>c.ativa!==false).length;
   document.getElementById('cm-enviados').textContent = camp.reduce((s,c)=>s+(c.enviados||0),0);
   const rec = camp.reduce((s,c)=>s+parseFloat(c.receita||0),0);
-  document.getElementById('cm-receita').textContent  = 'R$ ' + rec.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('cm-receita').textContent  = 'R$ ' + rec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   if (!camp.length) {
     el.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-state-icon">📣</div><div class="empty-state-text">Nenhuma campanha criada. Clique em "+ Nova Campanha".</div></div></div>`;
@@ -4520,7 +4520,7 @@ function renderCampanhas() {
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Público: ${c.publico||'—'}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;color:var(--green);font-weight:600">R$ ${parseFloat(c.receita||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+          <div style="font-size:18px;color:var(--green);font-weight:600">R$ ${parseFloat(c.receita||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <div style="font-size:11px;color:var(--text3)">receita gerada</div>
         </div>
       </div>
@@ -4775,9 +4775,9 @@ function renderVendas() {
   const maior  = vds.length ? Math.max(...vds.map(v => parseFloat(v.valor||0))) : 0;
 
   document.getElementById('vd-count').textContent   = vds.length;
-  document.getElementById('vd-receita').textContent = 'R$ ' + rec.toLocaleString('pt-BR',{minimumFractionDigits:2});
-  document.getElementById('vd-ticket').textContent  = 'R$ ' + ticket.toLocaleString('pt-BR',{minimumFractionDigits:2});
-  document.getElementById('vd-maior').textContent   = 'R$ ' + maior.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('vd-receita').textContent = 'R$ ' + rec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('vd-ticket').textContent  = 'R$ ' + ticket.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('vd-maior').textContent   = 'R$ ' + maior.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   if (!vds.length) {
     tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">💰</div><div class="empty-state-text">Nenhuma venda no período selecionado.</div></div></td></tr>`;
@@ -4796,7 +4796,7 @@ function renderVendas() {
     const btnDel  = MODO_ATUAL === 'admin' ? `<button class="btn btn-red" style="padding:4px 8px;font-size:11px;margin-left:4px" onclick="deleteVenda(${v.id})">Excluir</button>` : '';
     return `<tr>
       <td style="color:var(--text1)">${nome}</td>
-      <td style="color:var(--text2)">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      <td style="color:var(--text2)">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="color:var(--text3)">${v.itens||'—'}</td>
       <td style="color:var(--text3)">${dtHora}</td>
       <td style="display:flex;gap:4px;align-items:center">${btnWpp}${btnDel}</td>
@@ -4956,7 +4956,7 @@ function vdSelecionarCliente(id) {
   const resumo = document.getElementById('vd-cliente-resumo');
   resumo.style.display = '';
   resumo.innerHTML = `<b style="color:var(--text1)">${_vdClienteSel.nome}</b> &nbsp;·&nbsp;
-    Gasto: <b>R$ ${parseFloat(_vdClienteSel.total_gasto||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> &nbsp;·&nbsp;
+    Gasto: <b>R$ ${parseFloat(_vdClienteSel.total_gasto||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> &nbsp;·&nbsp;
     Última compra: <b>${ul}</b> &nbsp;·&nbsp;
     Status: <b>${(_vdClienteSel.status||'ativo').toUpperCase()}</b>`;
 }
@@ -5047,7 +5047,7 @@ function _vdRenderCarrinho() {
   if (!_vendaProdutos.length) { carrinho.style.display='none'; vazio.style.display=''; totalEl.textContent='R$ 0,00'; return; }
   carrinho.style.display=''; vazio.style.display='none';
   const total = _vendaProdutos.reduce((s,p)=>s+p.qtd*p.preco,0);
-  totalEl.textContent = 'R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  totalEl.textContent = 'R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   itens.innerHTML = _vendaProdutos.map((p,i)=>`
     <div style="display:grid;grid-template-columns:1fr 72px 72px 80px 28px;gap:0;padding:8px 10px;border-bottom:1px solid var(--border);align-items:center">
       <span style="font-size:13px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nome}</span>
@@ -5258,7 +5258,7 @@ function abrirModalWppVenda(vendaId) {
   const neg     = state.config?.nome_negocio || 'nossa loja';
   const tel     = cliente.telefone.replace(/\D/g,'');
   const num     = tel.startsWith('55') ? tel : '55' + tel;
-  const valor   = parseFloat(venda.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const valor   = parseFloat(venda.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const msgDef  = 'Olá ' + cliente.nome + '! Sua compra de R$ ' + valor + ' em ' + neg + ' foi registrada. Obrigado pela preferência!';
 
   var modal = document.createElement('div');
@@ -5384,7 +5384,7 @@ function renderItens() {
   if (el_total)  el_total.textContent  = state.itens.length;
   if (el_zero)   el_zero.textContent   = semEstoque.length;
   if (el_baixo)  el_baixo.textContent  = estBaixo.length;
-  if (el_valor)  el_valor.textContent  = 'R$ ' + valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  if (el_valor)  el_valor.textContent  = 'R$ ' + valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   // ── Alertas ───────────────────────────────────────────────────────────────
   const alertasCard = document.getElementById('estAlertasCard');
@@ -7185,7 +7185,7 @@ function renderCRM() {
 
   const setM = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   setM('crm-metric-leads',    total);
-  setM('crm-metric-valor',    'R$ ' + valorNeg.toLocaleString('pt-BR', {minimumFractionDigits:2}));
+  setM('crm-metric-valor',    'R$ ' + valorNeg.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2}));
   setM('crm-metric-conv',     conv + '%');
   setM('crm-metric-atrasados', atrasados);
 
@@ -7221,7 +7221,7 @@ function renderCRM() {
             <div class="kanban-card-name" style="flex:1">${c.nome}</div>
             ${c.tag ? `<span style="font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:8px;white-space:nowrap;color:rgba(255,255,255,.6)">${c.tag}</span>` : ''}
           </div>
-          ${c.valor ? `<div class="kanban-card-val">R$ ${parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>` : ''}
+          ${c.valor ? `<div class="kanban-card-val">R$ ${parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>` : ''}
           <div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap">
             ${c.origem ? `<span style="font-size:10px;color:rgba(255,255,255,.3)">📍 ${c.origem}</span>` : ''}
             <span style="font-size:10px;color:${criado>7?'var(--amber)':'rgba(255,255,255,.25)'}">⏱ há ${criado}d</span>
@@ -7414,7 +7414,7 @@ function renderRelatorios() {
   const totalVIP      = state.clientes.filter(c=>c.status==='vip').length;
   const roiTotal      = (state.campanhas||[]).reduce((s,c)=>s+parseFloat(c.receita||0),0);
 
-  const fmtR = v => 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtR = v => 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtPct = v => (v>=0?'+':'')+v+'%';
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
@@ -8530,7 +8530,7 @@ QUEM ESTÁ USANDO: ${modo === 'admin' ? 'Administrador' : 'Funcionário'} | Neg�
 DADOS REAIS DO SISTEMA AGORA:
 - Clientes: ${totalClientes} total (${ativos} ativos, ${vips} VIP, ${inativos} inativos há +${diasInativo} dias)
 - Aniversariantes hoje: ${aniversariantes}
-- Vendas registradas: ${totalVendas} | Receita total: R$ ${receitaTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}
+- Vendas registradas: ${totalVendas} | Receita total: R$ ${receitaTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 - Produtos/Serviços: ${totalProdutos} cadastrados (${semEstoque} produtos sem estoque — serviços não têm estoque)
 - Campanhas: ${state.campanhas?.length||0} cadastradas
 
@@ -10279,7 +10279,7 @@ function openClientDrawer(clientId) {
   document.getElementById('drawerPurchases').innerHTML = last5.length===0
     ? '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Sem compras registradas</div>'
     : last5.map(v => {
-        const valor = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+        const valor = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
         const data  = v.data ? new Date(v.data).toLocaleDateString('pt-BR') : '—';
         // Categoria ou tipo de venda
         const cat   = v.categoria || null;
@@ -10624,8 +10624,8 @@ function dvRenderKpis() {
   const clientes = new Set(ativos.map(d => d.cliente_nome)).size;
 
   const kpis = [
-    { label:'Total Pendente', val:'R$ '+totalPendente.toLocaleString('pt-BR',{minimumFractionDigits:2}), color:'var(--amber)', icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
-    { label:'Vencidos', val:'R$ '+totalVencido.toLocaleString('pt-BR',{minimumFractionDigits:2}), color:'var(--red)', icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' },
+    { label:'Total Pendente', val:'R$ '+totalPendente.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), color:'var(--amber)', icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
+    { label:'Vencidos', val:'R$ '+totalVencido.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), color:'var(--red)', icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' },
     { label:'Vencem Hoje', val:hoje.length+' cobranças', color:'#F59E0B', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
     { label:'Clientes c/ Dívida', val:clientes+' clientes', color:'var(--blue)', icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
   ];
@@ -10669,7 +10669,7 @@ function dvRender() {
     const vencFmt = d.vencimento ? new Date(d.vencimento+'T00:00:00').toLocaleDateString('pt-BR') : '—';
     return `<tr onclick="dvOpenDrawer('${d.id}')" style="cursor:pointer;transition:background .1s">
       <td><div style="font-weight:600;color:var(--text1)">${d.cliente_nome||'—'}</div><div style="font-size:11px;color:var(--text3)">${d.categoria||''}</div></td>
-      <td><div style="font-weight:700;color:var(--text1)">R$ ${(d.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div style="font-size:11px;color:var(--text3)">Saldo: R$ ${saldo.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></td>
+      <td><div style="font-weight:700;color:var(--text1)">R$ ${(d.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div style="font-size:11px;color:var(--text3)">Saldo: R$ ${saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></td>
       <td style="font-size:13px">${vencFmt}</td>
       <td style="font-size:13px;color:${dias>0?'var(--red)':'var(--text3)'}">${dias>0?dias+'d':'—'}</td>
       <td><span class="${dvStatusClass(st)}" style="padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600">${dvStatusLabel(st)}</span></td>
@@ -10779,9 +10779,9 @@ function dvOpenDrawer(id) {
   const badge = document.getElementById('dvd-status-badge');
   badge.textContent = dvStatusLabel(st); badge.className = dvStatusClass(st);
   badge.style.cssText = 'padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600';
-  document.getElementById('dvd-valor-total').textContent = 'R$ '+(d.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  document.getElementById('dvd-valor-pago').textContent = 'R$ '+(d.valor_pago||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  document.getElementById('dvd-valor-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('dvd-valor-total').textContent = 'R$ '+(d.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('dvd-valor-pago').textContent = 'R$ '+(d.valor_pago||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('dvd-valor-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('dvd-pct').textContent = pct+'%';
   document.getElementById('dvd-progress-bar').style.width = pct+'%';
   document.getElementById('dvd-venc').textContent = d.vencimento ? new Date(d.vencimento+'T00:00:00').toLocaleDateString('pt-BR') : '—';
@@ -10794,7 +10794,7 @@ function dvOpenDrawer(id) {
   const histEl = document.getElementById('dvd-historico');
   histEl.innerHTML = hist.length === 0
     ? '<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Nenhum pagamento registrado</div>'
-    : hist.slice().reverse().map(h => `<div style="display:flex;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px"><div style="flex:1"><div style="font-weight:600;color:var(--text1)">${h.tipo==='pagamento'?'Pagamento de R$ '+parseFloat(h.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2}):h.obs||h.tipo}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${h.data?new Date(h.data).toLocaleDateString('pt-BR'):''}</div></div></div>`).join('');
+    : hist.slice().reverse().map(h => `<div style="display:flex;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px"><div style="flex:1"><div style="font-weight:600;color:var(--text1)">${h.tipo==='pagamento'?'Pagamento de R$ '+parseFloat(h.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):h.obs||h.tipo}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${h.data?new Date(h.data).toLocaleDateString('pt-BR'):''}</div></div></div>`).join('');
   dvGerarMsg('amigavel');
   document.getElementById('dvDrawer').style.transform='translateX(0)';
   document.getElementById('dvDrawerOverlay').style.opacity='1';
@@ -10813,7 +10813,7 @@ function dvGerarMsg(tipo) {
   const nome = dvCurrent.cliente_nome||'cliente';
   const neg = (state.config&&state.config.nome_negocio)||'nossa loja';
   const saldo = dvSaldo(dvCurrent);
-  const saldoFmt = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const saldoFmt = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const msgs = {
     amigavel: `Olá ${nome}! Passando para lembrar do acerto pendente de ${saldoFmt} aqui em ${neg}. Quando puder, é só nos avisar`,
     profissional: `Olá ${nome}, tudo bem? Identificamos um pagamento pendente de ${saldoFmt} referente à sua última compra em ${neg}. Por favor, entre em contato quando possível.`,
@@ -10833,7 +10833,7 @@ function dvOpenWppModal(id) {
   if (!d) return;
   const saldo = dvSaldo(d);
   document.getElementById('dvwpp-nome').textContent = d.cliente_nome||'—';
-  document.getElementById('dvwpp-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('dvwpp-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   window._dvwppCurrent = d;
   dvwppTemplate('amigavel');
   openModal('modalDvWpp');
@@ -10845,7 +10845,7 @@ function dvwppTemplate(tipo) {
   const nome = d.cliente_nome||'cliente';
   const neg = (state.config&&state.config.nome_negocio)||'nossa loja';
   const saldo = dvSaldo(d);
-  const saldoFmt = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const saldoFmt = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const msgs = {
     amigavel: 'Olá '+nome+'! Passando para lembrar do acerto pendente de '+saldoFmt+' aqui em '+neg+'. Quando puder, é só nos avisar',
     profissional: 'Olá '+nome+', tudo bem? Identificamos um pagamento pendente de '+saldoFmt+' referente à sua última compra em '+neg+'. Por favor, entre em contato quando possível.',
@@ -10900,7 +10900,7 @@ function dvOpenPagamentoById(id) {
   if (!d) return;
   const saldo = dvSaldo(d);
   document.getElementById('dvp-id').value = id;
-  document.getElementById('dvp-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('dvp-saldo').textContent = 'R$ '+saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('dvp-valor').value = '';
   document.getElementById('dvp-obs').value = '';
   document.getElementById('dvp-preview').style.display = 'none';
@@ -10916,8 +10916,8 @@ function dvpPreview() {
   const restante = Math.max(0, saldo - pago);
   const prev = document.getElementById('dvp-preview');
   if (pago > 0) {
-    document.getElementById('dvp-pago').textContent = 'R$ '+pago.toLocaleString('pt-BR',{minimumFractionDigits:2});
-    document.getElementById('dvp-restante').textContent = 'R$ '+restante.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    document.getElementById('dvp-pago').textContent = 'R$ '+pago.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('dvp-restante').textContent = 'R$ '+restante.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     prev.style.display = 'block';
   } else prev.style.display = 'none';
 }
@@ -11008,7 +11008,7 @@ async function dvDashboardAlert() {
     btn1.style.cssText = 'border-color:rgba(245,158,11,.3);color:#F59E0B;white-space:nowrap';
     btn1.textContent = 'Ver';
     btn1.onclick = function() { dvNavFiltro('hoje'); };
-    div.innerHTML = '<div class="suggestion-icon" style="background:rgba(245,158,11,.1)"><svg width="16" height="16" fill="none" stroke="#F59E0B" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="suggestion-text"><div class="suggestion-title">'+vencentHoje.length+' cobranças vencem hoje</div><div class="suggestion-desc">R$ '+totalHoje.toLocaleString('pt-BR',{minimumFractionDigits:2})+' a receber hoje</div></div>';
+    div.innerHTML = '<div class="suggestion-icon" style="background:rgba(245,158,11,.1)"><svg width="16" height="16" fill="none" stroke="#F59E0B" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="suggestion-text"><div class="suggestion-title">'+vencentHoje.length+' cobranças vencem hoje</div><div class="suggestion-desc">R$ '+totalHoje.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' a receber hoje</div></div>';
     div.appendChild(btn1);
     sugEl.prepend(div);
   }
@@ -11023,7 +11023,7 @@ async function dvDashboardAlert() {
     btn2.style.cssText = 'border-color:rgba(239,68,68,.3);color:#ef4444;white-space:nowrap';
     btn2.textContent = 'Ver';
     btn2.onclick = function() { dvNavFiltro('vencido'); };
-    div.innerHTML = '<div class="suggestion-icon" style="background:rgba(239,68,68,.1)"><svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div class="suggestion-text"><div class="suggestion-title">'+vencidos.length+' cobranças vencidas</div><div class="suggestion-desc">R$ '+totalVenc.toLocaleString('pt-BR',{minimumFractionDigits:2})+' em atraso</div></div>';
+    div.innerHTML = '<div class="suggestion-icon" style="background:rgba(239,68,68,.1)"><svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div class="suggestion-text"><div class="suggestion-title">'+vencidos.length+' cobranças vencidas</div><div class="suggestion-desc">R$ '+totalVenc.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' em atraso</div></div>';
     div.appendChild(btn2);
     sugEl.prepend(div);
   }
