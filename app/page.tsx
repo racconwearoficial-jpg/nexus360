@@ -211,22 +211,36 @@ export default function Home() {
         .float{position:absolute;z-index:3}
         @media (max-width:900px){ .float{display:none} }
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
-        .bgfixed{
-          position:fixed; inset:0; pointer-events:none; z-index:0;
-          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%), url(/hero-bg.png);
-          background-size:cover, auto, cover;
-          background-repeat:no-repeat, no-repeat, no-repeat;
-          background-attachment:fixed,fixed,fixed;
-          background-position:center,center,top center;
+        .bg-photo{
+          position:fixed; inset:0; pointer-events:none; z-index:-1;
+          background-image:url(/hero-bg.png);
+          background-size:cover; background-position:top center; background-repeat:no-repeat;
+          animation: bgPan 22s ease-in-out infinite alternate;
+          will-change: transform;
         }
-        /* position:fixed + altura dinâmica da barra de endereço quebra no mobile — troca pra absolute, acompanha o scroll normal */
-        @media (max-width:900px){ .bgfixed{position:absolute; height:100%; background-attachment:scroll,scroll,scroll} }
+        @keyframes bgPan {
+          0%   { transform: scale(1) translate3d(0,0,0); }
+          100% { transform: scale(1.14) translate3d(-1.5%,-1.5%,0); }
+        }
+        .bg-overlay{
+          position:fixed; inset:0; pointer-events:none; z-index:0;
+          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%);
+          background-size:cover, auto;
+          background-position:center, center;
+          background-repeat:no-repeat, no-repeat;
+        }
+        /* position:fixed vira instável no mobile (barra de endereço muda de altura) — troca pra absolute, uma tela cheia de altura, e acompanha o scroll normal */
+        @media (max-width:900px){
+          .bg-photo, .bg-overlay{ position:absolute; height:100vh }
+        }
+        @media (prefers-reduced-motion: reduce){ .bg-photo{ animation:none } }
         .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)}
         .reveal.revealed{opacity:1; transform:translateY(0)}
         @media (prefers-reduced-motion: reduce){ .reveal{opacity:1; transform:none; transition:none} }
       `}</style>
 
-      <div className="bgfixed" />
+      <div className="bg-photo" />
+      <div className="bg-overlay" />
 
       {/* ============ NAV ============ */}
       <nav className="np" style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(4,6,15,0.82)", backdropFilter: "blur(12px)" }}>
