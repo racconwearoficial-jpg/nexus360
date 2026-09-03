@@ -33,7 +33,8 @@ alter table planos_assinatura enable row level security;
 alter table assinaturas enable row level security;
 
 -- Planos: a empresa pode ler/escrever os próprios (mesmo padrão de clientes/campanhas).
-create policy if not exists "planos_assinatura por empresa" on planos_assinatura
+drop policy if exists "planos_assinatura por empresa" on planos_assinatura;
+create policy "planos_assinatura por empresa" on planos_assinatura
   for all using (true) with check (true);
 -- Nota: ajuste esta policy para o mesmo esquema de autorização por company_id
 -- que as tabelas clientes/campanhas já usam no seu projeto Supabase, se for
@@ -43,5 +44,6 @@ create policy if not exists "planos_assinatura por empresa" on planos_assinatura
 
 -- Assinaturas: SEM policy de escrita pro anon — só leitura. Criar/cancelar
 -- assinatura sempre passa pelo backend (service role), porque mexe com Asaas.
-create policy if not exists "assinaturas leitura por empresa" on assinaturas
+drop policy if exists "assinaturas leitura por empresa" on assinaturas;
+create policy "assinaturas leitura por empresa" on assinaturas
   for select using (true);
