@@ -367,6 +367,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
       Funcionários
     </div>
+    <div class="nav-item" onclick="nav('assinaturas',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Assinaturas
+    </div>
     <div class="nav-item" onclick="nav('integracoes',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6" stroke-width="2" stroke-linecap="round"/><rect x="9" y="9" width="6" height="6" rx="1" stroke-width="2"/></svg>
       Integrações
@@ -1641,6 +1645,39 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     </div>
 
     <!-- CONFIG -->
+    <div class="page" id="page-assinaturas">
+      <div class="page-header">
+        <div class="page-header-title">Assinaturas</div>
+        <div class="page-header-sub">Clube de assinatura recorrente — cliente paga todo mês, sem precisar voltar pra renovar</div>
+      </div>
+
+      <div class="grid2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="section-title mb12">Novo plano</div>
+          <div class="form-group"><label>Nome do plano</label><input id="asn-plano-nome" placeholder="Ex: Corte Ilimitado"></div>
+          <div class="form-group"><label>Valor mensal (R$)</label><input type="number" id="asn-plano-valor" placeholder="89.00" min="1" step="0.01"></div>
+          <div class="form-group"><label>Ciclo</label>
+            <select id="asn-plano-ciclo"><option value="MONTHLY">Mensal</option><option value="WEEKLY">Semanal</option><option value="YEARLY">Anual</option></select>
+          </div>
+          <button class="btn btn-primary" onclick="criarPlanoAssinatura()">Criar plano</button>
+        </div>
+        <div class="card">
+          <div class="section-title mb12">Assinar cliente a um plano</div>
+          <div class="form-group"><label>Cliente</label><select id="asn-cliente"></select></div>
+          <div class="form-group"><label>Plano</label><select id="asn-plano"></select></div>
+          <button class="btn btn-primary" onclick="criarAssinaturaCliente()" id="btnAsnCriar">Criar assinatura</button>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px">Gera cobrança via Pix automaticamente todo ciclo, pelo Asaas.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title mb12">Planos ativos</div>
+        <div id="asnPlanosList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px"></div>
+        <div class="section-title mb12">Assinantes</div>
+        <div id="asnAssinantesList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
     <div class="page" id="page-integracoes">
       <div class="page-header">
         <div class="page-header-title">Integrações</div>
@@ -2562,10 +2599,10 @@ const pageNames = {
   itens:'Produtos e Serviços', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
   devedores:'Cobranças', calendario:'Calendário',
   relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários',
-  integracoes:'Integrações'
+  integracoes:'Integrações', assinaturas:'Assinaturas'
 };
 
-const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores','integracoes'];
+const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores','integracoes','assinaturas'];
 // ══════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2695,6 +2732,7 @@ async function loadAll() {
   try {
     await loadCompanyId();
     await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes()]);
+    await loadAssinaturas(); // depende de state.clientes já carregado, roda depois do Promise.all
     renderDashboard();
     filterClients();
     renderCampanhas();
@@ -2812,6 +2850,112 @@ async function sincronizarBling() {
   } finally {
     btn.disabled = false; btn.textContent = original;
     loadIntegracoes();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ASSINATURAS — CLUBE DE ASSINATURA RECORRENTE (ASAAS)
+// ══════════════════════════════════════════════════════════════════════════════
+let _asnPlanos = [], _asnAssinaturas = [];
+
+async function loadAssinaturas() {
+  const [{ data: planos }, { data: assinaturas }] = await Promise.all([
+    db.from('planos_assinatura').select('*').eq('company_id', state.companyId).order('created_at', { ascending: false }),
+    db.from('assinaturas').select('*').eq('company_id', state.companyId).order('created_at', { ascending: false }),
+  ]);
+  _asnPlanos = planos || [];
+  _asnAssinaturas = assinaturas || [];
+  renderAsnPlanos();
+  renderAsnAssinantes();
+  preencherSelectsAssinatura();
+}
+
+function preencherSelectsAssinatura() {
+  const selCli = document.getElementById('asn-cliente');
+  const selPlano = document.getElementById('asn-plano');
+  if (!selCli || !selPlano) return;
+  selCli.innerHTML = (state.clientes || []).map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+  selPlano.innerHTML = _asnPlanos.filter(p => p.ativo !== false).map(p => `<option value="${p.id}">${p.nome} — R$ ${parseFloat(p.valor).toFixed(2)}</option>`).join('');
+}
+
+function renderAsnPlanos() {
+  const el = document.getElementById('asnPlanosList');
+  if (!el) return;
+  if (!_asnPlanos.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum plano criado ainda.</div>'; return; }
+  el.innerHTML = _asnPlanos.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px">
+      <div><div style="font-weight:600;font-size:13px">${p.nome}</div><div style="font-size:11px;color:var(--text3)">R$ ${parseFloat(p.valor).toFixed(2)} · ${p.ciclo === 'MONTHLY' ? 'mensal' : p.ciclo === 'WEEKLY' ? 'semanal' : 'anual'}</div></div>
+    </div>`).join('');
+}
+
+function renderAsnAssinantes() {
+  const el = document.getElementById('asnAssinantesList');
+  if (!el) return;
+  if (!_asnAssinaturas.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum assinante ainda.</div>'; return; }
+  const badgeCor = { ativa: '#34D399', atrasada: '#F59E0B', cancelada: '#F87171', pendente: 'var(--text3)' };
+  el.innerHTML = _asnAssinaturas.map(a => {
+    const cliente = (state.clientes || []).find(c => c.id === a.cliente_id);
+    const plano = _asnPlanos.find(p => p.id === a.plano_id);
+    const cor = badgeCor[a.status] || 'var(--text3)';
+    return `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;gap:8px">
+      <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · próxima cobrança: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${cor}22;color:${cor}">${a.status}</span>
+        ${a.status !== 'cancelada' ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:#F87171" onclick="cancelarAssinaturaCliente('${a.id}')">Cancelar</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function criarPlanoAssinatura() {
+  const nome = document.getElementById('asn-plano-nome').value.trim();
+  const valor = parseFloat(document.getElementById('asn-plano-valor').value);
+  const ciclo = document.getElementById('asn-plano-ciclo').value;
+  if (!nome || !valor || valor <= 0) { toast('Preencha nome e valor do plano', 'error'); return; }
+  const { error } = await db.from('planos_assinatura').insert({ company_id: state.companyId, nome, valor, ciclo, ativo: true });
+  if (error) { toast('Erro ao criar plano: ' + error.message, 'error'); return; }
+  toast('Plano criado!', 'success');
+  document.getElementById('asn-plano-nome').value = '';
+  document.getElementById('asn-plano-valor').value = '';
+  loadAssinaturas();
+}
+
+async function criarAssinaturaCliente() {
+  const cliente_id = document.getElementById('asn-cliente').value;
+  const plano_id = document.getElementById('asn-plano').value;
+  if (!cliente_id || !plano_id) { toast('Selecione cliente e plano', 'error'); return; }
+  const btn = document.getElementById('btnAsnCriar');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Criando...';
+  try {
+    const r = await fetch('/api/assinaturas/criar', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, cliente_id, plano_id }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao criar assinatura');
+    toast('Assinatura criada! Primeira cobrança gerada no Asaas.', 'success');
+    loadAssinaturas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+async function cancelarAssinaturaCliente(assinatura_id) {
+  if (!confirm('Cancelar essa assinatura? O cliente para de ser cobrado.')) return;
+  try {
+    const r = await fetch('/api/assinaturas/cancelar', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
+    });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao cancelar'); }
+    toast('Assinatura cancelada.', 'info');
+    loadAssinaturas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
   }
 }
 
@@ -12019,6 +12163,7 @@ function rsvWppEnviar() {
     <div class="md-nav-item" onclick="mNav('calendario')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</div>
     <div class="md-nav-item" onclick="mNav('relatorios')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios</div>
     <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
+    <div class="md-nav-item" onclick="mNav('assinaturas')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Assinaturas</div>
     <div class="md-nav-item" onclick="mNav('integracoes')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6"/></svg>Integrações</div>
     <div class="md-nav-item" onclick="mNav('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
   </div>
