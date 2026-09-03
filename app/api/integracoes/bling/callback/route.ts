@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trocarCodePorToken } from "@/lib/bling";
+import { trocarCodePorToken, buscarCnpjDaConta } from "@/lib/bling";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Volta pra página do sistema depois de conectar/errar, com um aviso na URL.
@@ -34,11 +34,25 @@ export async function GET(req: NextRequest) {
     const token = await trocarCodePorToken(code);
     const expires_at = new Date(Date.now() + (token.expires_in || 21600) * 1000).toISOString();
 
+    const cnpj = await buscarCnpjDaConta(token.access_token);
+    if (cnpj) {
+      const { data: outra } = await supabaseAdmin
+        .from("integracoes_bling")
+        .select("company_id")
+        .eq("bling_cnpj", cnpj)
+        .neq("company_id", companyId)
+        .maybeSingle();
+      if (outra) {
+        return voltarSistema(req, { bling: "erro", msg: "essa_conta_bling_ja_esta_conectada_em_outra_empresa" });
+      }
+    }
+
     const { error } = await supabaseAdmin.from("integracoes_bling").upsert({
       company_id: companyId,
       access_token: token.access_token,
       refresh_token: token.refresh_token,
       expires_at,
+      bling_cnpj: cnpj,
       connected_at: new Date().toISOString(),
       last_sync_at: null,
       last_sync_erro: null,

@@ -9602,8 +9602,15 @@ window.onload = async function() {
   // avisamos por toast — o admin entra em modo Admin e abre Integrações de novo.
   const _blingRes = new URLSearchParams(window.location.search).get('bling');
   if (_blingRes) {
-    if (_blingRes === 'conectado') toast('Bling conectado! Entre em modo Admin e abra Integrações para sincronizar.', 'success', 6000);
-    else toast('Erro ao conectar com o Bling: ' + (new URLSearchParams(window.location.search).get('msg') || 'tente novamente'), 'error', 6000);
+    if (_blingRes === 'conectado') {
+      toast('Bling conectado! Entre em modo Admin e abra Integrações para sincronizar.', 'success', 6000);
+    } else {
+      const _blingMsg = new URLSearchParams(window.location.search).get('msg') || 'tente novamente';
+      const _blingMsgAmigavel = _blingMsg === 'essa_conta_bling_ja_esta_conectada_em_outra_empresa'
+        ? 'Essa conta Bling já está conectada em outra empresa do Nexus360. Use uma conta Bling diferente, ou desconecte da outra empresa primeiro.'
+        : _blingMsg;
+      toast('Erro ao conectar com o Bling: ' + _blingMsgAmigavel, 'error', 8000);
+    }
     window.history.replaceState({}, '', window.location.pathname);
   }
 
