@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidAccessToken, BLING_API_BASE } from "@/lib/bling";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+export const dynamic = "force-dynamic";
+
 // ATENÇÃO: o mapeamento de campos abaixo (contatos e pedidos de venda) segue
 // a documentação pública da API v3 do Bling de memória — não foi testado
 // contra uma conta real (não temos credenciais). Antes de usar em produção,
