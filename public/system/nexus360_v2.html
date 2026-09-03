@@ -66,12 +66,15 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .logo-title{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.4px}
 .logo-sub{font-size:10px;color:rgba(255,255,255,.25);margin-top:3px;letter-spacing:.3px;text-transform:uppercase}
 .nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-section-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:16px 18px 6px;user-select:none}
+.nav-section-label:first-child{padding-top:8px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:7px 12px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;color:rgba(255,255,255,.4);transition:all .14s;user-select:none;letter-spacing:.05px}
 .nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.75)}
 .nav-item.active{background:rgba(255,255,255,.08);color:#fff;font-weight:500}
 .nav-item.active::before{content:'';position:absolute;left:6px;width:3px;height:18px;background:var(--blue2);border-radius:2px}
 .nav-item{position:relative}
-.nav-icon{width:15px;height:15px;flex-shrink:0;opacity:.5}
+.nav-icon{width:17px;height:17px;flex-shrink:0;opacity:.5}
+.nav-icon path,.nav-icon rect,.nav-icon circle,.nav-icon line,.nav-icon polygon{stroke-width:1.75}
 .nav-item.active .nav-icon{opacity:.85}
 .nav-item:hover .nav-icon{opacity:.7}
 .nav-badge{margin-left:auto;background:rgba(239,68,68,.15);color:#FCA5A5;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600}
@@ -305,14 +308,23 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     <div class="logo-sub">Gestão inteligente de negócios</div>
   </div>
   <nav class="nav">
+    <div class="nav-section-label">Visão geral</div>
     <div class="nav-item active" onclick="nav('dashboard',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
       Dashboard
     </div>
+
+    <div class="nav-section-label">Clientes</div>
     <div class="nav-item" onclick="nav('clientes',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg>
       Clientes
     </div>
+    <div class="nav-item" onclick="nav('crm',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1" stroke-width="2"/><rect x="10" y="8" width="4" height="13" rx="1" stroke-width="2"/><rect x="17" y="5" width="4" height="16" rx="1" stroke-width="2"/></svg>
+      CRM Funil
+    </div>
+
+    <div class="nav-section-label">Relacionamento</div>
     <div class="nav-item" onclick="nav('campanhas',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 2L11 13" stroke-width="2"/><path d="M22 2L15 22 11 13 2 9l20-7z" stroke-width="2"/></svg>
       Campanhas
@@ -325,10 +337,8 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
       Indicação
     </div>
-    <div class="nav-item" onclick="nav('crm',this)" data-role="admin">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1" stroke-width="2"/><rect x="10" y="8" width="4" height="13" rx="1" stroke-width="2"/><rect x="17" y="5" width="4" height="16" rx="1" stroke-width="2"/></svg>
-      CRM Funil
-    </div>
+
+    <div class="nav-section-label">Vendas</div>
     <div class="nav-item" onclick="nav('vendas',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23" stroke-width="2"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-width="2"/></svg>
       Vendas
@@ -350,18 +360,18 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><line x1="2" y1="10" x2="22" y2="10" stroke-width="2"/><line x1="6" y1="15" x2="10" y2="15" stroke-width="2" stroke-linecap="round"/></svg>
       Cobranças <span id="nav-devedores-badge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
     </div>
-    <div class="nav-item" onclick="nav('calendario',this)" data-role="todos">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg>
-      Calendário
-    </div>
+
+    <div class="nav-section-label">Inteligência</div>
     <div class="nav-item" onclick="nav('relatorios',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/><line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/></svg>
       Relatórios
     </div>
-    <div class="nav-item" onclick="nav('funcionarios',this)" data-role="admin">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
-      Funcionários
+    <div class="nav-item" onclick="nav('calendario',this)" data-role="todos">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg>
+      Calendário
     </div>
+
+    <div class="nav-section-label">Sistema</div>
     <div class="nav-item" onclick="nav('assinaturas',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Assinaturas
@@ -369,6 +379,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     <div class="nav-item" onclick="nav('integracoes',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6" stroke-width="2" stroke-linecap="round"/><rect x="9" y="9" width="6" height="6" rx="1" stroke-width="2"/></svg>
       Integrações
+    </div>
+    <div class="nav-item" onclick="nav('funcionarios',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
+      Funcionários
     </div>
     <div class="nav-item" onclick="nav('config',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-width="2"/></svg>
@@ -10268,6 +10282,8 @@ window.onload = async function() {
   padding-left: 10px !important;
 }
 #mDrawer .md-nav-item svg { width: 17px; height: 17px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#mDrawer .md-nav-section-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; padding: 16px 13px 6px; }
+#mDrawer .md-nav-section-label:first-child { padding-top: 6px; }
 #mDrawer .md-bottom {
   padding: 10px 8px 14px;
   border-top: 1px solid rgba(255,255,255,.06);
@@ -12393,23 +12409,34 @@ function rsvWppEnviar() {
     <div class="md-close" onclick="mClose()">✕</div>
   </div>
   <div class="md-nav" id="mDrawerNav">
+    <div class="md-nav-section-label">Visão geral</div>
     <div class="md-nav-item" onclick="mNav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+
+    <div class="md-nav-section-label">Clientes</div>
     <div class="md-nav-item" onclick="mNav('clientes')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Clientes</div>
+    <div class="md-nav-item" onclick="mNav('crm')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>CRM</div>
+
+    <div class="md-nav-section-label">Relacionamento</div>
     <div class="md-nav-item" onclick="mNav('campanhas')"><svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>Campanhas</div>
     <div class="md-nav-item" onclick="mNav('fidelidade')"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Fidelidade</div>
     <div class="md-nav-item" onclick="mNav('indicacao')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Indicação</div>
-    <div class="md-nav-item" onclick="mNav('crm')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>CRM</div>
+
+    <div class="md-nav-section-label">Vendas</div>
     <div class="md-nav-item" onclick="mNav('vendas')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Vendas</div>
     <div class="md-nav-item" onclick="mNav('itens')"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Produtos/Serviços</div>
     <div class="md-nav-item" onclick="mNav('entregas')"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Entregas</div>
     <div class="md-nav-item" onclick="mNav('reservas')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Reservas</div>
-    <div class="md-nav-item" onclick="mNav('devedores')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cobranças</div>
+    <div class="md-nav-item" onclick="mNav('devedores')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cobranças</div>
+
+    <div class="md-nav-section-label">Inteligência</div>
+    <div class="md-nav-item" onclick="mNav('relatorios')" data-admin="1"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios</div>
     <div class="md-nav-item" onclick="mNav('calendario')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</div>
-    <div class="md-nav-item" onclick="mNav('relatorios')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios</div>
-    <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
+
+    <div class="md-nav-section-label">Sistema</div>
     <div class="md-nav-item" onclick="mNav('assinaturas')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Assinaturas</div>
     <div class="md-nav-item" onclick="mNav('integracoes')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6"/></svg>Integrações</div>
-    <div class="md-nav-item" onclick="mNav('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
+    <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
+    <div class="md-nav-item" onclick="mNav('config')" data-admin="1"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
   </div>
   <div class="md-bottom">
     <div class="md-modes">
@@ -12480,16 +12507,15 @@ function mNav(page) {
 function mSyncDrawerNav() {
   const modo = MODO_ATUAL;
   const isAdmin = modo === 'admin';
-  // Pages only for admin
-  const adminOnly = ['campanhas','crm','devedores','calendario','relatorios','config','funcionarios'];
-  // Pages only for funcionario
-  const funcOnly = [];
+  // Usa a MESMA lista que o desktop (ADMIN_PAGES) — antes havia uma lista
+  // duplicada aqui que tinha ficado desatualizada (campanhas/calendario
+  // bloqueados à toa, integracoes/assinaturas sem bloqueio nenhum).
   document.querySelectorAll('#mDrawerNav .md-nav-item').forEach(el => {
     const onclick = el.getAttribute('onclick') || '';
     const pageMatch = onclick.match(/'([^']+)'/);
     const page = pageMatch ? pageMatch[1] : '';
     if (!page) return;
-    if (!isAdmin && adminOnly.includes(page)) {
+    if (!isAdmin && ADMIN_PAGES.includes(page)) {
       el.style.display = 'none';
     } else {
       el.style.display = 'flex';
