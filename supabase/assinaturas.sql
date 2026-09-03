@@ -19,15 +19,19 @@ create table if not exists planos_assinatura (
 create table if not exists assinaturas (
   id                  uuid primary key default gen_random_uuid(),
   company_id          uuid not null,
-  cliente_id          uuid not null,
+  cliente_id          bigint not null, -- clientes.id é numérico (bigint), não uuid
   plano_id            uuid not null references planos_assinatura(id),
   asaas_customer_id   text,
   asaas_subscription_id text,
   status              text not null default 'pendente', -- pendente | ativa | atrasada | cancelada
+  valor               numeric(10,2), -- snapshot do valor no momento da assinatura (pode divergir do plano se editado depois)
   proxima_cobranca    date,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
+
+-- Se você criou a tabela antes desta versão do script, roda também:
+-- alter table assinaturas add column if not exists valor numeric(10,2);
 
 alter table planos_assinatura enable row level security;
 alter table assinaturas enable row level security;

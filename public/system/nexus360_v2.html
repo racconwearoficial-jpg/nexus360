@@ -1651,6 +1651,17 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="page-header-sub">Clube de assinatura recorrente — cliente paga todo mês, sem precisar voltar pra renovar</div>
       </div>
 
+      <div class="card" style="margin-bottom:14px" id="asnCardFinanceiro">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div>
+            <div class="section-title" style="margin-bottom:2px">Saldo disponível no Asaas</div>
+            <div id="asnSaldoValor" style="font-size:24px;font-weight:700">—</div>
+          </div>
+          <button class="btn btn-ghost" onclick="abrirExtratoAsaas()">Ver extrato</button>
+        </div>
+        <div id="asnExtratoBox" style="display:none;margin-top:14px;max-height:260px;overflow-y:auto;border-top:1px solid var(--border);padding-top:10px"></div>
+      </div>
+
       <div class="grid2" style="margin-bottom:14px">
         <div class="card">
           <div class="section-title mb12">Novo plano</div>
@@ -2958,6 +2969,7 @@ async function loadAssinaturas() {
   renderAsnPlanos();
   renderAsnAssinantes();
   preencherSelectsAssinatura();
+  carregarSaldoAsaas();
 }
 
 function preencherSelectsAssinatura() {
@@ -2987,13 +2999,21 @@ function renderAsnAssinantes() {
     const cliente = (state.clientes || []).find(c => c.id === a.cliente_id);
     const plano = _asnPlanos.find(p => p.id === a.plano_id);
     const cor = badgeCor[a.status] || 'var(--text3)';
+    const valorAtual = a.valor != null ? a.valor : plano?.valor;
+    const ativa = a.status !== 'cancelada';
     return `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;gap:8px">
-      <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · ${a.status === 'pendente' ? 'aguardando 1º pagamento' : 'próxima cobrança'}: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div></div>
-      <div style="display:flex;align-items:center;gap:8px">
+    <div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · R$ ${valorAtual != null ? parseFloat(valorAtual).toFixed(2) : '—'} · ${a.status === 'pendente' ? 'aguardando 1º pagamento' : 'próxima cobrança'}: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div></div>
         <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${cor}22;color:${cor}">${a.status}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        ${ativa ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="atualizarStatusAssinatura('${a.id}')" id="btnAsnStatus_${a.id}">Atualizar status</button>` : ''}
+        ${ativa ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="editarValorAssinatura('${a.id}')">Editar valor</button>` : ''}
+        ${ativa ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reenviarCobrancaAssinatura('${a.id}')">Reenviar cobrança</button>` : ''}
+        ${ativa ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="ativarNotifWppAssinatura('${a.id}')">Notificação automática</button>` : ''}
         ${cliente?.telefone ? `<button class="btn-wpp" style="font-size:11px;padding:4px 10px" onclick="avisarAssinaturaWpp('${a.id}')">WhatsApp</button>` : ''}
-        ${a.status !== 'cancelada' ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:#F87171" onclick="cancelarAssinaturaCliente('${a.id}')">Cancelar</button>` : ''}
+        ${ativa ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:#F87171" onclick="cancelarAssinaturaCliente('${a.id}')">Cancelar</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3057,6 +3077,117 @@ async function cancelarAssinaturaCliente(assinatura_id) {
 // resto do sistema (wppAbrir → link wa.me) — quando a Z-API estiver integrada,
 // trocar o disparo aqui (e nos outros pontos que usam wppAbrir) é o suficiente
 // pra esse botão passar a mandar automático, sem precisar redesenhar a tela.
+async function atualizarStatusAssinatura(assinatura_id) {
+  const btn = document.getElementById('btnAsnStatus_' + assinatura_id);
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Consultando...';
+  try {
+    const r = await fetch('/api/assinaturas/atualizar-status', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao consultar status');
+    toast(d.msg || `Status atualizado: ${d.status}`, 'success');
+    loadAssinaturas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+async function editarValorAssinatura(assinatura_id) {
+  const a = _asnAssinaturas.find(x => String(x.id) === String(assinatura_id));
+  if (!a) return;
+  const atual = a.valor != null ? a.valor : (_asnPlanos.find(p => p.id === a.plano_id)?.valor || 0);
+  const novoStr = prompt('Novo valor da cobrança (R$):', parseFloat(atual).toFixed(2));
+  if (novoStr === null) return;
+  const novo = parseFloat(novoStr.replace(',', '.'));
+  if (!novo || novo <= 0) { toast('Valor inválido', 'error'); return; }
+  try {
+    const r = await fetch('/api/assinaturas/editar', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, assinatura_id, valor: novo }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao editar');
+    toast('Valor atualizado! Vale a partir da próxima cobrança.', 'success');
+    loadAssinaturas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+async function reenviarCobrancaAssinatura(assinatura_id) {
+  try {
+    const r = await fetch('/api/assinaturas/reenviar-cobranca', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao buscar cobrança');
+    if (!d.invoiceUrl) { toast('Cobrança encontrada, mas sem link disponível.', 'error'); return; }
+
+    const a = _asnAssinaturas.find(x => String(x.id) === String(assinatura_id));
+    const cliente = (state.clientes || []).find(c => c.id === a?.cliente_id);
+    const dataFmt = d.vencimento ? new Date(d.vencimento+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+    const msg = `Olá${cliente ? ' ' + cliente.nome : ''}! Segue o link da sua cobrança (R$ ${parseFloat(d.valor).toFixed(2)}, vencimento ${dataFmt}): ${d.invoiceUrl}`;
+    if (cliente?.telefone) wppAbrir(cliente.telefone, msg);
+    else toast('Link: ' + d.invoiceUrl, 'info', 10000);
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+async function ativarNotifWppAssinatura(assinatura_id) {
+  try {
+    const r = await fetch('/api/assinaturas/notificacao-whatsapp', {
+      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao ativar notificação');
+    toast('Notificação automática por WhatsApp ativada pro Asaas avisar esse cliente sozinho.', 'success', 6000);
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+async function abrirExtratoAsaas() {
+  const box = document.getElementById('asnExtratoBox');
+  const visivel = box.style.display !== 'none';
+  if (visivel) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<div style="color:var(--text3);font-size:12px">Carregando...</div>';
+  try {
+    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=extrato&_=${Date.now()}`, { cache: 'no-store' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao consultar extrato');
+    const mov = d.movimentacoes || [];
+    if (!mov.length) { box.innerHTML = '<div style="color:var(--text3);font-size:12px">Nenhuma movimentação ainda.</div>'; return; }
+    box.innerHTML = mov.map(m => `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="color:var(--text2)">${m.description || m.type || '—'}</span>
+        <span style="font-weight:600;color:${(m.value||0) >= 0 ? '#34D399' : '#F87171'}">R$ ${parseFloat(m.value||0).toFixed(2)}</span>
+      </div>`).join('');
+  } catch (e) {
+    box.innerHTML = `<div style="color:#F87171;font-size:12px">Erro: ${e.message}</div>`;
+  }
+}
+
+async function carregarSaldoAsaas() {
+  const el = document.getElementById('asnSaldoValor');
+  if (!el || !_asaasConectado) return;
+  try {
+    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=saldo&_=${Date.now()}`, { cache: 'no-store' });
+    const d = await r.json();
+    el.textContent = (r.ok && d.saldo != null) ? 'R$ ' + parseFloat(d.saldo).toFixed(2) : '—';
+  } catch (e) {
+    el.textContent = '—';
+  }
+}
+
 function avisarAssinaturaWpp(assinatura_id) {
   const a = _asnAssinaturas.find(x => String(x.id) === String(assinatura_id));
   if (!a) return;

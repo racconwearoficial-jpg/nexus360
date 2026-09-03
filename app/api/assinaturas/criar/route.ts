@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       asaas_customer_id: asaasCustomerId,
       asaas_subscription_id: assinaturaAsaas.id,
       status: "pendente", // só vira "ativa" quando o webhook confirmar o primeiro pagamento
+      valor: plano.valor,
       proxima_cobranca: amanha,
     }).select().single();
     if (errIns) throw errIns;
