@@ -2992,6 +2992,7 @@ function renderAsnAssinantes() {
       <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · próxima cobrança: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div></div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${cor}22;color:${cor}">${a.status}</span>
+        ${cliente?.telefone ? `<button class="btn-wpp" style="font-size:11px;padding:4px 10px" onclick="avisarAssinaturaWpp('${a.id}')">WhatsApp</button>` : ''}
         ${a.status !== 'cancelada' ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:#F87171" onclick="cancelarAssinaturaCliente('${a.id}')">Cancelar</button>` : ''}
       </div>
     </div>`;
@@ -3050,6 +3051,25 @@ async function cancelarAssinaturaCliente(assinatura_id) {
   } catch (e) {
     toast('Erro: ' + e.message, 'error');
   }
+}
+
+// Mensagem sobre a assinatura pro WhatsApp. Usa o mesmo mecanismo de envio do
+// resto do sistema (wppAbrir → link wa.me) — quando a Z-API estiver integrada,
+// trocar o disparo aqui (e nos outros pontos que usam wppAbrir) é o suficiente
+// pra esse botão passar a mandar automático, sem precisar redesenhar a tela.
+function avisarAssinaturaWpp(assinatura_id) {
+  const a = _asnAssinaturas.find(x => String(x.id) === String(assinatura_id));
+  if (!a) return;
+  const cliente = (state.clientes || []).find(c => c.id === a.cliente_id);
+  const plano = _asnPlanos.find(p => p.id === a.plano_id);
+  if (!cliente?.telefone) { toast('Cliente sem telefone cadastrado', 'error'); return; }
+
+  const neg = state.config.nome_negocio || 'nossa loja';
+  const statusTexto = { ativa: 'está ativa', atrasada: 'está com pagamento em atraso', pendente: 'foi criada e aguarda o primeiro pagamento', cancelada: 'foi cancelada' };
+  const msg = `Olá ${cliente.nome}! Sua assinatura "${plano?.nome || ''}" em ${neg} ${statusTexto[a.status] || 'foi atualizada'}.` +
+    (a.status === 'ativa' || a.status === 'pendente' ? ` Próxima cobrança: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}.` : '');
+
+  wppAbrir(cliente.telefone, msg);
 }
 
 // Calcula status dinamicamente — nunca lê o campo status do banco
