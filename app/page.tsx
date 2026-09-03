@@ -117,7 +117,7 @@ const PACOTES = [
   {
     tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
     desc: "Para quem quer ser encontrado e parar de perder contato",
-    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Roteiro de mensagens prontas: primeiro contato e recuperação de cliente", "Bônus: 10 artes com a cara do seu negócio"],
+    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Vídeo diagnóstico gravado especialmente pro seu negócio, mostrando onde você está perdendo cliente", "Bônus: 10 artes com a cara do seu negócio"],
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
@@ -206,7 +206,14 @@ export default function Home() {
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
       `}</style>
 
-      <div style={{ position: "fixed", inset: 0, background: "radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
+        backgroundImage: "linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%), url(/hero-bg.png)",
+        backgroundSize: "cover, auto, cover",
+        backgroundPosition: "center, center, top center",
+        backgroundRepeat: "no-repeat, no-repeat, no-repeat",
+        backgroundAttachment: "fixed, fixed, fixed",
+      }} />
 
       {/* ============ NAV ============ */}
       <nav className="np" style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(4,6,15,0.82)", backdropFilter: "blur(12px)" }}>
@@ -223,11 +230,7 @@ export default function Home() {
       </nav>
 
       {/* ============ HERO ============ */}
-      <section className="np" style={{
-        position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden",
-        backgroundImage: "url(/hero-bg.png)", backgroundSize: "cover", backgroundPosition: "top center", backgroundRepeat: "no-repeat",
-      }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(4,6,15,0) 0%, rgba(4,6,15,.5) 55%, #04060F 100%)", zIndex: 1 }} />
+      <section className="np" style={{ position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden" }}>
         <Grid o={0.5} />
         <div style={{ position: "relative", zIndex: 4 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 30 }}>
