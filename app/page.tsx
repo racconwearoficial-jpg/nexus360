@@ -223,7 +223,11 @@ export default function Home() {
       </nav>
 
       {/* ============ HERO ============ */}
-      <section className="np" style={{ position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden" }}>
+      <section className="np" style={{
+        position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden",
+        backgroundImage: "url(/hero-bg.png)", backgroundSize: "cover", backgroundPosition: "top center", backgroundRepeat: "no-repeat",
+      }}>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(4,6,15,0) 0%, rgba(4,6,15,.5) 55%, #04060F 100%)", zIndex: 1 }} />
         <Grid o={0.5} />
         <div style={{ position: "relative", zIndex: 4 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 30 }}>
