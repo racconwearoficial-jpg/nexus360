@@ -367,6 +367,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
       Funcionários
     </div>
+    <div class="nav-item" onclick="nav('integracoes',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6" stroke-width="2" stroke-linecap="round"/><rect x="9" y="9" width="6" height="6" rx="1" stroke-width="2"/></svg>
+      Integrações
+    </div>
     <div class="nav-item" onclick="nav('config',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-width="2"/></svg>
       Configurações
@@ -1637,6 +1641,46 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     </div>
 
     <!-- CONFIG -->
+    <div class="page" id="page-integracoes">
+      <div class="page-header">
+        <div class="page-header-title">Integrações</div>
+        <div class="page-header-sub">Conecte o Nexus360 com os sistemas que você já usa</div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px" id="intCardBling">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(255,193,7,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#FFC107" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="#FFC107" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:14px">Bling</div>
+              <div style="font-size:12px;color:var(--text3)">Importa clientes e vendas automaticamente do seu ERP</div>
+            </div>
+          </div>
+          <span id="intBlingBadge" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(148,163,184,.12);color:var(--text3)">Verificando...</span>
+        </div>
+        <div id="intBlingInfo" style="font-size:12px;color:var(--text3);margin-top:10px"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btnIntBlingConectar" onclick="conectarBling()" style="display:none">Conectar com Bling</button>
+          <button class="btn btn-ghost" id="btnIntBlingSync" onclick="sincronizarBling()" style="display:none">Sincronizar agora</button>
+          <button class="btn btn-ghost" id="btnIntBlingDesconectar" onclick="desconectarBling()" style="display:none;color:#F87171">Desconectar</button>
+        </div>
+      </div>
+
+      <div class="card" style="opacity:.55">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(148,163,184,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">InovaFarma</div>
+            <div style="font-size:12px;color:var(--text3)">Em avaliação — sem API pública confirmada ainda</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-config">
       <div class="page-header">
         <div class="page-header-title">Configurações</div>
@@ -2517,10 +2561,11 @@ const pageNames = {
   fidelidade:'Fidelidade', indicacao:'Indicação', crm:'CRM — Funil de Vendas', vendas:'Vendas',
   itens:'Produtos e Serviços', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
   devedores:'Cobranças', calendario:'Calendário',
-  relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários'
+  relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários',
+  integracoes:'Integrações'
 };
 
-const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores'];
+const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores','integracoes'];
 // ══════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2649,7 +2694,7 @@ async function loadAll() {
   showLoading('Carregando dados...');
   try {
     await loadCompanyId();
-    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll()]);
+    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes()]);
     renderDashboard();
     filterClients();
     renderCampanhas();
@@ -2673,6 +2718,91 @@ async function loadAll() {
     toast('Erro ao carregar dados: ' + e.message, 'error');
   } finally {
     hideLoading();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTEGRAÇÕES — BLING
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadIntegracoes() {
+  const badge = document.getElementById('intBlingBadge');
+  const info  = document.getElementById('intBlingInfo');
+  const btnConectar    = document.getElementById('btnIntBlingConectar');
+  const btnSync        = document.getElementById('btnIntBlingSync');
+  const btnDesconectar = document.getElementById('btnIntBlingDesconectar');
+  if (!badge) return;
+
+  try {
+    const r = await fetch(`/api/integracoes/bling/status?company_id=${state.companyId}`);
+    const d = await r.json();
+
+    if (!d.disponivel) {
+      badge.textContent = 'Indisponível';
+      badge.style.background = 'rgba(148,163,184,.12)'; badge.style.color = 'var(--text3)';
+      info.textContent = 'Integração ainda não configurada pelo suporte do Nexus360.';
+      btnConectar.style.display = btnSync.style.display = btnDesconectar.style.display = 'none';
+      return;
+    }
+
+    if (d.conectado) {
+      badge.textContent = 'Conectado';
+      badge.style.background = 'rgba(16,185,129,.12)'; badge.style.color = '#34D399';
+      const partes = [];
+      if (d.ultimaSincronia) partes.push('Última sincronia: ' + new Date(d.ultimaSincronia).toLocaleString('pt-BR'));
+      else partes.push('Ainda não sincronizado — clique em "Sincronizar agora".');
+      if (d.ultimoErro) partes.push('Erro na última tentativa: ' + d.ultimoErro);
+      info.textContent = partes.join(' · ');
+      btnConectar.style.display = 'none';
+      btnSync.style.display = btnDesconectar.style.display = 'inline-block';
+    } else {
+      badge.textContent = 'Não conectado';
+      badge.style.background = 'rgba(148,163,184,.12)'; badge.style.color = 'var(--text3)';
+      info.textContent = 'Conecte sua conta Bling para importar clientes e vendas automaticamente.';
+      btnConectar.style.display = 'inline-block';
+      btnSync.style.display = btnDesconectar.style.display = 'none';
+    }
+  } catch (e) {
+    badge.textContent = 'Erro';
+    info.textContent = 'Não foi possível verificar a integração agora.';
+  }
+}
+
+function conectarBling() {
+  window.location.href = `/api/integracoes/bling/connect?company_id=${state.companyId}`;
+}
+
+async function desconectarBling() {
+  if (!confirm('Desconectar o Bling? A sincronização automática vai parar.')) return;
+  try {
+    const r = await fetch('/api/integracoes/bling/disconnect', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId }),
+    });
+    if (!r.ok) throw new Error();
+    toast('Bling desconectado.', 'info');
+    loadIntegracoes();
+  } catch { toast('Erro ao desconectar.', 'error'); }
+}
+
+async function sincronizarBling() {
+  const btn = document.getElementById('btnIntBlingSync');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sincronizando...';
+  try {
+    const r = await fetch('/api/integracoes/bling/sync', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha na sincronização');
+    toast(`Sincronizado! ${d.criados} clientes novos, ${d.atualizados} atualizados.`, 'success');
+    await Promise.all([loadClientes(), loadVendas()]);
+    filterClients(); renderVendas(); renderDashboard();
+  } catch (e) {
+    toast('Erro ao sincronizar: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+    loadIntegracoes();
   }
 }
 
@@ -9458,6 +9588,16 @@ window.onload = async function() {
   showLoading('Verificando acesso...');
   await iniciarSistema();
 
+  // Retorno do OAuth do Bling (veja app/api/integracoes/bling/callback).
+  // Volta em modo funcionário (MODO_ATUAL não persiste entre reloads), então só
+  // avisamos por toast — o admin entra em modo Admin e abre Integrações de novo.
+  const _blingRes = new URLSearchParams(window.location.search).get('bling');
+  if (_blingRes) {
+    if (_blingRes === 'conectado') toast('Bling conectado! Entre em modo Admin e abra Integrações para sincronizar.', 'success', 6000);
+    else toast('Erro ao conectar com o Bling: ' + (new URLSearchParams(window.location.search).get('msg') || 'tente novamente'), 'error', 6000);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
   const ultimaImp = localStorage.getItem('nexus360_ultima_importacao');
   if (ultimaImp) {
     const dias = Math.floor((new Date() - new Date(ultimaImp)) / 86400000);
@@ -11863,6 +12003,7 @@ function rsvWppEnviar() {
     <div class="md-nav-item" onclick="mNav('calendario')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</div>
     <div class="md-nav-item" onclick="mNav('relatorios')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios</div>
     <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
+    <div class="md-nav-item" onclick="mNav('integracoes')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6"/></svg>Integrações</div>
     <div class="md-nav-item" onclick="mNav('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
   </div>
   <div class="md-bottom">
