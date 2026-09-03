@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { buscarOuCriarClienteAsaas, criarAssinaturaAsaas, asaasConfigurado } from "@/lib/asaas";
+import { buscarOuCriarClienteAsaas, criarAssinaturaAsaas, getCredenciaisAsaas } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
-// Cria a assinatura no Asaas e grava o vínculo local. Chamado quando o admin
-// assina um cliente a um plano de assinatura recorrente.
+// Cria a assinatura no Asaas (na conta própria da empresa) e grava o vínculo
+// local. Chamado quando o admin assina um cliente a um plano recorrente.
 export async function POST(req: NextRequest) {
   const { company_id, cliente_id, plano_id } = await req.json();
   if (!company_id || !cliente_id || !plano_id) {
     return NextResponse.json({ error: "company_id, cliente_id e plano_id são obrigatórios" }, { status: 400 });
   }
-  if (!asaasConfigurado()) {
-    return NextResponse.json({ error: "Asaas não configurado no servidor (falta ASAAS_API_KEY)." }, { status: 500 });
-  }
 
   try {
+    const cred = await getCredenciaisAsaas(company_id); // lança erro claro se a empresa não conectou
+
     const { data: cliente, error: errCli } = await supabaseAdmin
       .from("clientes").select("*").eq("id", cliente_id).eq("company_id", company_id).single();
     if (errCli || !cliente) throw new Error("Cliente não encontrado.");
@@ -25,11 +24,13 @@ export async function POST(req: NextRequest) {
     if (errPlano || !plano) throw new Error("Plano não encontrado.");
 
     const asaasCustomerId = await buscarOuCriarClienteAsaas({
+      apiKey: cred.api_key, sandbox: cred.sandbox,
       nome: cliente.nome, cpfCnpj: cliente.cpf, telefone: cliente.telefone,
     });
 
     const amanha = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     const assinaturaAsaas = await criarAssinaturaAsaas({
+      apiKey: cred.api_key, sandbox: cred.sandbox,
       customerId: asaasCustomerId,
       valor: plano.valor,
       ciclo: plano.ciclo,

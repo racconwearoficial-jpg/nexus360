@@ -1666,7 +1666,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="form-group"><label>Cliente</label><select id="asn-cliente"></select></div>
           <div class="form-group"><label>Plano</label><select id="asn-plano"></select></div>
           <button class="btn btn-primary" onclick="criarAssinaturaCliente()" id="btnAsnCriar">Criar assinatura</button>
-          <div style="font-size:11px;color:var(--text3);margin-top:8px">Gera cobrança via Pix automaticamente todo ciclo, pelo Asaas.</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px">Gera cobrança via Pix automaticamente todo ciclo, pelo Asaas. É preciso conectar sua conta Asaas em <b>Integrações</b> antes de assinar o primeiro cliente.</div>
         </div>
       </div>
 
@@ -1705,15 +1705,27 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
       </div>
 
-      <div class="card" style="opacity:.55">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div style="width:42px;height:42px;border-radius:10px;background:rgba(148,163,184,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <div class="card" id="intCardAsaas">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(0,171,132,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="#00AB84" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:14px">Asaas</div>
+              <div style="font-size:12px;color:var(--text3)">Cobrança e assinatura recorrente via Pix — o dinheiro cai direto na sua conta</div>
+            </div>
           </div>
-          <div>
-            <div style="font-weight:600;font-size:14px">InovaFarma</div>
-            <div style="font-size:12px;color:var(--text3)">Em avaliação — sem API pública confirmada ainda</div>
-          </div>
+          <span id="intAsaasBadge" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(148,163,184,.12);color:var(--text3)">Verificando...</span>
+        </div>
+        <div id="intAsaasForm" style="display:none;margin-top:14px">
+          <div class="form-group"><label>Chave de API (Configurações → Integrações → Chave de API na sua conta Asaas)</label><input type="password" id="asaas-api-key" placeholder="$aact_..."></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:10px"><input type="checkbox" id="asaas-sandbox"> Usar ambiente de testes (Sandbox) — recomendado pra testar antes de ativar de verdade</label>
+        </div>
+        <div id="intAsaasInfo" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btnIntAsaasConectar" onclick="conectarAsaas()" style="display:none">Conectar conta Asaas</button>
+          <button class="btn btn-ghost" id="btnIntAsaasDesconectar" onclick="desconectarAsaas()" style="display:none;color:#F87171">Desconectar</button>
         </div>
       </div>
     </div>
@@ -2731,7 +2743,7 @@ async function loadAll() {
   showLoading('Carregando dados...');
   try {
     await loadCompanyId();
-    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes()]);
+    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes(), loadIntegracaoAsaas()]);
     await loadAssinaturas(); // depende de state.clientes já carregado, roda depois do Promise.all
     renderDashboard();
     filterClients();
@@ -2807,6 +2819,81 @@ async function loadIntegracoes() {
 
 function conectarBling() {
   window.location.href = `/api/integracoes/bling/connect?company_id=${state.companyId}`;
+}
+
+let _asaasConectado = false;
+
+async function loadIntegracaoAsaas() {
+  const badge = document.getElementById('intAsaasBadge');
+  const form  = document.getElementById('intAsaasForm');
+  const info  = document.getElementById('intAsaasInfo');
+  const btnConectar    = document.getElementById('btnIntAsaasConectar');
+  const btnDesconectar = document.getElementById('btnIntAsaasDesconectar');
+  if (!badge) return;
+
+  try {
+    const r = await fetch(`/api/integracoes/asaas/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store' });
+    const d = await r.json();
+    _asaasConectado = Boolean(d.conectado);
+
+    if (d.conectado) {
+      badge.textContent = 'Conectado' + (d.sandbox ? ' (sandbox)' : '');
+      badge.style.background = 'rgba(16,185,129,.12)'; badge.style.color = '#34D399';
+      info.textContent = 'Conectado desde ' + new Date(d.conectadoEm).toLocaleDateString('pt-BR') + '.';
+      form.style.display = 'none';
+      btnConectar.style.display = 'none';
+      btnDesconectar.style.display = 'inline-block';
+    } else {
+      badge.textContent = 'Não conectado';
+      badge.style.background = 'rgba(148,163,184,.12)'; badge.style.color = 'var(--text3)';
+      info.textContent = 'Conecte sua conta Asaas pra poder criar planos de assinatura recorrente.';
+      form.style.display = 'block';
+      btnConectar.style.display = 'inline-block';
+      btnDesconectar.style.display = 'none';
+    }
+  } catch (e) {
+    badge.textContent = 'Erro';
+    info.textContent = 'Não foi possível verificar a integração agora.';
+  }
+}
+
+async function conectarAsaas() {
+  const api_key = document.getElementById('asaas-api-key').value.trim();
+  const sandbox = document.getElementById('asaas-sandbox').checked;
+  if (!api_key) { toast('Cole a chave de API da sua conta Asaas', 'error'); return; }
+  const btn = document.getElementById('btnIntAsaasConectar');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Validando...';
+  try {
+    const r = await fetch('/api/integracoes/asaas/conectar', {
+      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId, api_key, sandbox }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao conectar');
+    toast('Asaas conectado!', 'success');
+    document.getElementById('asaas-api-key').value = '';
+    loadIntegracaoAsaas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+async function desconectarAsaas() {
+  if (!confirm('Desconectar o Asaas? Assinaturas existentes continuam ativas lá, mas o Nexus360 não vai mais gerenciar novas.')) return;
+  try {
+    const r = await fetch('/api/integracoes/asaas/desconectar', {
+      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId }),
+    });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao desconectar'); }
+    toast('Asaas desconectado.', 'info');
+    loadIntegracaoAsaas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  }
 }
 
 async function desconectarBling() {
@@ -2925,6 +3012,7 @@ async function criarAssinaturaCliente() {
   const cliente_id = document.getElementById('asn-cliente').value;
   const plano_id = document.getElementById('asn-plano').value;
   if (!cliente_id || !plano_id) { toast('Selecione cliente e plano', 'error'); return; }
+  if (!_asaasConectado) { toast('Conecte sua conta Asaas em Integrações antes de assinar um cliente.', 'error', 6000); return; }
   const btn = document.getElementById('btnAsnCriar');
   const original = btn.textContent;
   btn.disabled = true; btn.textContent = 'Criando...';

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { cancelarAssinaturaAsaas } from "@/lib/asaas";
+import { cancelarAssinaturaAsaas, getCredenciaisAsaas } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     if (error || !assinatura) throw new Error("Assinatura não encontrada.");
 
     if (assinatura.asaas_subscription_id) {
-      await cancelarAssinaturaAsaas(assinatura.asaas_subscription_id);
+      const cred = await getCredenciaisAsaas(company_id);
+      await cancelarAssinaturaAsaas({ apiKey: cred.api_key, sandbox: cred.sandbox, subscriptionId: assinatura.asaas_subscription_id });
     }
     await supabaseAdmin.from("assinaturas").update({ status: "cancelada", updated_at: new Date().toISOString() }).eq("id", assinatura_id);
 
