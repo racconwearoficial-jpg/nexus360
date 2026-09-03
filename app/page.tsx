@@ -84,10 +84,10 @@ function GoogleCard({ depois }: { depois: boolean }) {
 
 /* ============ dados ============ */
 const PROBLEMAS = [
-  { n: "01", t: "Você não aparece no “perto de mim”", d: "Quem digita “farmácia perto de mim” está com o dinheiro na mão. Perfil do Google incompleto ou na categoria errada te deixa fora dessa lista." },
-  { n: "02", t: "A mensagem chega e ninguém responde", d: "Cliente que espera meia hora no WhatsApp vai no concorrente que respondeu em dois minutos. Você conquistou o contato e entregou a venda de graça." },
-  { n: "03", t: "Seus clientes antigos sumiram e ninguém chamou", d: "Dezenas de pessoas já compraram, gostaram e pararam de voltar. É a venda mais barata que existe, e está parada." },
-  { n: "04", t: "Ninguém sabe quem é seu melhor cliente", d: "Sem cadastro e sem histórico, quem compra todo mês recebe o mesmo tratamento de quem apareceu uma vez." },
+  { n: "01", t: "Você não aparece no “perto de mim”", d: "Perfil do Google incompleto ou na categoria errada te tira da busca de quem já está com o dinheiro na mão." },
+  { n: "02", t: "A mensagem chega e ninguém responde", d: "Meia hora de espera no WhatsApp e o cliente já foi pro concorrente que respondeu em dois minutos." },
+  { n: "03", t: "Seus clientes antigos sumiram e ninguém chamou", d: "Dezenas já compraram, gostaram e pararam de voltar. É a venda mais barata que existe, parada." },
+  { n: "04", t: "Ninguém sabe quem é seu melhor cliente", d: "Sem histórico, quem compra todo mês recebe o mesmo tratamento de quem apareceu uma vez." },
 ];
 
 
@@ -95,7 +95,7 @@ const SERVICOS = [
   { i: Ico.pin, c: "#3B82F6", t: "Google Meu Negócio", d: "Perfil reivindicado, categoria certa, fotos, serviços com preço e botão de WhatsApp." },
   { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "O sistema marca quem parou de comprar e deixa a campanha de retorno pronta. A venda mais rápida do seu negócio." },
   { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca." },
-  { i: Ico.clock, c: "#8B5CF6", t: "WhatsApp que converte", d: "Saudação automática, mensagem de ausência, atalhos de resposta, catálogo com preço e link direto. Configurado e testado." },
+  { i: Ico.clock, c: "#8B5CF6", t: "Mensagens prontas pra enviar", d: "Textos de recuperação, aniversário e cliente VIP já escritos certos. Você só aprova e clica em enviar." },
   { i: Ico.brush, c: "#EC4899", t: "Identidade visual", d: "Logo, cores e tipografia em arquivo pronto para placa, cartão, rede social e fachada." },
   { i: Ico.play, c: "#EF4444", t: "Artes, posts e Reels", d: "Artes com a sua identidade e vídeos curtos editados a partir do que você grava no celular." },
   { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta e no Google para quem já tem o básico arrumado. Verba paga direto por você." },
@@ -109,13 +109,15 @@ const RECURSOS = [
   { t: "Campanhas de WhatsApp", d: "Separa o público certo e deixa a campanha pronta para disparar" },
   { t: "Programa de indicação", d: "Cliente indica amigo, os dois ganham, você cresce sem anúncio" },
   { t: "Relatórios de verdade", d: "Faturamento, ticket médio e vendas, atualizado sozinho" },
+  { t: "Integração com Bling", d: "Clientes e vendas do seu ERP sincronizados sozinhos" },
+  { t: "Assinatura recorrente", d: "Cliente assina um plano e é cobrado todo mês via Pix, sem precisar voltar" },
 ];
 
 const PACOTES = [
   {
     tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
     desc: "Para quem quer ser encontrado e parar de perder contato",
-    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "WhatsApp organizado: saudação, ausência e atalhos", "Bônus: 10 artes com a cara do seu negócio"],
+    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Roteiro de mensagens prontas: primeiro contato e recuperação de cliente", "Bônus: 10 artes com a cara do seu negócio"],
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
@@ -286,7 +288,7 @@ export default function Home() {
               <p style={{ ...S.eyebrow, color: "#FCA5A5" }}>O buraco no seu caixa</p>
               <h2 style={{ ...S.h2, marginBottom: 18 }}>Todo mês entra menos<br />do que deveria</h2>
               <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 22 }}>
-                E quase nunca é o produto. É que o caminho entre o cliente e a sua porta está quebrado em quatro pontos, ao mesmo tempo, e nenhum deles aparece no seu balanço no fim do mês.
+                Quase nunca é o produto. É o caminho até a sua porta, quebrado em quatro pontos que não aparecem no seu balanço.
               </p>
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
                 <div>
@@ -323,7 +325,7 @@ export default function Home() {
             <p style={S.eyebrow}>A conta que ninguém fecha</p>
             <h2 style={{ ...S.h2, marginBottom: 18 }}>Existe um lucro no seu negócio<br />que você nunca viu</h2>
             <p style={{ ...S.dim, fontSize: 16.5 }}>
-              Seu caixa mostra o que entrou. Ele nunca mostra o que quase entrou e foi embora. Não existe linha de "vendas que eu perdi" em relatório nenhum, e é justamente por isso que parece que está tudo bem.
+              Seu caixa mostra o que entrou, nunca o que quase entrou e foi embora. Não existe linha de "vendas perdidas" em relatório nenhum.
             </p>
           </div>
 
@@ -367,7 +369,7 @@ export default function Home() {
           <div style={{ marginTop: 30, background: "rgba(59,130,246,.07)", border: "1px solid rgba(59,130,246,.22)", borderRadius: 16, padding: "26px 30px", textAlign: "center" }}>
             <p style={{ fontSize: 16.5, color: "rgba(255,255,255,.82)", lineHeight: 1.65, maxWidth: 760, margin: "0 auto" }}>
               <strong style={{ color: "#93C5FD" }}>É na segunda coluna que está o lucro que você ainda não teve.</strong>{" "}
-              Ela não pede produto novo, nem funcionário novo, nem verba de anúncio. Pede só que alguém olhe para ela todo dia. É exatamente esse o meu trabalho.
+              Não pede produto novo nem verba de anúncio, só alguém olhando pra ela todo dia. É esse o meu trabalho.
             </p>
           </div>
         </div>
