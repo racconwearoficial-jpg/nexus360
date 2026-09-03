@@ -117,7 +117,7 @@ const PACOTES = [
   {
     tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
     desc: "Para quem quer ser encontrado e parar de perder contato",
-    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Vídeo diagnóstico gravado especialmente pro seu negócio, mostrando onde você está perdendo cliente", "Bônus: 10 artes com a cara do seu negócio"],
+    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Vídeo de apresentação editado, pronto pra postar no Google, Instagram e Status", "Bônus: 10 artes com a cara do seu negócio"],
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
@@ -138,22 +138,6 @@ const PACOTES = [
     itens: ["Tudo do Crescimento", "Criação e gestão de anúncios no Meta e Google", "Criativos e textos testados", "4 Reels por mês, editados e legendados", "Ajuste semanal do custo por contato"],
     selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
   },
-];
-
-const VE = [
-  { t: "Vendas do dia", d: "o número que fecha o caixa à noite" },
-  { t: "Estoque acabando", d: "o que precisa repor essa semana" },
-  { t: "Contas a pagar", d: "fornecedor, aluguel e folha" },
-  { t: "Movimento na loja", d: "quem entrou pela porta hoje" },
-  { t: "Equipe e escala", d: "quem está no balcão em cada turno" },
-];
-
-const NAO_VE = [
-  "Quem procurou seu serviço no Google e clicou no concorrente da esquina",
-  "Os R$ 50 que você impulsionou naquele post e nunca soube se trouxeram alguém",
-  "O cliente que comprava todo mês e parou de aparecer há 70 dias",
-  "Quantos clientes você ganhou e quantos deixaram de voltar neste mês",
-  "Quem abriu seu Instagram, não achou preço nem horário e desistiu de perguntar",
 ];
 
 const GARANTIAS = [
@@ -184,7 +168,7 @@ const S = {
 
 export default function Home() {
   return (
-    <main style={{ background: "#04060F", color: "#fff", minHeight: "100vh", fontFamily: "'DM Sans', system-ui, sans-serif", overflowX: "hidden" }}>
+    <main style={{ position: "relative", background: "#04060F", color: "#fff", minHeight: "100vh", fontFamily: "'DM Sans', system-ui, sans-serif", overflowX: "hidden" }}>
       <style>{`
         .np{padding-left:48px;padding-right:48px}
         .btn{transition:transform .15s ease, box-shadow .15s ease}
@@ -204,16 +188,19 @@ export default function Home() {
         .float{position:absolute;z-index:3}
         @media (max-width:900px){ .float{display:none} }
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
+        .bgfixed{
+          position:fixed; inset:0; pointer-events:none; z-index:0;
+          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%), url(/hero-bg.png);
+          background-size:cover, auto, cover;
+          background-repeat:no-repeat, no-repeat, no-repeat;
+          background-attachment:fixed,fixed,fixed;
+          background-position:center,center,top center;
+        }
+        /* position:fixed + altura dinâmica da barra de endereço quebra no mobile — troca pra absolute, acompanha o scroll normal */
+        @media (max-width:900px){ .bgfixed{position:absolute; height:100%; background-attachment:scroll,scroll,scroll} }
       `}</style>
 
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        backgroundImage: "linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%), url(/hero-bg.png)",
-        backgroundSize: "cover, auto, cover",
-        backgroundPosition: "center, center, top center",
-        backgroundRepeat: "no-repeat, no-repeat, no-repeat",
-        backgroundAttachment: "fixed, fixed, fixed",
-      }} />
+      <div className="bgfixed" />
 
       {/* ============ NAV ============ */}
       <nav className="np" style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(4,6,15,0.82)", backdropFilter: "blur(12px)" }}>
@@ -320,64 +307,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ O QUE NAO APARECE NO CAIXA ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(255,255,255,0.014)" }}>
-        <Grid o={0.4} />
-        <div style={{ maxWidth: 1060, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 52, maxWidth: 720, marginLeft: "auto", marginRight: "auto" }}>
-            <p style={S.eyebrow}>A conta que ninguém fecha</p>
-            <h2 style={{ ...S.h2, marginBottom: 18 }}>Existe um lucro no seu negócio<br />que você nunca viu</h2>
-            <p style={{ ...S.dim, fontSize: 16.5 }}>
-              Seu caixa mostra o que entrou, nunca o que quase entrou e foi embora. Não existe linha de "vendas perdidas" em relatório nenhum.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-            <div style={{ ...S.card, padding: "30px 28px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 20 }}>O que você vê todo dia</div>
-              <div style={{ display: "grid", gap: 13 }}>
-                {VE.map(v => (
-                  <div key={v.t} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,.22)", flexShrink: 0, marginTop: 8 }} />
-                    <div>
-                      <div style={{ color: "rgba(255,255,255,.62)", fontSize: 15, fontWeight: 600 }}>{v.t}</div>
-                      <div style={{ color: "rgba(255,255,255,.3)", fontSize: 13.2, lineHeight: 1.5 }}>{v.d}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ flex: 1, minHeight: 16 }} />
-              <p style={{ marginTop: 24, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.06)", color: "rgba(255,255,255,.3)", fontSize: 13.5, lineHeight: 1.6 }}>
-                Tudo isso você controla bem, e é por isso que dói: não é aqui que está o problema.
-              </p>
-            </div>
-
-            <div style={{ ...S.card, padding: "30px 28px", background: "rgba(239,68,68,.045)", borderColor: "rgba(239,68,68,.18)", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#FCA5A5", marginBottom: 20 }}>O que passa batido</div>
-              <div style={{ display: "grid", gap: 13 }}>
-                {NAO_VE.map(v => (
-                  <div key={v} style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#EF4444", flexShrink: 0, marginTop: 8 }} />
-                    <span style={{ color: "rgba(255,255,255,.68)", fontSize: 15, lineHeight: 1.5 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ flex: 1, minHeight: 16 }} />
-              <p style={{ marginTop: 24, paddingTop: 18, borderTop: "1px solid rgba(239,68,68,.15)", color: "rgba(255,255,255,.5)", fontSize: 13.5, lineHeight: 1.6 }}>
-                Nenhum desses aparece no seu relatório. Todos custam dinheiro.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 30, background: "rgba(59,130,246,.07)", border: "1px solid rgba(59,130,246,.22)", borderRadius: 16, padding: "26px 30px", textAlign: "center" }}>
-            <p style={{ fontSize: 16.5, color: "rgba(255,255,255,.82)", lineHeight: 1.65, maxWidth: 760, margin: "0 auto" }}>
-              <strong style={{ color: "#93C5FD" }}>É na segunda coluna que está o lucro que você ainda não teve.</strong>{" "}
-              Não pede produto novo nem verba de anúncio, só alguém olhando pra ela todo dia. É esse o meu trabalho.
-            </p>
           </div>
         </div>
       </section>
