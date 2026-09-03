@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
 
 const WA = "https://wa.me/5563981062551";
 const WA_DIAG = `${WA}?text=${encodeURIComponent("Oi! Quero o diagnóstico gratuito do meu negócio.")}`;
@@ -167,6 +170,26 @@ const S = {
 };
 
 export default function Home() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("revealed");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+    );
+    els.forEach((el, i) => {
+      (el as HTMLElement).style.transitionDelay = `${(i % 4) * 70}ms`;
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
   return (
     <main style={{ position: "relative", background: "#04060F", color: "#fff", minHeight: "100vh", fontFamily: "'DM Sans', system-ui, sans-serif", overflowX: "hidden" }}>
       <style>{`
@@ -198,6 +221,9 @@ export default function Home() {
         }
         /* position:fixed + altura dinâmica da barra de endereço quebra no mobile — troca pra absolute, acompanha o scroll normal */
         @media (max-width:900px){ .bgfixed{position:absolute; height:100%; background-attachment:scroll,scroll,scroll} }
+        .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)}
+        .reveal.revealed{opacity:1; transform:translateY(0)}
+        @media (prefers-reduced-motion: reduce){ .reveal{opacity:1; transform:none; transition:none} }
       `}</style>
 
       <div className="bgfixed" />
@@ -298,7 +324,7 @@ export default function Home() {
 
             <div style={{ display: "grid", gap: 14 }}>
               {PROBLEMAS.map(p => (
-                <div key={p.n} className="lift" style={{ ...S.card, padding: "22px 22px", background: "rgba(239,68,68,0.035)", borderColor: "rgba(239,68,68,0.13)", display: "flex", gap: 16 }}>
+                <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "22px 22px", background: "rgba(239,68,68,0.035)", borderColor: "rgba(239,68,68,0.13)", display: "flex", gap: 16 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(239,68,68,0.7)", flexShrink: 0, paddingTop: 2 }}>{p.n}</div>
                   <div>
                     <h3 style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 7, lineHeight: 1.3 }}>{p.t}</h3>
@@ -328,7 +354,7 @@ export default function Home() {
 
           <div className="grid g-serv">
             {SERVICOS.map(s => (
-              <div key={s.t} className="lift" style={{ ...S.card, padding: "28px 24px" }}>
+              <div key={s.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px" }}>
                 <div style={{ width: 46, height: 46, borderRadius: 13, background: `${s.c}18`, border: `1px solid ${s.c}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
                   {s.i(s.c)}
                 </div>
@@ -401,7 +427,7 @@ export default function Home() {
 
           <div className="grid g-pac">
             {PACOTES.map(p => (
-              <div key={p.nome} className="lift" style={{
+              <div key={p.nome} className="lift reveal" style={{
                 ...S.card,
                 display: "flex", flexDirection: "column",
                 padding: "32px 26px",
@@ -473,7 +499,7 @@ export default function Home() {
           </div>
           <div className="grid g-gar">
             {GARANTIAS.map((g, idx) => (
-              <div key={g.t} className="lift" style={{ ...S.card, padding: "28px 24px", position: "relative", overflow: "hidden" }}>
+              <div key={g.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: -30, right: -30, width: 90, height: 90, borderRadius: "50%", background: "rgba(59,130,246,.05)" }} />
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(52,211,153,.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>{Ico.checkG}</div>
                 <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 10 }}>{g.t}</h3>
@@ -496,7 +522,7 @@ export default function Home() {
           </div>
           <div style={{ display: "grid", gap: 12 }}>
             {FAQ.map(f => (
-              <details key={f.q} style={{ ...S.card, padding: "20px 24px" }}>
+              <details key={f.q} className="reveal" style={{ ...S.card, padding: "20px 24px" }}>
                 <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, fontSize: 16, fontWeight: 700 }}>
                   {f.q}
                   <span className="chev" style={{ color: "#3B82F6", fontSize: 20, lineHeight: 1, transition: "transform .2s ease", flexShrink: 0 }}>+</span>
