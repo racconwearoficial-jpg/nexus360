@@ -18,6 +18,7 @@ const Ico = {
   chart: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.6" stroke={c} strokeWidth="1.8"/><path d="M7.4 15.6V11M12 15.6V8.4M16.6 15.6v-3" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
   megaphone: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9.6h3.4L14.6 5v14l-7.2-4.6H4a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M18 9.4a4 4 0 0 1 0 5.2" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
   insta: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="5" stroke={c} strokeWidth="1.8"/><circle cx="12" cy="12" r="4.1" stroke={c} strokeWidth="1.8"/><circle cx="17.2" cy="6.8" r="1.2" fill={c}/></svg>,
+  site: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.4" stroke={c} strokeWidth="1.8"/><path d="M3.4 8.4h17.2" stroke={c} strokeWidth="1.8"/><circle cx="6.2" cy="6.4" r="0.6" fill={c}/><circle cx="8.2" cy="6.4" r="0.6" fill={c}/></svg>,
   check: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#3B82F6" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   checkG: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#34D399" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   search: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="rgba(255,255,255,.35)" strokeWidth="2"/><path d="m16 16 4.5 4.5" stroke="rgba(255,255,255,.35)" strokeWidth="2" strokeLinecap="round"/></svg>,
@@ -530,6 +531,22 @@ export default function Home() {
               </div>
             </div>
             <a href={`${WA}?text=${encodeURIComponent("Oi! Quero saber do adicional de Reels.")}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)", color: "#FCD34D", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "12px 24px", borderRadius: 10, whiteSpace: "nowrap" }}>
+              Saber mais
+            </a>
+          </div>
+
+          <div style={{ marginTop: 14, ...S.card, padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+              <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(59,130,246,.14)", border: "1px solid rgba(59,130,246,.28)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{Ico.site("#93C5FD")}</div>
+              <div>
+                <div style={{ fontSize: 10.5, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 7 }}>Adicional</div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 5 }}>Site de uma página · R$ 297</h3>
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.5, maxWidth: 620 }}>
+                  Página própria com as fotos, cores e identidade do seu negócio — endereço, especialidades, avaliações e botão direto pro WhatsApp. Ideal pra quem depende de confiança antes do primeiro contato, como clínicas.
+                </p>
+              </div>
+            </div>
+            <a href={`${WA}?text=${encodeURIComponent("Oi! Quero saber do adicional de Site de uma página.")}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.35)", color: "#93C5FD", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "12px 24px", borderRadius: 10, whiteSpace: "nowrap" }}>
               Saber mais
             </a>
           </div>
