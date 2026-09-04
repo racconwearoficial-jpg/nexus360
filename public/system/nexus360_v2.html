@@ -1801,6 +1801,23 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
       </div>
 
+      <!-- INFORMAÇÕES PARA O CHATBOT -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="section-title mb4">Informações para o Chatbot</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px">O atendimento automático do WhatsApp (Integrações → Z-API) usa essas informações pra responder o cliente final com precisão, além do catálogo e dos planos.</div>
+        <div class="grid2">
+          <div class="form-group"><label>Horário de funcionamento</label><input id="cfg-bot-horario" placeholder="Seg a Sex 8h-18h, Sáb 8h-12h"></div>
+          <div class="form-group"><label>Formas de pagamento aceitas</label><input id="cfg-bot-pagamento" placeholder="Pix, cartão, dinheiro"></div>
+        </div>
+        <div class="form-group"><label>Endereço</label><input id="cfg-bot-endereco" placeholder="Rua Exemplo, 123 - Centro"></div>
+        <div class="form-group">
+          <label>Perguntas frequentes <span style="color:rgba(255,255,255,.3);font-size:11px">(o bot responde exatamente isso quando perguntarem algo parecido)</span></label>
+          <div id="cfgBotFaqList"></div>
+          <button type="button" class="btn btn-ghost" style="margin-top:8px;font-size:12px" onclick="cfgBotFaqAdd()">+ Adicionar pergunta</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveConfig()">Salvar informações do chatbot</button>
+      </div>
+
       <!-- SENHA ADMIN -->
       <div class="card" style="margin-bottom:14px">
         <div class="section-title mb12">Segurança</div>
@@ -3472,6 +3489,16 @@ function applyConfig() {
   if (c.dias_inativo)   document.getElementById('cfg-inativo').value = c.dias_inativo;
   if (c.expira_pontos && document.getElementById('cfg-expira-pontos')) document.getElementById('cfg-expira-pontos').value = c.expira_pontos;
   if (c.max_venda_func && document.getElementById('cfg-max-venda-func')) document.getElementById('cfg-max-venda-func').value = c.max_venda_func;
+  if (c.chatbot_horario && document.getElementById('cfg-bot-horario')) document.getElementById('cfg-bot-horario').value = c.chatbot_horario;
+  if (c.chatbot_endereco && document.getElementById('cfg-bot-endereco')) document.getElementById('cfg-bot-endereco').value = c.chatbot_endereco;
+  if (c.chatbot_pagamento && document.getElementById('cfg-bot-pagamento')) document.getElementById('cfg-bot-pagamento').value = c.chatbot_pagamento;
+  if (document.getElementById('cfgBotFaqList')) {
+    document.getElementById('cfgBotFaqList').innerHTML = '';
+    try {
+      const faqs = c.chatbot_faq ? JSON.parse(c.chatbot_faq) : [];
+      faqs.forEach(f => cfgBotFaqAdd(f.pergunta, f.resposta));
+    } catch (e) {}
+  }
   // Carrega config de fidelidade do Supabase (fonte de verdade)
   if (c.fidelidade_config) {
     try {
@@ -8529,6 +8556,30 @@ function alterarSenhaAdmin() {
   toast('Senha do admin alterada com sucesso!', 'success');
 }
 
+function cfgBotFaqAdd(pergunta, resposta) {
+  const list = document.getElementById('cfgBotFaqList');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'cfg-bot-faq-row';
+  row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:flex-start';
+  const qVal = (pergunta || '').replace(/"/g, '&quot;');
+  row.innerHTML = `
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <input class="cfg-bot-faq-q" placeholder="Pergunta (ex: Vocês fazem entrega?)" value="${qVal}" style="font-size:13px">
+      <textarea class="cfg-bot-faq-a" rows="2" placeholder="Resposta" style="font-size:13px">${resposta || ''}</textarea>
+    </div>
+    <button type="button" onclick="this.closest('.cfg-bot-faq-row').remove()" style="background:none;border:none;color:#F87171;cursor:pointer;font-size:18px;padding:4px 8px;flex-shrink:0">×</button>
+  `;
+  list.appendChild(row);
+}
+
+function cfgBotFaqColetar() {
+  return Array.from(document.querySelectorAll('.cfg-bot-faq-row')).map(row => ({
+    pergunta: row.querySelector('.cfg-bot-faq-q').value.trim(),
+    resposta: row.querySelector('.cfg-bot-faq-a').value.trim(),
+  })).filter(f => f.pergunta && f.resposta);
+}
+
 async function saveConfig() {
   const payload = {
     nome_negocio:     document.getElementById('cfg-nome').value.trim() || null,
@@ -8537,6 +8588,10 @@ async function saveConfig() {
     dias_inativo:     parseInt(document.getElementById('cfg-inativo').value) || 30,
     expira_pontos:    parseInt(document.getElementById('cfg-expira-pontos').value) || 365,
     max_venda_func:   parseFloat(document.getElementById('cfg-max-venda-func').value) || null,
+    chatbot_horario:   document.getElementById('cfg-bot-horario')?.value.trim() || null,
+    chatbot_endereco:  document.getElementById('cfg-bot-endereco')?.value.trim() || null,
+    chatbot_pagamento: document.getElementById('cfg-bot-pagamento')?.value.trim() || null,
+    chatbot_faq:       JSON.stringify(cfgBotFaqColetar()),
     senha_admin:      SENHA_ADMIN || 'admin123',
     senha_admin:      SENHA_ADMIN || 'admin123',
     senha_admin:      SENHA_ADMIN || 'admin123',

@@ -540,7 +540,7 @@ export default function Home() {
               <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(59,130,246,.14)", border: "1px solid rgba(59,130,246,.28)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{Ico.site("#93C5FD")}</div>
               <div>
                 <div style={{ fontSize: 10.5, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 7 }}>Adicional</div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 5 }}>Site de uma página · R$ 297</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 5 }}>Site de uma página · R$ 229</h3>
                 <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.5, maxWidth: 620 }}>
                   Página própria com as fotos, cores e identidade do seu negócio — endereço, especialidades, avaliações e botão direto pro WhatsApp. Ideal pra quem depende de confiança antes do primeiro contato, como clínicas.
                 </p>

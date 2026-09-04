@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const companyId = integracao.company_id;
 
     const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }] = await Promise.all([
-      supabaseAdmin.from("configuracoes").select("nome_negocio, segmento").eq("company_id", companyId).single(),
+      supabaseAdmin.from("configuracoes").select("nome_negocio, segmento, chatbot_horario, chatbot_endereco, chatbot_pagamento, chatbot_faq").eq("company_id", companyId).single(),
       supabaseAdmin.from("clientes").select("nome, telefone, pontos, status, ultima_compra").eq("company_id", companyId),
       supabaseAdmin.from("itens").select("nome, preco, tipo, estoque").eq("company_id", companyId).order("nome").limit(60),
       supabaseAdmin.from("planos_assinatura").select("nome, descricao, valor, ciclo").eq("company_id", companyId).eq("ativo", true),
@@ -85,12 +85,29 @@ export async function POST(req: NextRequest) {
       ? planos.map((p: any) => `${p.nome} — R$ ${parseFloat(p.valor || 0).toFixed(2)} (${cicloLabel[p.ciclo] || p.ciclo})${p.descricao ? ": " + p.descricao : ""}`).join("\n")
       : null;
 
+    // Informações gerais cadastradas em Configurações → Informações para o
+    // Chatbot — permite responder direto (horário, endereço, pagamento, FAQ
+    // do dono) sem cair em "vou verificar com atendente" à toa.
+    const infoPartes: string[] = [];
+    if (config?.chatbot_horario) infoPartes.push(`Horário de funcionamento: ${config.chatbot_horario}`);
+    if (config?.chatbot_endereco) infoPartes.push(`Endereço: ${config.chatbot_endereco}`);
+    if (config?.chatbot_pagamento) infoPartes.push(`Formas de pagamento aceitas: ${config.chatbot_pagamento}`);
+    const contextoGeral = infoPartes.length ? infoPartes.join("\n") : null;
+
+    let contextoFaq: string | null = null;
+    try {
+      const faqs = config?.chatbot_faq ? JSON.parse(config.chatbot_faq) : [];
+      if (faqs.length) {
+        contextoFaq = faqs.map((f: any) => `P: ${f.pergunta}\nR: ${f.resposta}`).join("\n\n");
+      }
+    } catch {}
+
     const prompt = `Você é o atendente virtual do WhatsApp de ${negocio} (${segmento}). Responda de forma curta, educada e direta, como uma pessoa real do atendimento responderia. Nunca revele que é uma IA a menos que perguntem diretamente.
 
 REGRAS OBRIGATÓRIAS, NUNCA QUEBRE:
 1. NUNCA dê conselho de saúde, indicação de medicamento, dosagem, interação ou qualquer informação médica — mesmo se perguntarem diretamente. Responda que um atendente humano vai retornar sobre isso o quanto antes.
 2. Preço e disponibilidade só podem vir do CATÁLOGO e dos PLANOS abaixo — nunca invente valor, desconto ou promessa que não esteja lá.
-3. Se perguntarem algo que não está no catálogo, nos planos, nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
+3. Se perguntarem algo que não está no catálogo, nos planos, nas informações gerais, no FAQ nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
 4. Nunca use asteriscos ou markdown. No máximo 3 frases.
 
 INFORMAÇÕES DO CLIENTE:
@@ -99,6 +116,8 @@ ${contextoCliente}
 CATÁLOGO (produtos/serviços e preços reais):
 ${contextoCatalogo}
 ${contextoPlanos ? `\nPLANOS/PACOTES DE ASSINATURA (preços reais):\n${contextoPlanos}` : ""}
+${contextoGeral ? `\nINFORMAÇÕES GERAIS DO NEGÓCIO:\n${contextoGeral}` : ""}
+${contextoFaq ? `\nPERGUNTAS FREQUENTES CADASTRADAS PELO DONO (use a resposta exata quando a pergunta do cliente for parecida):\n${contextoFaq}` : ""}
 
 Mensagem do cliente: "${mensagemRecebida}"
 
