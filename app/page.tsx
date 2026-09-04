@@ -496,24 +496,24 @@ export default function Home() {
                 <div style={{ flex: 1 }} />
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.45, marginBottom: 18, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>{p.selo}</div>
 
-                <a href={`${WA}?text=${encodeURIComponent(`Oi! Tenho interesse no pacote ${p.nome}.`)}`} target="_blank" rel="noopener noreferrer" className="btn" style={{
-                  display: "block", textAlign: "center", textDecoration: "none", fontSize: 14.5, fontWeight: 700, padding: "13px", borderRadius: 10,
-                  background: p.destaque ? "linear-gradient(135deg,#3B82F6,#2563EB)" : "rgba(255,255,255,0.07)",
-                  color: "#fff",
-                  boxShadow: p.destaque ? "0 8px 24px rgba(59,130,246,0.3)" : "none",
-                }}>
-                  Quero este
-                </a>
                 <button onClick={() => pagarComCartao(p.chave)} disabled={checkoutCarregando === p.chave} className="btn" style={{
-                  display: "block", width: "100%", textAlign: "center", fontSize: 13, fontWeight: 600, padding: "11px", borderRadius: 10, marginTop: 8,
-                  background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)",
+                  display: "block", width: "100%", textAlign: "center", fontSize: 14.5, fontWeight: 700, padding: "13px", borderRadius: 10,
+                  background: p.destaque ? "linear-gradient(135deg,#3B82F6,#2563EB)" : "rgba(255,255,255,0.07)",
+                  color: "#fff", border: "none",
+                  boxShadow: p.destaque ? "0 8px 24px rgba(59,130,246,0.3)" : "none",
                   cursor: checkoutCarregando === p.chave ? "default" : "pointer", opacity: checkoutCarregando === p.chave ? 0.6 : 1,
                 }}>
-                  {checkoutCarregando === p.chave ? "Abrindo pagamento..." : "Pagar com cartão →"}
+                  {checkoutCarregando === p.chave ? "Abrindo pagamento..." : "ASSINAR"}
                 </button>
                 {checkoutErro?.chave === p.chave && (
                   <div style={{ color: "#F87171", fontSize: 11.5, marginTop: 6, textAlign: "center" }}>{checkoutErro.msg}</div>
                 )}
+                <a href={`${WA}?text=${encodeURIComponent(`Oi! Tenho uma dúvida sobre o pacote ${p.nome} antes de assinar.`)}`} target="_blank" rel="noopener noreferrer" className="btn" style={{
+                  display: "block", textAlign: "center", textDecoration: "none", fontSize: 13, fontWeight: 600, padding: "11px", borderRadius: 10, marginTop: 8,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)",
+                }}>
+                  Ficou com dúvida? Fala comigo →
+                </a>
               </div>
             ))}
           </div>
