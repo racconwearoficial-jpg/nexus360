@@ -117,6 +117,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+/* Reflow automático: quando itens somem por permissão de role (data-admin-only), os que restam preenchem o espaço em vez de deixar buraco */
+.metric-row{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
 
 /* KPIs — Stripe style */
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-1);transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
@@ -127,7 +130,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .metric-sub{font-size:11px;color:rgba(255,255,255,.25);margin-top:6px}
 .metric-up{font-size:11px;margin-top:6px;color:rgba(255,255,255,.25)}
 .section-title{font-size:10px;font-weight:600;color:rgba(255,255,255,.25);margin-bottom:12px;text-transform:uppercase;letter-spacing:.8px}
-.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}.mb14{margin-bottom:14px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
 
 /* BUTTONS — premium */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all .14s;letter-spacing:.1px}
@@ -529,25 +532,25 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           style="background:none;border:none;color:rgba(255,255,255,.25);cursor:pointer;font-size:16px;padding:0 4px;line-height:1">×</button>
       </div>
 
-      <!-- ADMIN: métricas financeiras -->
-      <div class="grid4 mb16" id="gridMetricasAdmin" data-admin-only>
-        <div class="metric metric-receita receita-destaque"><div class="metric-label">Receita Total</div><div class="metric-value text-green" id="m-receita">—</div><div class="metric-sub" id="m-receita-sub"></div></div>
-        <div class="metric"><div class="metric-label">Receita Hoje</div><div class="metric-value" id="m-hoje">—</div></div>
-        <div class="metric"><div class="metric-label">Total de Vendas</div><div class="metric-value" id="m-vendas-total">—</div></div>
-        <div class="metric"><div class="metric-label">Ticket Médio</div><div class="metric-value" id="m-ticket">—</div></div>
-      </div>
-
-      <!-- FUNCIONÁRIO: métricas operacionais (sempre visíveis) -->
-      <div class="grid4 mb12" id="gridMetricasOp">
+      <!-- Métricas principais -->
+      <div class="grid4 metric-row mb10">
+        <div class="metric metric-receita receita-destaque" data-admin-only><div class="metric-label">Receita Total</div><div class="metric-value text-green" id="m-receita">—</div><div class="metric-sub" id="m-receita-sub"></div></div>
+        <div class="metric" data-admin-only><div class="metric-label">Receita Hoje</div><div class="metric-value" id="m-hoje">—</div></div>
+        <div class="metric" data-admin-only><div class="metric-label">Ticket Médio</div><div class="metric-value" id="m-ticket">—</div></div>
         <div class="metric"><div class="metric-label">Clientes Ativos</div><div class="metric-value text-green" id="m-ativos">—</div></div>
-        <div class="metric"><div class="metric-label">Clientes Inativos</div><div class="metric-value text-red" id="m-inativos">—</div><div class="metric-sub">Sem compra há 30+ dias</div></div>
-        <div class="metric"><div class="metric-label">Total de Produtos</div><div class="metric-value" id="m-produtos">—</div></div>
-        <div class="metric"><div class="metric-label">Campanhas Ativas</div><div class="metric-value" style="color:var(--purple)" id="m-campanhas-ativas">—</div></div>
       </div>
 
-      <!-- ADMIN: gráfico de vendas + donut + insights -->
-      <div class="grid2 mb20" data-admin-only id="dashGrid2">
-        <div class="card" id="dashChartCard" style="display:flex;flex-direction:column">
+      <!-- Métricas secundárias -->
+      <div class="grid4 metric-row mb16" style="opacity:.85">
+        <div class="metric card-sm" data-admin-only><div class="metric-label">Total de Vendas</div><div class="metric-value" style="font-size:18px" id="m-vendas-total">—</div></div>
+        <div class="metric card-sm"><div class="metric-label">Clientes Inativos</div><div class="metric-value text-red" style="font-size:18px" id="m-inativos">—</div></div>
+        <div class="metric card-sm"><div class="metric-label">Total de Produtos</div><div class="metric-value" style="font-size:18px" id="m-produtos">—</div></div>
+        <div class="metric card-sm"><div class="metric-label">Campanhas Ativas</div><div class="metric-value" style="font-size:18px;color:var(--purple)" id="m-campanhas-ativas">—</div></div>
+      </div>
+
+      <!-- Gráfico de vendas (só admin — mostra R$) + distribuição de clientes + insights (todos) -->
+      <div class="grid2 dash-flex-row mb20" id="dashGrid2">
+        <div class="card" id="dashChartCard" style="display:flex;flex-direction:column" data-admin-only>
           <div class="section-title mb12">Vendas — Últimos 7 dias</div>
           <div style="flex:1;display:flex;flex-direction:column;min-height:200px">
             <div id="premiumChartWrap" style="position:relative;width:100%;flex:1">
@@ -572,46 +575,15 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
             <div class="section-title mb12">Insights do Negócio</div>
             <div id="insightsDash"><div style="color:rgba(255,255,255,.2);font-size:12px">Carregando...</div></div>
           </div>
+          <div class="card" style="flex:1">
+            <div class="section-title mb12">Aniversariantes do Mês</div>
+            <div id="aniversariantesDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
+          </div>
         </div>
       </div>
 
-      <!-- FUNCIONÁRIO -->
-      <div id="gridFuncDonut" style="display:none">
-
-        <!-- Linha 1: Donut + Ações Recomendadas -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div class="card">
-            <div class="section-title mb12">Distribuição de Clientes</div>
-            <div id="donutChartFunc"></div>
-          </div>
-          <div class="card">
-            <div class="section-title mb12">Ações Recomendadas</div>
-            <div id="sugestoesFunc"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
-          </div>
-        </div>
-
-        <!-- Linha 2: Insights + Últimas Vendas -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div class="card">
-            <div class="section-title mb12">Insights do Negócio</div>
-            <div id="insightsDashFunc"><div style="color:rgba(255,255,255,.2);font-size:12px">Carregando...</div></div>
-          </div>
-          <div class="card">
-            <div class="section-title mb12">Últimas Vendas</div>
-            <div id="activityFeedFunc"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
-          </div>
-        </div>
-
-        <!-- Linha 3: Clientes para contatar (largura total) -->
-        <div class="card" style="margin-bottom:12px">
-          <div class="section-title mb12">Clientes para contatar agora</div>
-          <div id="upsellDashFunc"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
-        </div>
-
-      </div>
-
-            <!-- ADMIN: ações + vendas -->
-      <div class="grid2 mb14" id="gridAdminAcoes" data-admin-only>
+      <!-- Ações recomendadas + últimas vendas (R$ só aparece pro admin, mascarado por role dentro de renderActivity) -->
+      <div class="grid2 mb14" id="gridAdminAcoes">
         <div class="card">
           <div class="section-title mb12">Ações Recomendadas</div>
           <div id="sugestoes"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
@@ -622,8 +594,8 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
       </div>
 
-      <!-- ADMIN: clientes para contatar -->
-      <div class="card mb14" data-admin-only style="margin-top:14px">
+      <!-- Clientes para contatar -->
+      <div class="card mb14" style="margin-top:14px">
         <div class="section-title mb12">Clientes para contatar agora</div>
         <div id="upsellDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
       </div>
@@ -3405,23 +3377,54 @@ function renderDashboard() {
   if (inativos.length > 0) {
     phrase.textContent = `Atenção — ${inativos.length} clientes inativos prontos para comprar`;
   } else if (clientes.length === 0) {
-    phrase.textContent = '👋 Bem-vindo ao Nexus360! Comece cadastrando seus clientes.';
+    phrase.textContent = 'Bem-vindo ao Nexus360! Comece cadastrando seus clientes.';
   } else {
     phrase.textContent = 'Todos seus clientes estão ativos.';
   }
 
   renderBarChart();
   renderDonut(ativos.length, inativos.length);
-  renderDonutFunc(ativos.length, inativos.length);
   renderInsights();
   renderSugestoes(inativos, clientes.filter(c => c.status==='vip'));
   renderActivity();
   renderUpsell();
-  // Copia tudo para o painel do funcionário DEPOIS que os fontes estão prontos
-  renderInsightsFunc();
+  renderAniversariantesMes();
   verificarImportacao();
   // Re-aplica modo para garantir visibilidade correta após dados carregarem
   aplicarModo(MODO_ATUAL);
+}
+
+function renderAniversariantesMes() {
+  const el = document.getElementById('aniversariantesDash');
+  if (!el) return;
+  const hoje = new Date();
+  const lista = state.clientes
+    .filter(c => c.aniversario && new Date(c.aniversario + 'T12:00:00').getMonth() === hoje.getMonth())
+    .sort((a, b) => new Date(a.aniversario + 'T12:00:00').getDate() - new Date(b.aniversario + 'T12:00:00').getDate());
+
+  if (!lista.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px">Nenhum aniversariante este mês.</div>';
+    return;
+  }
+
+  el.innerHTML = lista.map(c => {
+    const d = new Date(c.aniversario + 'T12:00:00');
+    const dia = String(d.getDate()).padStart(2, '0');
+    const dataFmt = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const ehHoje = d.getDate() === hoje.getDate();
+    const jaPassou = d.getDate() < hoje.getDate();
+    const tel = (c.telefone || '').replace(/\D/g, '');
+    const num = tel.startsWith('55') ? tel : '55' + tel;
+    const msg = buildWppMsg('aniversario', c.nome).replace(/"/g, '&quot;');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:var(--amber);font-weight:600">${dia}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
+        <div style="font-size:11px;color:var(--text3)">${dataFmt}${ehHoje ? ' · hoje' : (jaPassou ? ' · já passou' : '')}</div>
+      </div>
+      ${c.telefone ? `<button class="btn-wpp" style="font-size:11px;padding:5px 10px;border-radius:6px;flex-shrink:0" data-num="${num}" data-msg="${msg}" onclick="wppAbrir(this.dataset.num,this.dataset.msg)">Parabenizar</button>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function renderBarChart() {
@@ -3705,8 +3708,15 @@ function renderInsights() {
     insights.push({ cor:'#60A5FA', dot:'rgba(96,165,250,.7)', texto: `${aniversariantes.length} aniversariante${aniversariantes.length>1?'s':''} hoje — envie uma mensagem especial.` });
   }
 
+  // Funcionário não vê insight com valor financeiro (mesmo filtro que já
+  // existia pro painel duplicado — agora aplicado direto na fonte, sem
+  // precisar copiar/filtrar um segundo DOM depois)
+  const podeVerFinanceiro = (typeof MODO_ATUAL === 'undefined' || MODO_ATUAL === 'admin');
+  const financeiro = /faturamento|receita|ticket|R\$/i;
+  const visiveis = podeVerFinanceiro ? insights : insights.filter(ins => !financeiro.test(ins.texto));
+
   // Mínimo 2, máximo 5
-  const final = insights.slice(0, 5);
+  const final = visiveis.slice(0, 5);
   if (!final.length) {
     final.push({ cor:'#10B981', dot:'rgba(16,185,129,.7)', texto: 'Tudo em ordem — continue acompanhando.' });
     final.push({ cor:'rgba(255,255,255,.3)', dot:'rgba(255,255,255,.1)', texto: 'Cadastre vendas diárias para ver insights.' });
@@ -3793,44 +3803,6 @@ function _buildDonutSVG(elId, { vips, inativos, ativos, total }) {
 
 function renderDonut(ativos, inativos) {
   _buildDonutSVG('donutChart', _calcDonutSegments());
-}
-
-function renderDonutFunc(ativos, inativos) {
-  _buildDonutSVG('donutChartFunc', _calcDonutSegments());
-}
-
-function renderInsightsFunc() {
-  const copy = (srcId, dstId) => {
-    const s = document.getElementById(srcId);
-    const d = document.getElementById(dstId);
-    if (s && d) d.innerHTML = s.innerHTML;
-  };
-
-  // Ações recomendadas — copia direto (sem financeiro)
-  copy('sugestoes', 'sugestoesFunc');
-
-  // Clientes para contatar — copia direto
-  copy('upsellDash', 'upsellDashFunc');
-
-  // Últimas vendas — remove valor R$ para funcionário
-  const srcActivity = document.getElementById('activityFeed');
-  const dstActivity = document.getElementById('activityFeedFunc');
-  if (srcActivity && dstActivity) {
-    dstActivity.innerHTML = srcActivity.innerHTML
-      .replace(/<span style="color:var\(--green\)">R\$[^<]+<\/span>/g, '');
-  }
-
-  // Insights — filtra itens financeiros
-  const srcIns = document.getElementById('insightsDash');
-  const dstIns = document.getElementById('insightsDashFunc');
-  if (srcIns && dstIns) {
-    const financeiro = /faturamento|receita|ticket|R\$/i;
-    const items = Array.from(srcIns.children);
-    const filtrados = items.filter(d => !financeiro.test(d.textContent));
-    dstIns.innerHTML = filtrados.length
-      ? filtrados.map(d => d.outerHTML).join('')
-      : '<div style="font-size:12px;color:rgba(255,255,255,.2);padding:8px 0">Sem insights no momento.</div>';
-  }
 }
 
 function renderSugestoes(inativos, vips) {
@@ -4078,6 +4050,7 @@ function renderActivity() {
     el.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhuma venda registrada ainda.</div>';
     return;
   }
+  const podeVerValor = (typeof MODO_ATUAL === 'undefined' || MODO_ATUAL === 'admin');
   el.innerHTML = ultimas.map(v => {
     const cliente = state.clientes.find(c => c.id === v.cliente_id);
     const nome    = cliente ? cliente.nome : (v.cliente_nome || 'Avulso');
@@ -4090,7 +4063,7 @@ function renderActivity() {
         <div class="activity-dot" style="background:var(--green);margin-top:4px;flex-shrink:0"></div>
         <div style="min-width:0">
           <div class="activity-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            <strong style="color:var(--text1)">${nome}</strong> — <span style="color:var(--green)">R$ ${valor}</span>
+            <strong style="color:var(--text1)">${nome}</strong>${podeVerValor ? ` — <span style="color:var(--green)">R$ ${valor}</span>` : ''}
           </div>
           <div class="activity-time">${v.itens||''}${dt?' · '+dt+(v.created_at?' '+new Date(v.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''):''}</div>
         </div>
@@ -8937,9 +8910,7 @@ function aplicarModo(modo) {
     btnA.style.cssText += ';' + (isAdmin  ? ativo : inativo);
   }
 
-  // 6. Alterna layout do dashboard para funcionário/admin
-  const gridFuncDonut   = document.getElementById('gridFuncDonut');
-  if (gridFuncDonut) gridFuncDonut.style.display = isAdmin ? 'none' : 'block';
+  // 6. Painel único do dashboard agora (não tem mais grid duplicado pro funcionário)
   if (!isAdmin) {
     const navAtivo = document.querySelector('.nav-item.active');
     if (navAtivo && navAtivo.dataset.role === 'admin') {
@@ -10387,6 +10358,8 @@ window.onload = async function() {
     grid-template-columns: repeat(2,1fr) !important;
     gap: 9px !important;
   }
+  .metric-row { grid-template-columns: repeat(auto-fit,minmax(130px,1fr)) !important; }
+  .dash-flex-row { grid-template-columns: 1fr !important; }
   .metric { padding: 13px !important; }
   .metric-value { font-size: 20px !important; }
 
