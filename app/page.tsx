@@ -114,7 +114,7 @@ const RECURSOS = [
   { t: "Relatórios de verdade", d: "Faturamento, ticket médio e vendas, atualizado sozinho" },
   { t: "Integração com Bling", d: "Clientes e vendas do seu ERP sincronizados sozinhos" },
   { t: "Assinatura recorrente", d: "Cliente assina um plano e é cobrado todo mês via Pix, sem precisar voltar" },
-  { t: "WhatsApp automatizado (Crescimento)", d: "Conecta a API do seu próprio WhatsApp e o sistema manda a mensagem sozinho, com imagem inclusa — sem precisar abrir o app pra clicar em enviar" },
+  { t: "WhatsApp automatizado (Crescimento)", d: "Conecta seu próprio número e o sistema dispara a mensagem com imagem direto pro cliente, sem você abrir o WhatsApp pra enviar um por um" },
 ];
 
 const PACOTES = [
@@ -133,7 +133,7 @@ const PACOTES = [
   {
     chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 597", periodo: "por mês · sem fidelidade",
     desc: "Arrumar uma vez traz cliente, manter faz o movimento parar de oscilar",
-    itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp automatizado: mensagem sai sozinha, sem precisar abrir o app pra clicar em enviar", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório mensal do seu Google: visualizações, cliques e pedidos de rota"],
+    itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp automatizado: conecta seu número e o sistema dispara a mensagem com imagem, sem você abrir o WhatsApp pra enviar um por um", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório mensal do seu Google: visualizações, cliques e pedidos de rota"],
     selo: "Implantação gratuita · cancele quando quiser", destaque: true,
   },
   {
