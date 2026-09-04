@@ -9034,6 +9034,10 @@ function _chatContexto() {
     const hoje = new Date(); const aniv = new Date(c.aniversario + 'T12:00:00');
     return aniv.getDate() === hoje.getDate() && aniv.getMonth() === hoje.getMonth();
   }).length;
+  const blingStatus    = document.getElementById('intBlingBadge')?.textContent || 'não verificado ainda';
+  const asaasStatus    = _asaasConectado ? 'Conectado' : 'Não conectado';
+  const totalPlanos    = (typeof _asnPlanos !== 'undefined' ? _asnPlanos : []).length;
+  const assinantesAtivos = (typeof _asnAssinaturas !== 'undefined' ? _asnAssinaturas : []).filter(a => a.status === 'ativa').length;
 
   return `Você é o assistente do Nexus360, sistema de gestão para negócios locais. Responda APENAS com base nas informações abaixo. NUNCA invente funcionalidades. Se não souber, diga "Não encontrei essa informação no sistema". Nunca use asteriscos ou markdown. Seja direto e objetivo.
 
@@ -9045,6 +9049,8 @@ DADOS REAIS DO SISTEMA AGORA:
 - Vendas registradas: ${totalVendas} | Receita total: R$ ${receitaTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 - Produtos/Serviços: ${totalProdutos} cadastrados (${semEstoque} produtos sem estoque — serviços não têm estoque)
 - Campanhas: ${state.campanhas?.length||0} cadastradas
+- Integração Bling: ${blingStatus} | Integração Asaas: ${asaasStatus}
+- Assinaturas: ${totalPlanos} plano(s) criado(s), ${assinantesAtivos} assinante(s) com pagamento ativo
 
 NÍVEIS DE FIDELIDADE (Bronze/Silver/Gold/Diamond):
 - Bronze: a partir de ${fcfg.bronzePts||80} pontos
@@ -9066,7 +9072,7 @@ INDICAÇÕES:
 
 NAVEGAÇÃO DO SISTEMA:
 ${modo === 'admin'
-  ? `Admin: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, CRM, Vendas, Produtos/Serviços, Entregas, Reservas, Cobranças, Calendário, Relatórios, Funcionários, Configurações`
+  ? `Admin: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, CRM, Vendas, Produtos/Serviços, Entregas, Reservas, Cobranças, Calendário, Relatórios, Assinaturas, Integrações, Funcionários, Configurações`
   : `Funcionário: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, Vendas, Produtos/Serviços, Entregas, Reservas`}
 
 MÓDULOS PRINCIPAIS:
@@ -9104,6 +9110,19 @@ Score de atendimento: calculado automaticamente por recorrência de clientes, re
 Follow-up: registrar contatos (ligação, WhatsApp, e-mail, visita) vinculados a clientes.
 Perfil: modal detalhado com 10 KPIs, gráfico dos últimos 7 dias, últimas vendas e follow-ups.
 Funcionários são cadastrados nesta seção e vinculados às vendas no campo "Funcionário Responsável".
+
+ASSINATURAS (só admin) — clube de assinatura recorrente, cliente paga todo mês sem precisar voltar pra renovar:
+- Pré-requisito: conectar a conta Asaas em Integrações antes de assinar o primeiro cliente. Sem isso o botão de criar assinatura dá erro avisando pra conectar.
+- Criar plano: nome, valor mensal e ciclo (mensal, semanal ou anual).
+- Assinar cliente: escolher cliente + plano já criado. Gera cobrança via Pix automaticamente pelo Asaas a cada ciclo.
+- Status da assinatura: "pendente" (aguardando confirmação do 1º pagamento) até "ativa" (após o Asaas confirmar o pagamento) — pode virar "atrasada" ou "cancelada". A mudança de pendente pra ativa é automática, não precisa fazer nada.
+- Ações disponíveis por assinante: Atualizar status (força reconsulta no Asaas), Editar valor, Reenviar cobrança (pega o link de pagamento atual pra mandar pro cliente), Notificação automática (ativa aviso de cobrança do próprio Asaas por WhatsApp), Cancelar.
+- Cada empresa usa a própria conta Asaas — o dinheiro cai direto na conta do negócio, o Nexus360 não fica no meio do pagamento.
+
+INTEGRAÇÕES (só admin) — conecta o Nexus360 com sistemas externos que a empresa já usa:
+- Bling: importa clientes e vendas automaticamente do ERP. Fluxo: clicar "Conectar com Bling" (abre login do Bling), autorizar, depois "Sincronizar agora" pra trazer os dados. Mostra badge de status (Conectado/Não conectado) e data da última sincronia.
+- Asaas: conecta a conta Asaas da própria empresa via chave de API (gerada em Configurações → Integrações → Chave de API dentro do próprio Asaas). Tem opção de ambiente Sandbox (testes) antes de ativar de verdade. É pré-requisito pro módulo de Assinaturas funcionar — sem conectar, não dá pra cobrar recorrência.
+- As duas integrações são por empresa: cada negócio conecta a própria conta Bling/Asaas, não é uma conta compartilhada do Nexus360.
 
 CONFIGURAÇÕES (só admin): nome do negócio, WhatsApp, segmento, dias inativo, mensagens padrão, regras de fidelidade, níveis Bronze/Silver/Gold/Diamond, pontos de indicação.
 
