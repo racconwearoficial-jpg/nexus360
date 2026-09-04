@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getCredenciaisAsaas, editarAssinaturaAsaas } from "@/lib/asaas";
+import { getCredenciaisAsaas, editarAssinaturaAsaas, editarPagamentoAsaas } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
     if (error || !assinatura) throw new Error("Assinatura não encontrada.");
 
     const cred = await getCredenciaisAsaas(company_id);
-    await editarAssinaturaAsaas({ apiKey: cred.api_key, sandbox: cred.sandbox, subscriptionId: assinatura.asaas_subscription_id, valor });
+    if (assinatura.asaas_payment_id) {
+      await editarPagamentoAsaas({ apiKey: cred.api_key, sandbox: cred.sandbox, paymentId: assinatura.asaas_payment_id, valor });
+    } else {
+      await editarAssinaturaAsaas({ apiKey: cred.api_key, sandbox: cred.sandbox, subscriptionId: assinatura.asaas_subscription_id, valor });
+    }
 
     // O valor fica salvo na própria assinatura (não no plano) — outros
     // clientes no mesmo plano não são afetados por essa edição individual.

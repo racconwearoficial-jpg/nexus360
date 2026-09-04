@@ -57,10 +57,11 @@ export async function POST(req: NextRequest) {
 
     const companyId = integracao.company_id;
 
-    const [{ data: config }, { data: clientes }, { data: itens }] = await Promise.all([
+    const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }] = await Promise.all([
       supabaseAdmin.from("configuracoes").select("nome_negocio, segmento").eq("company_id", companyId).single(),
       supabaseAdmin.from("clientes").select("nome, telefone, pontos, status, ultima_compra").eq("company_id", companyId),
       supabaseAdmin.from("itens").select("nome, preco, tipo, estoque").eq("company_id", companyId).order("nome").limit(60),
+      supabaseAdmin.from("planos_assinatura").select("nome, descricao, valor, ciclo").eq("company_id", companyId).eq("ativo", true),
     ]);
 
     const telNormalizado = normalizarTelefone(telefoneCliente);
@@ -79,12 +80,17 @@ export async function POST(req: NextRequest) {
       ? itens.map((i: any) => `${i.nome} — R$ ${parseFloat(i.preco || 0).toFixed(2)}${i.tipo !== "serviço" ? (i.estoque > 0 ? "" : " (sem estoque no momento)") : ""}`).join("\n")
       : "Nenhum produto/serviço cadastrado no catálogo ainda.";
 
+    const cicloLabel: Record<string, string> = { MONTHLY: "mensal", WEEKLY: "semanal", YEARLY: "anual", AVULSO: "pagamento único" };
+    const contextoPlanos = (planos && planos.length)
+      ? planos.map((p: any) => `${p.nome} — R$ ${parseFloat(p.valor || 0).toFixed(2)} (${cicloLabel[p.ciclo] || p.ciclo})${p.descricao ? ": " + p.descricao : ""}`).join("\n")
+      : null;
+
     const prompt = `Você é o atendente virtual do WhatsApp de ${negocio} (${segmento}). Responda de forma curta, educada e direta, como uma pessoa real do atendimento responderia. Nunca revele que é uma IA a menos que perguntem diretamente.
 
 REGRAS OBRIGATÓRIAS, NUNCA QUEBRE:
 1. NUNCA dê conselho de saúde, indicação de medicamento, dosagem, interação ou qualquer informação médica — mesmo se perguntarem diretamente. Responda que um atendente humano vai retornar sobre isso o quanto antes.
-2. Preço e disponibilidade só podem vir do CATÁLOGO abaixo — nunca invente valor, desconto ou promessa que não esteja lá.
-3. Se perguntarem algo que não está no catálogo nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
+2. Preço e disponibilidade só podem vir do CATÁLOGO e dos PLANOS abaixo — nunca invente valor, desconto ou promessa que não esteja lá.
+3. Se perguntarem algo que não está no catálogo, nos planos, nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
 4. Nunca use asteriscos ou markdown. No máximo 3 frases.
 
 INFORMAÇÕES DO CLIENTE:
@@ -92,6 +98,7 @@ ${contextoCliente}
 
 CATÁLOGO (produtos/serviços e preços reais):
 ${contextoCatalogo}
+${contextoPlanos ? `\nPLANOS/PACOTES DE ASSINATURA (preços reais):\n${contextoPlanos}` : ""}
 
 Mensagem do cliente: "${mensagemRecebida}"
 

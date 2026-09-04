@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { buscarOuCriarClienteAsaas, criarAssinaturaAsaas, getCredenciaisAsaas } from "@/lib/asaas";
+import { buscarOuCriarClienteAsaas, criarAssinaturaAsaas, criarCobrancaAvulsaAsaas, getCredenciaisAsaas } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -29,20 +29,28 @@ export async function POST(req: NextRequest) {
     });
 
     const amanha = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-    const assinaturaAsaas = await criarAssinaturaAsaas({
-      apiKey: cred.api_key, sandbox: cred.sandbox,
-      customerId: asaasCustomerId,
-      valor: plano.valor,
-      ciclo: plano.ciclo,
-      descricao: plano.nome,
-      proximaCobranca: amanha,
-    });
+    const ehAvulso = plano.ciclo === "AVULSO";
+
+    // Avulso = pagamento único via /payments (não existe "assinatura" no
+    // Asaas pra isso, é diferente de /subscriptions que é sempre recorrente).
+    const asaasResultado = ehAvulso
+      ? await criarCobrancaAvulsaAsaas({
+          apiKey: cred.api_key, sandbox: cred.sandbox,
+          customerId: asaasCustomerId, valor: plano.valor,
+          descricao: plano.nome, vencimento: amanha,
+        })
+      : await criarAssinaturaAsaas({
+          apiKey: cred.api_key, sandbox: cred.sandbox,
+          customerId: asaasCustomerId, valor: plano.valor,
+          ciclo: plano.ciclo, descricao: plano.nome, proximaCobranca: amanha,
+        });
 
     const { data: novaAssinatura, error: errIns } = await supabaseAdmin.from("assinaturas").insert({
       company_id, cliente_id, plano_id,
       asaas_customer_id: asaasCustomerId,
-      asaas_subscription_id: assinaturaAsaas.id,
-      status: "pendente", // só vira "ativa" quando o webhook confirmar o primeiro pagamento
+      asaas_subscription_id: ehAvulso ? null : asaasResultado.id,
+      asaas_payment_id: ehAvulso ? asaasResultado.id : null,
+      status: "pendente", // só vira "ativa" quando o webhook confirmar o pagamento
       valor: plano.valor,
       proxima_cobranca: amanha,
     }).select().single();

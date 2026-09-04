@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getCredenciaisAsaas, ultimoPagamentoAssinatura } from "@/lib/asaas";
+import { getCredenciaisAsaas, ultimoPagamentoAssinatura, consultarPagamentoAsaas } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
     if (error || !assinatura) throw new Error("Assinatura não encontrada.");
 
     const cred = await getCredenciaisAsaas(company_id);
-    const pagamento = await ultimoPagamentoAssinatura({
-      apiKey: cred.api_key, sandbox: cred.sandbox, subscriptionId: assinatura.asaas_subscription_id,
-    });
+    const pagamento = assinatura.asaas_payment_id
+      ? await consultarPagamentoAsaas({ apiKey: cred.api_key, sandbox: cred.sandbox, paymentId: assinatura.asaas_payment_id })
+      : await ultimoPagamentoAssinatura({ apiKey: cred.api_key, sandbox: cred.sandbox, subscriptionId: assinatura.asaas_subscription_id });
     if (!pagamento) throw new Error("Nenhuma cobrança encontrada ainda pra essa assinatura.");
 
     return NextResponse.json({

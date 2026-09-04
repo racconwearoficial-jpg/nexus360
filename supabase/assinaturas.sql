@@ -9,7 +9,7 @@ create table if not exists planos_assinatura (
   nome         text not null,
   descricao    text,
   valor        numeric(10,2) not null,
-  ciclo        text not null default 'MONTHLY', -- MONTHLY | WEEKLY | YEARLY (valores aceitos pelo Asaas)
+  ciclo        text not null default 'MONTHLY', -- MONTHLY | WEEKLY | YEARLY | AVULSO (AVULSO é interno, não existe no Asaas — vira cobrança única via /payments em vez de /subscriptions)
   ativo        boolean not null default true,
   created_at   timestamptz not null default now()
 );
@@ -23,6 +23,7 @@ create table if not exists assinaturas (
   plano_id            uuid not null references planos_assinatura(id),
   asaas_customer_id   text,
   asaas_subscription_id text,
+  asaas_payment_id    text, -- preenchido só quando o plano é ciclo AVULSO (cobrança única, sem subscription)
   status              text not null default 'pendente', -- pendente | ativa | atrasada | cancelada
   valor               numeric(10,2), -- snapshot do valor no momento da assinatura (pode divergir do plano se editado depois)
   proxima_cobranca    date,
@@ -32,6 +33,7 @@ create table if not exists assinaturas (
 
 -- Se você criou a tabela antes desta versão do script, roda também:
 -- alter table assinaturas add column if not exists valor numeric(10,2);
+-- alter table assinaturas add column if not exists asaas_payment_id text;
 
 alter table planos_assinatura enable row level security;
 alter table assinaturas enable row level security;

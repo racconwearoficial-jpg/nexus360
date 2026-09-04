@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const WA = "https://wa.me/5563981062551";
 const WA_DIAG = `${WA}?text=${encodeURIComponent("Oi! Quero o diagnóstico gratuito do meu negócio.")}`;
@@ -119,25 +119,25 @@ const RECURSOS = [
 
 const PACOTES = [
   {
-    tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
+    chave: "recomeco", tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
     desc: "Para quem quer ser encontrado e parar de perder contato",
     itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Vídeo de apresentação editado, pronto pra postar no Google, Instagram e Status", "Bônus: 10 artes com a cara do seu negócio"],
     selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
   },
   {
-    tag: "Pacote avulso", nome: "Presença", preco: "R$ 297", periodo: "pagamento único",
+    chave: "presenca", tag: "Pacote avulso", nome: "Presença", preco: "R$ 297", periodo: "pagamento único",
     desc: "Para quem começa do zero ou quer parar de parecer amador",
     itens: ["Tudo do Recomeço", "Identidade visual: logo, cores e tipografia", "Catálogo digital dos seus produtos, com pedido direto pelo WhatsApp", "12 artes com legendas prontas", "Instagram reescrito: bio, destaques e posts"],
     selo: "Entrega em 7 dias · arquivos são seus", destaque: false,
   },
   {
-    tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 597", periodo: "por mês · sem fidelidade",
+    chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 597", periodo: "por mês · sem fidelidade",
     desc: "Arrumar uma vez traz cliente, manter faz o movimento parar de oscilar",
     itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp automatizado: mensagem sai sozinha, sem precisar abrir o app pra clicar em enviar", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório mensal do seu Google: visualizações, cliques e pedidos de rota"],
     selo: "Implantação gratuita · cancele quando quiser", destaque: true,
   },
   {
-    tag: "Plano mensal", nome: "Aceleração", preco: "R$ 897", periodo: "por mês + verba de anúncio",
+    chave: "aceleracao", tag: "Plano mensal", nome: "Aceleração", preco: "R$ 997", periodo: "por mês + verba de anúncio",
     desc: "Para quem já tem o básico arrumado e quer acelerar",
     itens: ["Tudo do Crescimento", "Criação e gestão de anúncios no Meta e Google", "Criativos e textos testados", "4 Reels por mês, editados e legendados", "Ajuste semanal do custo por contato"],
     selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
@@ -171,6 +171,27 @@ const S = {
 };
 
 export default function Home() {
+  const [checkoutCarregando, setCheckoutCarregando] = useState<string | null>(null);
+  const [checkoutErro, setCheckoutErro] = useState<{ chave: string; msg: string } | null>(null);
+
+  async function pagarComCartao(chave: string) {
+    setCheckoutErro(null);
+    setCheckoutCarregando(chave);
+    try {
+      const r = await fetch("/api/checkout/criar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pacote: chave }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.url) throw new Error(d.error || "Não consegui gerar o checkout agora");
+      window.location.href = d.url;
+    } catch (e: any) {
+      setCheckoutErro({ chave, msg: e.message || "Erro ao abrir pagamento" });
+      setCheckoutCarregando(null);
+    }
+  }
+
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");
     const io = new IntersectionObserver(
@@ -483,6 +504,16 @@ export default function Home() {
                 }}>
                   Quero este
                 </a>
+                <button onClick={() => pagarComCartao(p.chave)} disabled={checkoutCarregando === p.chave} className="btn" style={{
+                  display: "block", width: "100%", textAlign: "center", fontSize: 13, fontWeight: 600, padding: "11px", borderRadius: 10, marginTop: 8,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)",
+                  cursor: checkoutCarregando === p.chave ? "default" : "pointer", opacity: checkoutCarregando === p.chave ? 0.6 : 1,
+                }}>
+                  {checkoutCarregando === p.chave ? "Abrindo pagamento..." : "Pagar com cartão →"}
+                </button>
+                {checkoutErro?.chave === p.chave && (
+                  <div style={{ color: "#F87171", fontSize: 11.5, marginTop: 6, textAlign: "center" }}>{checkoutErro.msg}</div>
+                )}
               </div>
             ))}
           </div>

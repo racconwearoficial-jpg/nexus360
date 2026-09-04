@@ -1647,9 +1647,9 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="card">
           <div class="section-title mb12">Novo plano</div>
           <div class="form-group"><label>Nome do plano</label><input id="asn-plano-nome" placeholder="Ex: Corte Ilimitado"></div>
-          <div class="form-group"><label>Valor mensal (R$)</label><input type="number" id="asn-plano-valor" placeholder="89.00" min="1" step="0.01"></div>
+          <div class="form-group"><label id="asn-plano-valor-label">Valor mensal (R$)</label><input type="number" id="asn-plano-valor" placeholder="89.00" min="1" step="0.01"></div>
           <div class="form-group"><label>Ciclo</label>
-            <select id="asn-plano-ciclo"><option value="MONTHLY">Mensal</option><option value="WEEKLY">Semanal</option><option value="YEARLY">Anual</option></select>
+            <select id="asn-plano-ciclo" onchange="asnAtualizarLabelValor()"><option value="MONTHLY">Mensal</option><option value="WEEKLY">Semanal</option><option value="YEARLY">Anual</option><option value="AVULSO">Avulso (pagamento único)</option></select>
           </div>
           <button class="btn btn-primary" onclick="criarPlanoAssinatura()">Criar plano</button>
         </div>
@@ -3131,14 +3131,32 @@ function preencherSelectsAssinatura() {
   selPlano.innerHTML = _asnPlanos.filter(p => p.ativo !== false).map(p => `<option value="${p.id}">${p.nome} — R$ ${parseFloat(p.valor).toFixed(2)}</option>`).join('');
 }
 
+const CICLO_LABEL = { MONTHLY: 'mensal', WEEKLY: 'semanal', YEARLY: 'anual', AVULSO: 'avulso · pagamento único' };
+
+function asnAtualizarLabelValor() {
+  const ciclo = document.getElementById('asn-plano-ciclo').value;
+  const label = document.getElementById('asn-plano-valor-label');
+  if (label) label.textContent = ciclo === 'AVULSO' ? 'Valor (R$)' : 'Valor mensal (R$)';
+}
+
 function renderAsnPlanos() {
   const el = document.getElementById('asnPlanosList');
   if (!el) return;
   if (!_asnPlanos.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum plano criado ainda.</div>'; return; }
   el.innerHTML = _asnPlanos.map(p => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px">
-      <div><div style="font-weight:600;font-size:13px">${p.nome}</div><div style="font-size:11px;color:var(--text3)">R$ ${parseFloat(p.valor).toFixed(2)} · ${p.ciclo === 'MONTHLY' ? 'mensal' : p.ciclo === 'WEEKLY' ? 'semanal' : 'anual'}</div></div>
+      <div><div style="font-weight:600;font-size:13px">${p.nome}</div><div style="font-size:11px;color:var(--text3)">R$ ${parseFloat(p.valor).toFixed(2)} · ${CICLO_LABEL[p.ciclo] || p.ciclo}</div></div>
     </div>`).join('');
+}
+
+function asnRotuloData(a, plano) {
+  const dataFmt = a.proxima_cobranca ? new Date(a.proxima_cobranca + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  if (plano?.ciclo === 'AVULSO') {
+    if (a.status === 'ativa') return 'pago em ' + dataFmt;
+    if (a.status === 'cancelada') return 'cobrança cancelada';
+    return 'aguardando pagamento (venc. ' + dataFmt + ')';
+  }
+  return (a.status === 'pendente' ? 'aguardando 1º pagamento' : 'próxima cobrança') + ': ' + dataFmt;
 }
 
 function renderAsnAssinantes() {
@@ -3155,7 +3173,7 @@ function renderAsnAssinantes() {
     return `
     <div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · R$ ${valorAtual != null ? parseFloat(valorAtual).toFixed(2) : '—'} · ${a.status === 'pendente' ? 'aguardando 1º pagamento' : 'próxima cobrança'}: ${a.proxima_cobranca ? new Date(a.proxima_cobranca+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div></div>
+        <div><div style="font-weight:600;font-size:13px">${cliente?.nome || 'Cliente removido'}</div><div style="font-size:11px;color:var(--text3)">${plano?.nome || '—'} · R$ ${valorAtual != null ? parseFloat(valorAtual).toFixed(2) : '—'} · ${asnRotuloData(a, plano)}</div></div>
         <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${cor}22;color:${cor}">${a.status}</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
