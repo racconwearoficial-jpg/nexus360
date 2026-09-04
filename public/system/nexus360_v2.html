@@ -2583,6 +2583,15 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <label>Mensagem (edite antes de enviar)</label>
       <textarea id="wppMsgEdit" rows="5" style="resize:vertical"></textarea>
     </div>
+    <div id="wppImagemBox" style="display:none;margin-bottom:16px">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Anexar imagem (opcional)</label>
+      <div id="wppImagemPreviewWrap" style="display:none;position:relative;margin-bottom:8px;width:fit-content">
+        <img id="wppImagemPreview" style="max-width:140px;max-height:140px;border-radius:8px;border:1px solid var(--border);display:block">
+        <button type="button" onclick="wppRemoverImagem()" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#EF4444;color:#fff;border:none;cursor:pointer;font-size:13px;line-height:1">×</button>
+      </div>
+      <input type="file" id="wppImagemInput" accept="image/*" onchange="wppSelecionarImagem(this.files[0])" style="font-size:12px;color:var(--text3)">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Só funciona com WhatsApp API conectado — máx. 5MB.</div>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
       <button class="btn btn-ghost" id="btnMelhorar" onclick="iaMelhorarMsg()" style="font-size:12px;padding:6px 12px">
         Melhorar mensagem
@@ -8706,6 +8715,8 @@ Negócio: ${neg}`;
 // ── Modal WhatsApp editável ───────────────────────────────────────────────────
 let _wppNum = '';
 let _wppCampId = null;
+let _wppImagemDataUri = null;
+
 function wppAbrir(numero, msgPadrao, campId) {
   const tel  = (numero||'').replace(/\D/g,'');
   _wppNum    = tel.startsWith('55') ? tel : '55'+tel;
@@ -8713,16 +8724,46 @@ function wppAbrir(numero, msgPadrao, campId) {
   document.getElementById('wppMsgEdit').value = msgPadrao || '';
   const btn = document.getElementById('btnConfirmarWpp');
   if (btn) btn.textContent = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
+
+  wppRemoverImagem(); // limpa imagem de uma abertura anterior do modal
+  const imagemBox = document.getElementById('wppImagemBox');
+  if (imagemBox) imagemBox.style.display = _zapiConectado ? 'block' : 'none';
+
   openModal('modalWpp');
   setTimeout(() => document.getElementById('wppMsgEdit').focus(), 120);
 }
+
+function wppSelecionarImagem(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('Escolha um arquivo de imagem', 'error'); return; }
+  if (file.size > 5 * 1024 * 1024) { toast('Imagem muito grande — máximo 5MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    _wppImagemDataUri = reader.result;
+    document.getElementById('wppImagemPreview').src = _wppImagemDataUri;
+    document.getElementById('wppImagemPreviewWrap').style.display = 'block';
+  };
+  reader.onerror = () => toast('Não consegui ler essa imagem', 'error');
+  reader.readAsDataURL(file);
+}
+
+function wppRemoverImagem() {
+  _wppImagemDataUri = null;
+  const input = document.getElementById('wppImagemInput');
+  if (input) input.value = '';
+  const wrap = document.getElementById('wppImagemPreviewWrap');
+  if (wrap) wrap.style.display = 'none';
+}
+
 async function confirmarWpp() {
   const msg = document.getElementById('wppMsgEdit').value.trim();
   if (!msg)  { toast('Escreva uma mensagem antes de enviar', 'error'); return; }
   if (!_wppNum) { toast('Número não identificado', 'error'); return; }
 
   // Com Z-API conectado, envia direto pelo servidor (sem depender de abrir
-  // aba/app). Se falhar por qualquer motivo, cai pro link wa.me como sempre.
+  // aba/app) — inclusive com imagem, o que o link wa.me nunca conseguiu
+  // fazer. Se falhar por qualquer motivo, cai pro link wa.me como sempre
+  // (mas nesse caso a imagem se perde, já que wa.me não suporta anexo).
   if (_zapiConectado) {
     const btn = document.getElementById('btnConfirmarWpp');
     const original = btn.textContent;
@@ -8730,11 +8771,11 @@ async function confirmarWpp() {
     try {
       const r = await fetch('/api/integracoes/zapi/enviar', {
         method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ company_id: state.companyId, telefone: _wppNum, mensagem: msg }),
+        body: JSON.stringify({ company_id: state.companyId, telefone: _wppNum, mensagem: msg, imagem_url: _wppImagemDataUri || undefined }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
-      toast('Mensagem enviada pelo WhatsApp!', 'success');
+      toast(_wppImagemDataUri ? 'Mensagem com imagem enviada!' : 'Mensagem enviada pelo WhatsApp!', 'success');
       if (_wppCampId) incrementarEnviado(_wppCampId);
       closeModal('modalWpp');
       return;
