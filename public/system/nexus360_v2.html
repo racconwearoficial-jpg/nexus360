@@ -1720,6 +1720,31 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <button class="btn btn-ghost" id="btnIntAsaasDesconectar" onclick="desconectarAsaas()" style="display:none;color:#F87171">Desconectar</button>
         </div>
       </div>
+
+      <div class="card" style="margin-top:14px" id="intCardZapi">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(37,211,102,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:14px">WhatsApp API (Z-API)</div>
+              <div style="font-size:12px;color:var(--text3)">Envia mensagens e imagens automaticamente, sem depender de abrir o WhatsApp manualmente</div>
+            </div>
+          </div>
+          <span id="intZapiBadge" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(148,163,184,.12);color:var(--text3)">Verificando...</span>
+        </div>
+        <div id="intZapiForm" style="display:none;margin-top:14px">
+          <div class="form-group"><label>Instance ID (painel Z-API → Instâncias)</label><input type="text" id="zapi-instance-id" placeholder="Ex: 3D4F5A..."></div>
+          <div class="form-group"><label>Token da instância</label><input type="password" id="zapi-token" placeholder="Token gerado no painel Z-API"></div>
+          <div class="form-group"><label>Client-Token <span style="color:var(--text3);font-size:11px">(opcional — Segurança → Configure Now no painel Z-API)</span></label><input type="password" id="zapi-client-token" placeholder="Deixe em branco se não usar"></div>
+        </div>
+        <div id="intZapiInfo" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btnIntZapiConectar" onclick="conectarZapi()" style="display:none">Conectar WhatsApp (Z-API)</button>
+          <button class="btn btn-ghost" id="btnIntZapiDesconectar" onclick="desconectarZapi()" style="display:none;color:#F87171">Desconectar</button>
+        </div>
+      </div>
     </div>
 
     <div class="page" id="page-config">
@@ -2557,7 +2582,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalWpp')">Cancelar</button>
-      <button class="btn-wpp" style="padding:9px 20px;border-radius:7px;font-size:13px;cursor:pointer;border:none;font-weight:500" onclick="confirmarWpp()">Abrir WhatsApp</button>
+      <button class="btn-wpp" id="btnConfirmarWpp" style="padding:9px 20px;border-radius:7px;font-size:13px;cursor:pointer;border:none;font-weight:500" onclick="confirmarWpp()">Abrir WhatsApp</button>
     </div>
   </div>
 </div>
@@ -2738,7 +2763,7 @@ async function loadAll() {
   showLoading('Carregando dados...');
   try {
     await loadCompanyId();
-    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes(), loadIntegracaoAsaas()]);
+    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes(), loadIntegracaoAsaas(), loadIntegracaoZapi()]);
     await loadAssinaturas(); // depende de state.clientes já carregado, roda depois do Promise.all
     renderDashboard();
     filterClients();
@@ -2886,6 +2911,91 @@ async function desconectarAsaas() {
     if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao desconectar'); }
     toast('Asaas desconectado.', 'info');
     loadIntegracaoAsaas();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTEGRAÇÃO — Z-API (WHATSAPP)
+// ══════════════════════════════════════════════════════════════════════════════
+let _zapiConectado = false;
+
+async function loadIntegracaoZapi() {
+  const badge = document.getElementById('intZapiBadge');
+  const form  = document.getElementById('intZapiForm');
+  const info  = document.getElementById('intZapiInfo');
+  const btnConectar    = document.getElementById('btnIntZapiConectar');
+  const btnDesconectar = document.getElementById('btnIntZapiDesconectar');
+  if (!badge) return;
+
+  try {
+    const r = await fetch(`/api/integracoes/zapi/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store' });
+    const d = await r.json();
+    _zapiConectado = Boolean(d.conectado && d.whatsappConectado !== false);
+
+    if (d.conectado) {
+      const online = d.whatsappConectado;
+      badge.textContent = online === false ? 'Instância desconectada do WhatsApp' : 'Conectado';
+      badge.style.background = online === false ? 'rgba(245,158,11,.12)' : 'rgba(16,185,129,.12)';
+      badge.style.color = online === false ? 'var(--amber)' : '#34D399';
+      info.textContent = online === false
+        ? 'As credenciais estão salvas, mas o WhatsApp da instância parece desconectado — abra o painel Z-API e escaneie o QR Code de novo.'
+        : 'Conectado desde ' + new Date(d.conectadoEm).toLocaleDateString('pt-BR') + '. Mensagens do sistema agora saem direto pela API.';
+      form.style.display = 'none';
+      btnConectar.style.display = 'none';
+      btnDesconectar.style.display = 'inline-block';
+    } else {
+      badge.textContent = 'Não conectado';
+      badge.style.background = 'rgba(148,163,184,.12)'; badge.style.color = 'var(--text3)';
+      info.textContent = 'Sem isso, os botões de WhatsApp continuam funcionando por link (wa.me) como sempre.';
+      form.style.display = 'block';
+      btnConectar.style.display = 'inline-block';
+      btnDesconectar.style.display = 'none';
+    }
+  } catch (e) {
+    badge.textContent = 'Erro';
+    info.textContent = 'Não foi possível verificar a integração agora.';
+  }
+}
+
+async function conectarZapi() {
+  const instance_id   = document.getElementById('zapi-instance-id').value.trim();
+  const token         = document.getElementById('zapi-token').value.trim();
+  const client_token  = document.getElementById('zapi-client-token').value.trim();
+  if (!instance_id || !token) { toast('Preencha Instance ID e Token da sua instância Z-API', 'error'); return; }
+  const btn = document.getElementById('btnIntZapiConectar');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Validando...';
+  try {
+    const r = await fetch('/api/integracoes/zapi/conectar', {
+      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId, instance_id, token, client_token: client_token || null }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Falha ao conectar');
+    toast('WhatsApp (Z-API) conectado!', 'success');
+    document.getElementById('zapi-instance-id').value = '';
+    document.getElementById('zapi-token').value = '';
+    document.getElementById('zapi-client-token').value = '';
+    loadIntegracaoZapi();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+async function desconectarZapi() {
+  if (!confirm('Desconectar o WhatsApp (Z-API)? Os botões de WhatsApp voltam a usar o link (wa.me) até você conectar de novo.')) return;
+  try {
+    const r = await fetch('/api/integracoes/zapi/desconectar', {
+      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId }),
+    });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao desconectar'); }
+    toast('WhatsApp (Z-API) desconectado.', 'info');
+    loadIntegracaoZapi();
   } catch (e) {
     toast('Erro: ' + e.message, 'error');
   }
@@ -8550,13 +8660,40 @@ function wppAbrir(numero, msgPadrao, campId) {
   _wppNum    = tel.startsWith('55') ? tel : '55'+tel;
   _wppCampId = campId || null;
   document.getElementById('wppMsgEdit').value = msgPadrao || '';
+  const btn = document.getElementById('btnConfirmarWpp');
+  if (btn) btn.textContent = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
   openModal('modalWpp');
   setTimeout(() => document.getElementById('wppMsgEdit').focus(), 120);
 }
-function confirmarWpp() {
+async function confirmarWpp() {
   const msg = document.getElementById('wppMsgEdit').value.trim();
   if (!msg)  { toast('Escreva uma mensagem antes de enviar', 'error'); return; }
   if (!_wppNum) { toast('Número não identificado', 'error'); return; }
+
+  // Com Z-API conectado, envia direto pelo servidor (sem depender de abrir
+  // aba/app). Se falhar por qualquer motivo, cai pro link wa.me como sempre.
+  if (_zapiConectado) {
+    const btn = document.getElementById('btnConfirmarWpp');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      const r = await fetch('/api/integracoes/zapi/enviar', {
+        method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ company_id: state.companyId, telefone: _wppNum, mensagem: msg }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
+      toast('Mensagem enviada pelo WhatsApp!', 'success');
+      if (_wppCampId) incrementarEnviado(_wppCampId);
+      closeModal('modalWpp');
+      return;
+    } catch (e) {
+      toast('Não consegui enviar pela API (' + e.message + ') — abrindo o link manual.', 'error', 6000);
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  }
+
   window.open(`https://wa.me/${_wppNum}?text=${encodeURIComponent(msg)}`, '_blank');
   if (_wppCampId) incrementarEnviado(_wppCampId);
   closeModal('modalWpp');
@@ -9036,6 +9173,7 @@ function _chatContexto() {
   }).length;
   const blingStatus    = document.getElementById('intBlingBadge')?.textContent || 'não verificado ainda';
   const asaasStatus    = _asaasConectado ? 'Conectado' : 'Não conectado';
+  const zapiStatus     = _zapiConectado ? 'Conectado (mensagens saindo pela API)' : 'Não conectado (usando link wa.me)';
   const totalPlanos    = (typeof _asnPlanos !== 'undefined' ? _asnPlanos : []).length;
   const assinantesAtivos = (typeof _asnAssinaturas !== 'undefined' ? _asnAssinaturas : []).filter(a => a.status === 'ativa').length;
 
@@ -9049,7 +9187,7 @@ DADOS REAIS DO SISTEMA AGORA:
 - Vendas registradas: ${totalVendas} | Receita total: R$ ${receitaTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 - Produtos/Serviços: ${totalProdutos} cadastrados (${semEstoque} produtos sem estoque — serviços não têm estoque)
 - Campanhas: ${state.campanhas?.length||0} cadastradas
-- Integração Bling: ${blingStatus} | Integração Asaas: ${asaasStatus}
+- Integração Bling: ${blingStatus} | Integração Asaas: ${asaasStatus} | WhatsApp API (Z-API): ${zapiStatus}
 - Assinaturas: ${totalPlanos} plano(s) criado(s), ${assinantesAtivos} assinante(s) com pagamento ativo
 
 NÍVEIS DE FIDELIDADE (Bronze/Silver/Gold/Diamond):
@@ -9122,7 +9260,8 @@ ASSINATURAS (só admin) — clube de assinatura recorrente, cliente paga todo m�
 INTEGRAÇÕES (só admin) — conecta o Nexus360 com sistemas externos que a empresa já usa:
 - Bling: importa clientes e vendas automaticamente do ERP. Fluxo: clicar "Conectar com Bling" (abre login do Bling), autorizar, depois "Sincronizar agora" pra trazer os dados. Mostra badge de status (Conectado/Não conectado) e data da última sincronia.
 - Asaas: conecta a conta Asaas da própria empresa via chave de API (gerada em Configurações → Integrações → Chave de API dentro do próprio Asaas). Tem opção de ambiente Sandbox (testes) antes de ativar de verdade. É pré-requisito pro módulo de Assinaturas funcionar — sem conectar, não dá pra cobrar recorrência.
-- As duas integrações são por empresa: cada negócio conecta a própria conta Bling/Asaas, não é uma conta compartilhada do Nexus360.
+- WhatsApp API (Z-API): conecta a própria instância Z-API da empresa (Instance ID + Token gerados no painel Z-API) pra enviar mensagens automaticamente, sem depender de abrir o WhatsApp manualmente — e permite mandar imagem, coisa que o link comum (wa.me) não faz. Sem conectar, os botões de WhatsApp do sistema continuam funcionando normalmente por link. É a funcionalidade que diferencia o plano Crescimento (R$597).
+- As três integrações são por empresa: cada negócio conecta a própria conta Bling/Asaas/Z-API, não é uma conta compartilhada do Nexus360.
 
 CONFIGURAÇÕES (só admin): nome do negócio, WhatsApp, segmento, dias inativo, mensagens padrão, regras de fidelidade, níveis Bronze/Silver/Gold/Diamond, pontos de indicação.
 
