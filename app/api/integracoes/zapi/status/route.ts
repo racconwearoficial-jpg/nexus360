@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   const { data } = await supabaseAdmin
     .from("integracoes_zapi")
-    .select("instance_id, token, client_token, connected_at")
+    .select("instance_id, token, client_token, connected_at, atendimento_auto")
     .eq("company_id", companyId)
     .single();
 
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { conectado: true, whatsappConectado, conectadoEm: data.connected_at },
+    { conectado: true, whatsappConectado, conectadoEm: data.connected_at, atendimentoAuto: Boolean(data.atendimento_auto) },
     { headers: { "Cache-Control": "no-store, max-age=0" } }
   );
 }

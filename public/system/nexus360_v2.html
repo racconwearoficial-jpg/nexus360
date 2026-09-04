@@ -1744,6 +1744,27 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <button class="btn btn-primary" id="btnIntZapiConectar" onclick="conectarZapi()" style="display:none">Conectar WhatsApp (Z-API)</button>
           <button class="btn btn-ghost" id="btnIntZapiDesconectar" onclick="desconectarZapi()" style="display:none;color:#F87171">Desconectar</button>
         </div>
+
+        <div id="intZapiAtendimentoBox" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+            <div>
+              <div style="font-weight:600;font-size:13px">Atendimento automático (chatbot)</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px">Responde o cliente sozinho, com base nos dados dele no sistema (pontos, status). Desligado por padrão.</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;cursor:pointer">
+              <input type="checkbox" id="zapi-atendimento-toggle" onchange="alternarAtendimentoZapi(this.checked)" style="opacity:0;width:0;height:0">
+              <span id="zapiToggleTrack" style="position:absolute;inset:0;background:var(--bg4);border-radius:22px;transition:.2s"></span>
+              <span id="zapiToggleThumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s"></span>
+            </label>
+          </div>
+          <div style="font-size:11px;color:var(--amber);margin-top:10px;padding:8px 10px;background:rgba(245,158,11,.08);border-radius:6px">
+            Importante: o bot nunca responde pergunta de saúde/medicamento (sempre encaminha pra um humano) e nunca inventa preço ou desconto. Ainda assim, revise as primeiras conversas antes de confiar 100%.
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px">
+            Configuração única: no painel Z-API, em Webhooks → "Ao receber", cole
+            <code style="background:var(--bg1);padding:1px 5px;border-radius:4px">https://nexus360.app.br/api/integracoes/zapi/webhook</code>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2927,6 +2948,8 @@ async function loadIntegracaoZapi() {
   const info  = document.getElementById('intZapiInfo');
   const btnConectar    = document.getElementById('btnIntZapiConectar');
   const btnDesconectar = document.getElementById('btnIntZapiDesconectar');
+  const atendimentoBox = document.getElementById('intZapiAtendimentoBox');
+  const atendimentoChk = document.getElementById('zapi-atendimento-toggle');
   if (!badge) return;
 
   try {
@@ -2945,6 +2968,9 @@ async function loadIntegracaoZapi() {
       form.style.display = 'none';
       btnConectar.style.display = 'none';
       btnDesconectar.style.display = 'inline-block';
+      atendimentoBox.style.display = 'block';
+      atendimentoChk.checked = Boolean(d.atendimentoAuto);
+      zapiAtualizarVisualToggle(atendimentoChk.checked);
     } else {
       badge.textContent = 'Não conectado';
       badge.style.background = 'rgba(148,163,184,.12)'; badge.style.color = 'var(--text3)';
@@ -2952,10 +2978,35 @@ async function loadIntegracaoZapi() {
       form.style.display = 'block';
       btnConectar.style.display = 'inline-block';
       btnDesconectar.style.display = 'none';
+      atendimentoBox.style.display = 'none';
     }
   } catch (e) {
     badge.textContent = 'Erro';
     info.textContent = 'Não foi possível verificar a integração agora.';
+  }
+}
+
+function zapiAtualizarVisualToggle(ligado) {
+  const track = document.getElementById('zapiToggleTrack');
+  const thumb = document.getElementById('zapiToggleThumb');
+  if (!track || !thumb) return;
+  track.style.background = ligado ? '#25D366' : 'var(--bg4)';
+  thumb.style.left = ligado ? '21px' : '3px';
+}
+
+async function alternarAtendimentoZapi(ativo) {
+  zapiAtualizarVisualToggle(ativo);
+  try {
+    const r = await fetch('/api/integracoes/zapi/atendimento', {
+      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: state.companyId, ativo }),
+    });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao salvar'); }
+    toast(ativo ? 'Atendimento automático ativado.' : 'Atendimento automático desativado.', ativo ? 'success' : 'info');
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+    document.getElementById('zapi-atendimento-toggle').checked = !ativo;
+    zapiAtualizarVisualToggle(!ativo);
   }
 }
 
@@ -9261,6 +9312,7 @@ INTEGRAÇÕES (só admin) — conecta o Nexus360 com sistemas externos que a emp
 - Bling: importa clientes e vendas automaticamente do ERP. Fluxo: clicar "Conectar com Bling" (abre login do Bling), autorizar, depois "Sincronizar agora" pra trazer os dados. Mostra badge de status (Conectado/Não conectado) e data da última sincronia.
 - Asaas: conecta a conta Asaas da própria empresa via chave de API (gerada em Configurações → Integrações → Chave de API dentro do próprio Asaas). Tem opção de ambiente Sandbox (testes) antes de ativar de verdade. É pré-requisito pro módulo de Assinaturas funcionar — sem conectar, não dá pra cobrar recorrência.
 - WhatsApp API (Z-API): conecta a própria instância Z-API da empresa (Instance ID + Token gerados no painel Z-API) pra enviar mensagens automaticamente, sem depender de abrir o WhatsApp manualmente — e permite mandar imagem, coisa que o link comum (wa.me) não faz. Sem conectar, os botões de WhatsApp do sistema continuam funcionando normalmente por link. É a funcionalidade que diferencia o plano Crescimento (R$597).
+- Atendimento automático (chatbot): opcional, desligado por padrão mesmo com Z-API conectado. Quando ativado (toggle em Integrações), o sistema responde automaticamente mensagens que o cliente final manda pro WhatsApp do negócio, usando os dados dele (pontos, status). Regras fixas: nunca responde pergunta de saúde/medicamento (encaminha pra humano) e nunca inventa preço ou desconto. Exige configurar o webhook no painel Z-API (Webhooks → Ao receber → colar a URL do sistema).
 - As três integrações são por empresa: cada negócio conecta a própria conta Bling/Asaas/Z-API, não é uma conta compartilhada do Nexus360.
 
 CONFIGURAÇÕES (só admin): nome do negócio, WhatsApp, segmento, dias inativo, mensagens padrão, regras de fidelidade, níveis Bronze/Silver/Gold/Diamond, pontos de indicação.
