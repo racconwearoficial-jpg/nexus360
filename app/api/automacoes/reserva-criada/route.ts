@@ -22,7 +22,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  console.log("[automacao-reserva-criada] chamado:", JSON.stringify({ type: payload.type, record: payload.record }));
+
   if (payload.type !== "INSERT" || !payload.record) {
+    console.log("[automacao-reserva-criada] ignorado: type/record inválido");
     return NextResponse.json({ ok: true });
   }
 

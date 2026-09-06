@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  console.log("[automacao-estoque-zerado] chamado:", JSON.stringify({ type: payload.type, record: payload.record, old_record: payload.old_record }));
+
   if (payload.type !== "UPDATE" || !payload.record || !payload.old_record) {
+    console.log("[automacao-estoque-zerado] ignorado: type/record/old_record faltando");
     return NextResponse.json({ ok: true });
   }
 
@@ -31,6 +34,7 @@ export async function POST(req: NextRequest) {
   const estoqueDepois = parseInt(item.estoque ?? 0);
 
   if (!(estoqueAntes > 0 && estoqueDepois <= 0)) {
+    console.log("[automacao-estoque-zerado] ignorado: não é transição de positivo pra zerado", { estoqueAntes, estoqueDepois });
     return NextResponse.json({ ok: true });
   }
 
@@ -38,11 +42,15 @@ export async function POST(req: NextRequest) {
 
   try {
     if (await jaEnviado({ companyId, clienteId: null, tipo: TIPO, referenciaId: item.id, desde: new Date(Date.now() - 24 * 3600 * 1000).toISOString() })) {
+      console.log("[automacao-estoque-zerado] já enviado nas últimas 24h, ignorando:", item.id);
       return NextResponse.json({ ok: true });
     }
 
     const { data: config } = await supabaseAdmin.from("configuracoes").select("whatsapp").eq("company_id", companyId).single();
-    if (!config?.whatsapp) return NextResponse.json({ ok: true });
+    if (!config?.whatsapp) {
+      console.log("[automacao-estoque-zerado] empresa sem whatsapp configurado:", companyId);
+      return NextResponse.json({ ok: true });
+    }
 
     const cred = await getCredenciaisZapi(companyId);
     const mensagem = `Aviso do sistema: o item "${item.nome}" ficou sem estoque.`;

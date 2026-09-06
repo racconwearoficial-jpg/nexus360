@@ -9801,8 +9801,11 @@ function rsvToggleProdNome() {
 // Fire-and-forget: nunca trava nem quebra a tela que chamou.
 function dispararAutomacao(caminho, payload) {
   try {
-    fetch(caminho, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(()=>{});
-  } catch(e) {}
+    console.log('[dispararAutomacao] chamando', caminho, payload);
+    fetch(caminho, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(r => console.log('[dispararAutomacao] resposta', caminho, r.status))
+      .catch(e => console.error('[dispararAutomacao] falhou', caminho, e));
+  } catch(e) { console.error('[dispararAutomacao] erro síncrono', caminho, e); }
 }
 
 async function rsvSalvarReserva() {

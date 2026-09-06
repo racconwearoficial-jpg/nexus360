@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  console.log("[automacao-estoque-reposto] payload recebido:", JSON.stringify({ type: payload.type, temRecord: Boolean(payload.record), temOldRecord: Boolean(payload.old_record) }));
+
   if (payload.type !== "UPDATE" || !payload.record || !payload.old_record) {
+    console.log("[automacao-estoque-reposto] ignorado: type/record/old_record faltando");
     return NextResponse.json({ ok: true });
   }
 
@@ -29,19 +32,24 @@ export async function POST(req: NextRequest) {
   const estoqueAntes = parseInt(itemAntes.estoque ?? 0);
   const estoqueDepois = parseInt(item.estoque ?? 0);
 
+  console.log("[automacao-estoque-reposto] estoque:", { itemId: item.id, estoqueAntes, estoqueDepois });
+
   if (!(estoqueAntes <= 0 && estoqueDepois > 0)) {
+    console.log("[automacao-estoque-reposto] ignorado: não é transição de zerado pra positivo");
     return NextResponse.json({ ok: true });
   }
 
   const companyId = item.company_id;
 
   try {
-    const { data: esperando } = await supabaseAdmin
+    const { data: esperando, error: erroEspera } = await supabaseAdmin
       .from("lista_espera")
       .select("id, client_id, quantity, clientes(nome, telefone)")
       .eq("company_id", companyId)
       .eq("product_id", item.id)
       .eq("status", "aguardando");
+
+    console.log("[automacao-estoque-reposto] lista_espera encontrada:", { companyId, productId: item.id, qtd: esperando?.length || 0, erro: erroEspera?.message });
 
     if (!esperando || !esperando.length) return NextResponse.json({ ok: true });
 

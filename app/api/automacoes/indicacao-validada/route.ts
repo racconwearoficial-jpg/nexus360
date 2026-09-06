@@ -24,12 +24,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  console.log("[automacao-indicacao-validada] chamado:", JSON.stringify({ type: payload.type, record: payload.record, old_record: payload.old_record }));
+
   if (payload.type !== "UPDATE" || !payload.record || !payload.old_record) {
+    console.log("[automacao-indicacao-validada] ignorado: type/record/old_record faltando");
     return NextResponse.json({ ok: true });
   }
 
   const indicacao = payload.record;
   if (indicacao.status !== "validada" || payload.old_record.status === "validada") {
+    console.log("[automacao-indicacao-validada] ignorado: status não é transição pra validada", { status: indicacao.status, statusAntes: payload.old_record.status });
     return NextResponse.json({ ok: true });
   }
 
@@ -37,6 +41,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (await jaEnviado({ companyId, clienteId: indicacao.quem_id, tipo: TIPO, referenciaId: indicacao.id })) {
+      console.log("[automacao-indicacao-validada] já enviado antes, ignorando:", indicacao.id);
       return NextResponse.json({ ok: true });
     }
 

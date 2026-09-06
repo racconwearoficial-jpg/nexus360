@@ -26,15 +26,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  console.log("[automacao-entrega-status] chamado:", JSON.stringify({ type: payload.type, record: payload.record, old_record: payload.old_record }));
+
   if (payload.type !== "UPDATE" || !payload.record || !payload.old_record) {
+    console.log("[automacao-entrega-status] ignorado: type/record/old_record faltando");
     return NextResponse.json({ ok: true });
   }
 
   const entrega = payload.record;
   if (entrega.status === payload.old_record.status || !MENSAGENS[entrega.status]) {
+    console.log("[automacao-entrega-status] ignorado: status sem mensagem ou sem mudança", { status: entrega.status, statusAntes: payload.old_record.status });
     return NextResponse.json({ ok: true });
   }
   if (!entrega.cliente_id) {
+    console.log("[automacao-entrega-status] ignorado: entrega sem cliente_id");
     return NextResponse.json({ ok: true }); // entrega avulsa, sem cliente vinculado
   }
 
@@ -42,11 +47,15 @@ export async function POST(req: NextRequest) {
 
   try {
     if (await jaEnviado({ companyId, clienteId: entrega.cliente_id, tipo: TIPO, referenciaId: `${entrega.id}:${entrega.status}` })) {
+      console.log("[automacao-entrega-status] já enviado antes, ignorando:", entrega.id, entrega.status);
       return NextResponse.json({ ok: true });
     }
 
     const { data: cliente } = await supabaseAdmin.from("clientes").select("nome, telefone").eq("id", entrega.cliente_id).single();
-    if (!cliente?.telefone) return NextResponse.json({ ok: true });
+    if (!cliente?.telefone) {
+      console.log("[automacao-entrega-status] cliente sem telefone:", entrega.cliente_id);
+      return NextResponse.json({ ok: true });
+    }
 
     const cred = await getCredenciaisZapi(companyId);
     const mensagem = MENSAGENS[entrega.status](cliente.nome);
