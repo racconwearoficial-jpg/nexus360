@@ -5048,12 +5048,17 @@ async function criarEntregaAutomatica(venda, cliente) {
 // ══════════════════════════════════════════════════════════════════════════════
 async function mudarStatusEntrega(id, novoStatus) {
   try {
+    const entAntes = state.entregas.find(e => e.id === id);
+    const statusAntes = entAntes ? entAntes.status : null;
     const { error } = await db.from('entregas').update({ status: novoStatus }).eq('id', id);
     if (error) throw error;
     const ent = state.entregas.find(e => e.id === id);
     if (ent) ent.status = novoStatus;
     renderEntregas();
     toast('Status atualizado', 'success');
+    if (ent && statusAntes !== novoStatus) {
+      dispararAutomacao('/api/automacoes/entrega-status', { type: 'UPDATE', record: ent, old_record: { status: statusAntes } });
+    }
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
 }
 
@@ -5945,9 +5950,11 @@ async function saveVenda() {
       for(const p of _vendaProdutos){
         const item=state.itens.find(i=>i.id===p.id);
         if(item&&item.tipo!=='serviço'&&item.estoque!=null){
-          const novoEst=Math.max(0,parseInt(item.estoque)-p.qtd);
+          const estoqueAntes=parseInt(item.estoque);
+          const novoEst=Math.max(0,estoqueAntes-p.qtd);
           await db.from('itens').update({estoque:novoEst}).eq('id',p.id);
           item.estoque=novoEst;
+          dispararAutomacao('/api/automacoes/estoque-zerado', { type:'UPDATE', record:{ id:item.id, company_id:state.companyId, nome:item.nome, estoque:novoEst }, old_record:{ estoque:estoqueAntes } });
         }
       }
     }
@@ -6185,10 +6192,12 @@ async function confirmarReposicao() {
   if (!item) return;
   setBtn('btnConfirmarReposicao', true, 'Salvando...');
   try {
-    const novoEstoque = (parseInt(item.estoque) || 0) + qtd;
+    const estoqueAntes = parseInt(item.estoque) || 0;
+    const novoEstoque = estoqueAntes + qtd;
     const { error } = await db.from('itens').update({ estoque: novoEstoque }).eq('id', id);
     if (error) throw error;
     item.estoque = novoEstoque; // atualiza estado local
+    dispararAutomacao('/api/automacoes/estoque-reposto', { type:'UPDATE', record:{ id:item.id, company_id:state.companyId, nome:item.nome, estoque:novoEstoque }, old_record:{ estoque:estoqueAntes } });
     toast(`Estoque de "${item.nome}" atualizado para ${novoEstoque} unidades`, 'success');
     closeModal('modalReposicao');
     renderItens(); // re-renderiza tabela e métricas
@@ -7705,6 +7714,7 @@ async function verificarIndicacaoPorCliente(cliente) {
       await db.from("clientes").update({ aniversario: anivValido }).eq("id", cliente.id);
     }
     await db.from("indicacoes").update({ status: "validada", amigo_id: cliente.id }).eq("id", ind.id);
+    dispararAutomacao('/api/automacoes/indicacao-validada', { type: 'UPDATE', record: { ...ind, status: 'validada', amigo_id: cliente.id }, old_record: { status: ind.status } });
     if (ind.quem_id) {
       const { data: quemData } = await db.from("clientes").select("id,nome,pontos").eq("id", ind.quem_id).single();
       if (quemData) {
@@ -7777,6 +7787,7 @@ async function indVerificarIndicacao(indId) {
 
     // Marcar indicação como validada
     await db.from('indicacoes').update({ status: 'validada', amigo_id: amigoId }).eq('id', ind.id);
+    dispararAutomacao('/api/automacoes/indicacao-validada', { type: 'UPDATE', record: { ...ind, status: 'validada', amigo_id: amigoId }, old_record: { status: ind.status } });
 
     // Dar pontos para quem indicou
     if (ind.quem_id) {
@@ -9077,6 +9088,8 @@ async function saveEntrega() {
   const entId = document.getElementById('ent-id')?.value || '';
   const cId = parseInt(document.getElementById('ent-cliente-id').value) || null;
   const cl  = cId ? state.clientes.find(c=>c.id===cId) : null;
+  const entregaAntes = entId ? state.entregas.find(e => String(e.id) === String(entId)) : null;
+  const statusAntes = entregaAntes ? entregaAntes.status : null;
   const payload = {
     company_id:   state.companyId,
     cliente_id:   cId,
@@ -9092,6 +9105,9 @@ async function saveEntrega() {
       const { error } = await db.from('entregas').update(payload).eq('id', entId);
       if (error) throw error;
       toast('Entrega atualizada!', 'success');
+      if (statusAntes !== null && statusAntes !== payload.status) {
+        dispararAutomacao('/api/automacoes/entrega-status', { type: 'UPDATE', record: { ...payload, id: parseInt(entId) }, old_record: { status: statusAntes } });
+      }
     } else {
       const { error } = await db.from('entregas').insert(payload);
       if (error) throw error;
@@ -9779,6 +9795,16 @@ function rsvToggleProdNome() {
   document.getElementById('esp-prod-nome-wrap').style.display = val ? 'none' : '';
 }
 
+// Chama uma automação de WhatsApp direto (sem esperar o Supabase Database
+// Webhook, que está indisponível nesse projeto por um problema de
+// provisionamento do lado da Supabase — schema supabase_functions ausente).
+// Fire-and-forget: nunca trava nem quebra a tela que chamou.
+function dispararAutomacao(caminho, payload) {
+  try {
+    fetch(caminho, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(()=>{});
+  } catch(e) {}
+}
+
 async function rsvSalvarReserva() {
   var cliId  = parseInt(document.getElementById('rsv-cli-id').value);
   var prodId = parseInt(document.getElementById('rsv-prod-id').value);
@@ -9800,13 +9826,14 @@ async function rsvSalvarReserva() {
   }
 
   try {
-    var { error } = await db.from('reservas').insert({
+    var { data: novaReserva, error } = await db.from('reservas').insert({
       client_id: cliId, product_id: prodId,
       quantity: qty, expires_at: expiresAt,
       notes: notes || null, status: 'reservado',
       company_id: state.companyId
-    });
+    }).select().single();
     if (error) throw error;
+    if (novaReserva) dispararAutomacao('/api/automacoes/reserva-criada', { type: 'INSERT', record: novaReserva });
     toast('Reserva criada!', 'success');
     closeModal('modalReserva');
     await rsvCarregarTudo();
