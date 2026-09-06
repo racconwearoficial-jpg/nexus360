@@ -202,11 +202,20 @@ Se não for um bom momento pra convidar (ex: cliente irritado, pergunta urgente,
     // Informações gerais cadastradas em Configurações → Informações para o
     // Chatbot — permite responder direto (horário, endereço, pagamento, FAQ
     // do dono) sem cair em "vou verificar com atendente" à toa.
-    const infoPartes: string[] = [];
+    //
+    // A IA não sabe que dia/hora é "agora" sozinha — sem isso explícito no
+    // prompt, ela não tem como calcular se o negócio está aberto comparando
+    // com o texto de horário configurado (bug real: perguntado num domingo
+    // 18h07 com horário só de seg-sex, respondeu errado).
+    const agora = new Date();
+    const diaSemanaAtual = agora.toLocaleDateString("pt-BR", { weekday: "long", timeZone: "America/Sao_Paulo" });
+    const dataHoraAtual = agora.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+
+    const infoPartes: string[] = [`Agora é ${diaSemanaAtual}, ${dataHoraAtual} (horário de Brasília). Use isso pra calcular se o negócio está aberto ou fechado neste momento, comparando com o horário de funcionamento abaixo (se tiver).`];
     if (config?.chatbot_horario) infoPartes.push(`Horário de funcionamento: ${config.chatbot_horario}`);
     if (config?.chatbot_endereco) infoPartes.push(`Endereço: ${config.chatbot_endereco}`);
     if (config?.chatbot_pagamento) infoPartes.push(`Formas de pagamento aceitas: ${config.chatbot_pagamento}`);
-    const contextoGeral = infoPartes.length ? infoPartes.join("\n") : null;
+    const contextoGeral = infoPartes.join("\n");
 
     let contextoFaq: string | null = null;
     try {
