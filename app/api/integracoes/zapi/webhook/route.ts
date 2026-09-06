@@ -16,6 +16,28 @@ export const dynamic = "force-dynamic";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+// Mesmos padrões de FCFG_DEFAULTS em nexus360_v2.html — manter em sincronia
+// se o dono mudar os defaults lá.
+const FCFG_DEFAULTS = {
+  ptsReal: 1,
+  r1Pts: 100, r1Val: 5,
+  r2Pts: 200, r2Val: 12,
+  r3Pts: 350, r3Val: 20,
+  minDesconto: 20,
+  vipPts: 1000, vipBonus: 100, vipDias: 60,
+  b1Marco: 500, b1Bonus: 30,
+  b2Marco: 800, b2Bonus: 50,
+  indPts: 30, indDesc: 5, indMin: 20,
+};
+
+// Mesmos limiares da função nivel()/nivelLabel() em nexus360_v2.html.
+function nivelCliente(pontos: number) {
+  if (pontos >= 1000) return "Diamond";
+  if (pontos >= 500) return "Gold";
+  if (pontos >= 200) return "Silver";
+  return "Bronze";
+}
+
 function normalizarTelefone(numero: string) {
   let limpo = (numero || "").replace(/\D/g, "");
   if (limpo.startsWith("55") && limpo.length > 11) limpo = limpo.slice(2);
@@ -74,8 +96,8 @@ export async function POST(req: NextRequest) {
     const companyId = integracao.company_id;
 
     const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }] = await Promise.all([
-      supabaseAdmin.from("configuracoes").select("nome_negocio, segmento, chatbot_horario, chatbot_endereco, chatbot_pagamento, chatbot_faq").eq("company_id", companyId).single(),
-      supabaseAdmin.from("clientes").select("nome, telefone, pontos, status, ultima_compra").eq("company_id", companyId),
+      supabaseAdmin.from("configuracoes").select("nome_negocio, segmento, chatbot_horario, chatbot_endereco, chatbot_pagamento, chatbot_faq, fidelidade_config").eq("company_id", companyId).single(),
+      supabaseAdmin.from("clientes").select("id, nome, telefone, pontos, status, ultima_compra").eq("company_id", companyId),
       supabaseAdmin.from("itens").select("nome, preco, tipo, estoque").eq("company_id", companyId).order("nome").limit(60),
       supabaseAdmin.from("planos_assinatura").select("nome, descricao, valor, ciclo").eq("company_id", companyId).eq("ativo", true),
     ]);
@@ -83,12 +105,46 @@ export async function POST(req: NextRequest) {
     const telNormalizado = normalizarTelefone(telefoneCliente);
     const cliente = (clientes || []).find((c: any) => normalizarTelefone(c.telefone) === telNormalizado);
 
+    // Reservas em aberto do cliente (produto separado aguardando retirada) —
+    // só busca se o número já é cliente cadastrado, porque a tabela guarda
+    // client_id, não telefone.
+    let contextoReservas: string | null = null;
+    if (cliente) {
+      const { data: reservas } = await supabaseAdmin
+        .from("reservas")
+        .select("quantity, expires_at, itens(nome)")
+        .eq("company_id", companyId)
+        .eq("client_id", cliente.id)
+        .eq("status", "reservado");
+      if (reservas && reservas.length) {
+        contextoReservas = reservas
+          .map((r: any) => `${r.quantity}x ${r.itens?.nome || "produto"} — retirar até ${new Date(r.expires_at).toLocaleDateString("pt-BR")}`)
+          .join("\n");
+      }
+    }
+
     const negocio = config?.nome_negocio || "nosso negócio";
     const segmento = config?.segmento || "comércio local";
 
     const contextoCliente = cliente
-      ? `Cliente identificado: ${cliente.nome}, status ${cliente.status}, ${cliente.pontos || 0} pontos acumulados${cliente.ultima_compra ? ", última compra em " + cliente.ultima_compra : ", ainda sem compra registrada"}.`
+      ? `Cliente identificado: ${cliente.nome}, status ${cliente.status}, nível ${nivelCliente(cliente.pontos || 0)}, ${cliente.pontos || 0} pontos acumulados${cliente.ultima_compra ? ", última compra em " + cliente.ultima_compra : ", ainda sem compra registrada"}.`
       : "Esse número não está cadastrado como cliente ainda.";
+
+    // Regras de fidelidade e indicação — mesma fonte (configuracoes.fidelidade_config)
+    // usada pela tela de Fidelidade do sistema, salva em fcfgSalvar(). Sem isso aqui,
+    // o chatbot não tinha como responder pergunta de pontos/indicação com dado real.
+    let fcfg = FCFG_DEFAULTS;
+    try {
+      if (config?.fidelidade_config) fcfg = { ...FCFG_DEFAULTS, ...JSON.parse(config.fidelidade_config) };
+    } catch {}
+
+    const contextoFidelidade = `NÍVEIS: Bronze (até 199 pts), Silver (200-499 pts), Gold (500-999 pts), Diamond (1000+ pts).
+Cada R$1 gasto = ${fcfg.ptsReal} ponto(s).
+Recompensas: ${fcfg.r1Pts} pts = R$${fcfg.r1Val} de desconto | ${fcfg.r2Pts} pts = R$${fcfg.r2Val} de desconto | ${fcfg.r3Pts} pts = R$${fcfg.r3Val} de desconto ou produto.
+Compra mínima para usar desconto de pontos: R$${fcfg.minDesconto}. Apenas 1 benefício por compra.
+VIP: a partir de ${fcfg.vipPts} pontos, dura ${fcfg.vipDias} dias, ganha +${fcfg.vipBonus} pts de bônus ao entrar.
+
+INDICAÇÃO: quem indica ganha +${fcfg.indPts} pontos quando o amigo indicado faz a primeira compra. O amigo indicado ganha R$${fcfg.indDesc} de desconto na primeira compra acima de R$${fcfg.indMin}. Para registrar uma indicação, o cliente precisa informar nome e telefone do amigo — só um atendente humano registra isso no sistema, o chatbot não cadastra indicação sozinho.`;
 
     // Catálogo real (preço já cadastrado no sistema) — pode ser citado com
     // segurança, porque não é invenção, é leitura do que já está configurado.
@@ -123,8 +179,10 @@ export async function POST(req: NextRequest) {
 REGRAS OBRIGATÓRIAS, NUNCA QUEBRE:
 1. NUNCA dê conselho de saúde, indicação de medicamento, dosagem, interação ou qualquer informação médica — mesmo se perguntarem diretamente. Responda que um atendente humano vai retornar sobre isso o quanto antes.
 2. Preço e disponibilidade só podem vir do CATÁLOGO e dos PLANOS abaixo — nunca invente valor, desconto ou promessa que não esteja lá.
-3. Se perguntarem algo que não está no catálogo, nos planos, nas informações gerais, no FAQ nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
-4. Nunca use asteriscos ou markdown. No máximo 3 frases.
+3. Pontos, nível e indicação só podem vir do bloco FIDELIDADE E INDICAÇÃO abaixo — nunca invente pontuação ou regra que não esteja lá.
+4. Reserva só pode vir do bloco RESERVAS abaixo — se não tiver nada lá, diga que não encontrou reserva em aberto pra esse número.
+5. Se perguntarem algo que não está no catálogo, nos planos, na fidelidade/indicação, nas reservas, nas informações gerais, no FAQ nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
+6. Nunca use asteriscos ou markdown. No máximo 3 frases.
 
 INFORMAÇÕES DO CLIENTE:
 ${contextoCliente}
@@ -132,6 +190,12 @@ ${contextoCliente}
 CATÁLOGO (produtos/serviços e preços reais):
 ${contextoCatalogo}
 ${contextoPlanos ? `\nPLANOS/PACOTES DE ASSINATURA (preços reais):\n${contextoPlanos}` : ""}
+
+FIDELIDADE E INDICAÇÃO:
+${contextoFidelidade}
+
+RESERVAS:
+${contextoReservas || "Nenhuma reserva em aberto pra esse número."}
 ${contextoGeral ? `\nINFORMAÇÕES GERAIS DO NEGÓCIO:\n${contextoGeral}` : ""}
 ${contextoFaq ? `\nPERGUNTAS FREQUENTES CADASTRADAS PELO DONO (use a resposta exata quando a pergunta do cliente for parecida):\n${contextoFaq}` : ""}
 
