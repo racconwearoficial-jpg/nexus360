@@ -26,24 +26,34 @@ export async function POST(req: NextRequest) {
   let payload: any;
   try {
     payload = await req.json();
-  } catch {
+  } catch (e: any) {
+    console.error("[zapi-webhook] body não é JSON válido:", e.message);
     return NextResponse.json({ ok: true });
   }
+
+  console.log("[zapi-webhook] payload recebido:", JSON.stringify({
+    instanceId: payload.instanceId, phone: payload.phone, fromMe: payload.fromMe,
+    isGroup: payload.isGroup, temTexto: Boolean(payload?.text?.message),
+  }));
 
   // Ignora: mensagem que o próprio número do negócio enviou (evita loop —
   // inclusive a resposta que este webhook manda), mensagem de grupo, ou
   // qualquer coisa que não seja texto simples (áudio, figurinha, imagem).
   if (payload.fromMe || payload.isGroup || !payload?.text?.message) {
+    console.log("[zapi-webhook] ignorado: fromMe/isGroup/sem texto");
     return NextResponse.json({ ok: true });
   }
 
   const instanceId = payload.instanceId;
   const telefoneCliente = payload.phone;
   const mensagemRecebida = String(payload.text.message).slice(0, 1000);
-  if (!instanceId || !telefoneCliente) return NextResponse.json({ ok: true });
+  if (!instanceId || !telefoneCliente) {
+    console.log("[zapi-webhook] ignorado: faltou instanceId ou phone no payload");
+    return NextResponse.json({ ok: true });
+  }
 
   try {
-    const { data: integracao } = await supabaseAdmin
+    const { data: integracao, error: erroIntegracao } = await supabaseAdmin
       .from("integracoes_zapi")
       .select("company_id, instance_id, token, client_token, atendimento_auto")
       .eq("instance_id", instanceId)
@@ -52,6 +62,12 @@ export async function POST(req: NextRequest) {
     // Sem integração cadastrada, ou atendimento automático desligado (é
     // opt-in) — não responde nada, deixa o dono responder manualmente.
     if (!integracao || !integracao.atendimento_auto) {
+      console.log("[zapi-webhook] não respondeu:", {
+        instanceIdRecebido: instanceId,
+        encontrouIntegracao: Boolean(integracao),
+        atendimentoAuto: integracao?.atendimento_auto,
+        erroBusca: erroIntegracao?.message,
+      });
       return NextResponse.json({ ok: true });
     }
 
@@ -131,6 +147,8 @@ Sua resposta:`;
 
     const textoResposta = respostaIA?.mensagem || "Recebi sua mensagem! Um atendente vai te responder em breve.";
 
+    console.log("[zapi-webhook] enviando resposta:", { telefoneCliente, textoResposta });
+
     await enviarTextoZapi({
       instanceId: integracao.instance_id,
       token: integracao.token,
@@ -139,8 +157,10 @@ Sua resposta:`;
       mensagem: textoResposta,
     });
 
+    console.log("[zapi-webhook] resposta enviada com sucesso");
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error("[zapi-webhook] erro interno:", e.message, e.stack);
     return NextResponse.json({ ok: true, erroInterno: e.message });
   }
 }
