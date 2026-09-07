@@ -75,6 +75,14 @@ async function gerarMensagemIA(prompt, fallback) {
 const inicioDeHoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); };
 const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
 
+// Limite de envios por tipo por execução, e pausa entre cada um — sem isso,
+// uma base grande (ex: 167 clientes inativos de uma vez) manda tudo em
+// segundos, o que o WhatsApp detecta como spam e pode banir o número. O
+// excedente simplesmente fica pra próxima execução (rotativo, ninguém fica
+// de fora, só espalhado ao longo dos dias).
+const LIMITE_ENVIOS_POR_TIPO = 20;
+const pausar = (ms) => new Promise((r) => setTimeout(r, ms));
+
 // #6 — Lembrete de recompra: usa só a cadência real de compras do cliente
 // (datas em "vendas"), não tenta adivinhar qual item específico está
 // acabando — a tabela de vendas não guarda item por linha, só texto livre,
@@ -82,7 +90,9 @@ const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); ret
 async function rodarRecompra(integ, credZapi) {
   const { data: clientes } = await supabaseAdmin
     .from("clientes").select("id, nome, telefone").eq("company_id", integ.company_id);
+  let enviados = 0;
   for (const cliente of clientes || []) {
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
     try {
       const { data: vendas } = await supabaseAdmin
         .from("vendas").select("data").eq("company_id", integ.company_id).eq("cliente_id", cliente.id)
@@ -109,6 +119,8 @@ async function rodarRecompra(integ, credZapi) {
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "recompra", referenciaId: null });
       console.log("[rotina-diaria] recompra enviada:", cliente.id);
+      enviados++;
+      await pausar(1500);
     } catch (e) {
       console.error("[rotina-diaria] erro recompra cliente", cliente.id, e.message);
     }
@@ -124,7 +136,9 @@ async function rodarFiado(integ, credZapi) {
   const { data: pendencias } = await supabaseAdmin
     .from("pendencias").select("id, cliente_id, cliente_nome, valor, valor_pago, vencimento, status")
     .eq("company_id", integ.company_id).eq("status", "pendente").lte("vencimento", amanha.toISOString().slice(0, 10));
+  let enviados = 0;
   for (const p of pendencias || []) {
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
     try {
       if (!p.cliente_id) continue;
       if (await jaEnviado({ companyId: integ.company_id, clienteId: p.cliente_id, tipo: "fiado_lembrete", referenciaId: p.id, desde: inicioDeHoje() })) continue;
@@ -139,6 +153,8 @@ async function rodarFiado(integ, credZapi) {
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await registrarEnvio({ companyId: integ.company_id, clienteId: p.cliente_id, tipo: "fiado_lembrete", referenciaId: p.id });
       console.log("[rotina-diaria] lembrete de fiado enviado:", p.id);
+      enviados++;
+      await pausar(1500);
     } catch (e) {
       console.error("[rotina-diaria] erro fiado pendencia", p.id, e.message);
     }
@@ -149,19 +165,27 @@ async function rodarFiado(integ, credZapi) {
 // reativação" configurado no sistema hoje) — só convite de volta, citando a
 // fidelidade real que já existe. Cooldown de 60 dias por cliente.
 async function rodarReativacao(integ, credZapi) {
-  const corteCooldown = diasAtras(60).toISOString();
+  const corteCooldown = diasAtras(30).toISOString();
+  // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
+  // volta a concorrer daqui 30 dias — assim a base de 167 inativos vai
+  // sendo coberta aos poucos (LIMITE_ENVIOS_POR_TIPO por dia), sem repetir
+  // sempre os mesmos primeiros.
   const { data: clientes } = await supabaseAdmin
     .from("clientes").select("id, nome, telefone, reativacao_enviada_em")
-    .eq("company_id", integ.company_id).eq("status", "inativo");
+    .eq("company_id", integ.company_id).eq("status", "inativo")
+    .or(`reativacao_enviada_em.is.null,reativacao_enviada_em.lt.${corteCooldown}`)
+    .order("reativacao_enviada_em", { ascending: true, nullsFirst: true })
+    .limit(LIMITE_ENVIOS_POR_TIPO);
+
   for (const cliente of clientes || []) {
     try {
-      if (cliente.reativacao_enviada_em && cliente.reativacao_enviada_em > corteCooldown) continue;
       if (!cliente.telefone) continue;
 
       const mensagem = `Oi, ${cliente.nome}! Faz tempo que a gente não te vê por aqui — sentimos sua falta. Toda compra continua valendo pontos que dá pra trocar por desconto. Quando quiser, é só chamar.`;
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await supabaseAdmin.from("clientes").update({ reativacao_enviada_em: new Date().toISOString() }).eq("id", cliente.id);
       console.log("[rotina-diaria] reativação enviada:", cliente.id);
+      await pausar(1500);
     } catch (e) {
       console.error("[rotina-diaria] erro reativação cliente", cliente.id, e.message);
     }
@@ -174,7 +198,9 @@ async function rodarAniversario(integ, credZapi) {
   const hoje = new Date();
   const { data: clientes } = await supabaseAdmin
     .from("clientes").select("id, nome, telefone, aniversario").eq("company_id", integ.company_id);
+  let enviados = 0;
   for (const cliente of clientes || []) {
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
     try {
       if (!cliente.aniversario) continue;
       const aniv = new Date(cliente.aniversario + "T12:00:00");
@@ -192,6 +218,8 @@ async function rodarAniversario(integ, credZapi) {
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "aniversario", referenciaId: referenciaAno });
       console.log("[rotina-diaria] aniversário enviado:", cliente.id);
+      enviados++;
+      await pausar(1500);
     } catch (e) {
       console.error("[rotina-diaria] erro aniversário cliente", cliente.id, e.message);
     }
