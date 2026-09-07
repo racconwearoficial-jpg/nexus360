@@ -6,4 +6,4 @@
   package = "@netlify/plugin-nextjs"
 
 [functions."rotina-diaria"]
-  schedule = "0 12 * * *"
+  schedule = "0 11 * * *"
