@@ -106,6 +106,18 @@ function hojeBrasilia() {
 const LIMITE_ENVIOS_POR_TIPO = 20;
 const pausar = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Fisher-Yates — usado só nas campanhas automáticas, pra cada execução
+// pegar uma amostra aleatória de quem ainda não recebeu (em vez de sempre
+// os mesmos primeiros da lista, que sairia em ordem de cadastro todo dia).
+function embaralhar(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // #6 — Lembrete de recompra: usa só a cadência real de compras do cliente
 // (datas em "vendas"), não tenta adivinhar qual item específico está
 // acabando — a tabela de vendas não guarda item por linha, só texto livre,
@@ -329,7 +341,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
     }
 
     let enviados = 0;
-    for (const cliente of destinatarios) {
+    for (const cliente of embaralhar(destinatarios)) {
       if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
       try {
         if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id })) continue;
