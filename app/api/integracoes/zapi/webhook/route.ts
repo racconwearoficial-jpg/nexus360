@@ -191,7 +191,7 @@ INDICAÇÃO: quem indica ganha +${fcfg.indPts} pontos quando o amigo indicado fa
 - Se ele recusar participar, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:recusado
 - Se a mensagem não tiver nada a ver com isso, ignore esse assunto e não emita nenhuma linha #ACAO_FIDELIDADE.`;
     } else {
-      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. Depois de responder a mensagem dele normalmente, se fizer sentido no tom da conversa, convide-o a participar em 1-2 frases, citando que ele ganha pontos em cada compra, pode trocar pontos por desconto, entra no ranking mensal de fidelidade e concorre a prêmios. Se convidar agora, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:convidado
+      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. Depois de responder a mensagem dele normalmente, se fizer sentido no tom da conversa, convide-o a participar em 1-2 frases, deixando claras as vantagens: acumula pontos em toda compra, troca pontos por desconto, entra no ranking mensal e concorre a prêmios, e pode virar VIP com benefício extra. NÃO cite valor em reais nem quantidade de pontos (esses números mudam de configuração, não trave o convite neles) — venda o benefício de forma qualitativa, não com número específico. Se convidar agora, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:convidado
 Se não for um bom momento pra convidar (ex: cliente irritado, pergunta urgente, assunto de saúde), não convide e não emita nenhuma linha #ACAO_FIDELIDADE.`;
     }
 
