@@ -95,11 +95,18 @@ export async function POST(req: NextRequest) {
 
     const companyId = integracao.company_id;
 
-    const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }] = await Promise.all([
+    // Data de "hoje" no fuso de Brasília, mesmo cálculo do rotina-diaria.js —
+    // pra comparar corretamente com periodo_inicio/periodo_fim (colunas date)
+    // sem cair no bug de fuso horário perto da meia-noite.
+    const hojeISO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+    const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }, { data: promocoes }] = await Promise.all([
       supabaseAdmin.from("configuracoes").select("nome_negocio, segmento, chatbot_horario, chatbot_endereco, chatbot_pagamento, chatbot_faq, fidelidade_config").eq("company_id", companyId).single(),
       supabaseAdmin.from("clientes").select("id, nome, telefone, pontos, status, ultima_compra, fidelidade_status").eq("company_id", companyId),
       supabaseAdmin.from("itens").select("nome, preco, tipo, estoque").eq("company_id", companyId).order("nome").limit(60),
       supabaseAdmin.from("planos_assinatura").select("nome, descricao, valor, ciclo").eq("company_id", companyId).eq("ativo", true),
+      supabaseAdmin.from("campanhas").select("nome, mensagem, periodo_fim").eq("company_id", companyId).eq("ativa", true)
+        .eq("tipo", "promoção").lte("periodo_inicio", hojeISO).gte("periodo_fim", hojeISO),
     ]);
 
     const telNormalizado = normalizarTelefone(telefoneCliente);
@@ -194,6 +201,14 @@ Se não for um bom momento pra convidar (ex: cliente irritado, pergunta urgente,
       ? itens.map((i: any) => `${i.nome} — R$ ${parseFloat(i.preco || 0).toFixed(2)}${i.tipo !== "serviço" ? (i.estoque > 0 ? "" : " (sem estoque no momento)") : ""}`).join("\n")
       : "Nenhum produto/serviço cadastrado no catálogo ainda.";
 
+    // Promoção(ões) ativa(s) hoje (cadastradas em Campanhas, tipo "promoção",
+    // dentro do período) — mesma fonte que alimenta o disparo automático pra
+    // inativos. Sem invenção: se não tiver nenhuma no período, o chatbot diz
+    // que não há promoção no momento em vez de chutar uma.
+    const contextoPromocao = (promocoes && promocoes.length)
+      ? promocoes.map((p: any) => `${p.nome}${p.mensagem ? ": " + p.mensagem : ""} (válida até ${new Date(p.periodo_fim + "T12:00:00").toLocaleDateString("pt-BR")})`).join("\n")
+      : null;
+
     const cicloLabel: Record<string, string> = { MONTHLY: "mensal", WEEKLY: "semanal", YEARLY: "anual", AVULSO: "pagamento único" };
     const contextoPlanos = (planos && planos.length)
       ? planos.map((p: any) => `${p.nome} — R$ ${parseFloat(p.valor || 0).toFixed(2)} (${cicloLabel[p.ciclo] || p.ciclo})${p.descricao ? ": " + p.descricao : ""}`).join("\n")
@@ -235,6 +250,7 @@ REGRAS OBRIGATÓRIAS, NUNCA QUEBRE:
 5. Se perguntarem algo que não está no catálogo, nos planos, na fidelidade/indicação, nas reservas, nas informações gerais, no FAQ nem nas informações do cliente, diga que vai verificar e um atendente humano responde em breve — não chute.
 6. Nunca use asteriscos ou markdown. No máximo 3 frases (a linha #ACAO_FIDELIDADE, quando existir, não conta nessas 3 frases e nunca é vista pelo cliente).
 7. Só emita a linha #ACAO_FIDELIDADE exatamente nas situações descritas em CONVITE AO PROGRAMA DE FIDELIDADE abaixo. Nunca invente nome ou data de nascimento que o cliente não tenha mandado nessa conversa.
+8. Se perguntarem sobre promoção, oferta ou desconto atual, responda com base no bloco PROMOÇÃO ATUAL abaixo — nunca invente uma promoção que não esteja lá. Se não houver nenhuma ativa, diga que não há promoção no momento, sem inventar uma.
 
 INFORMAÇÕES DO CLIENTE:
 ${contextoCliente}
@@ -242,6 +258,9 @@ ${contextoCliente}
 CATÁLOGO (produtos/serviços e preços reais):
 ${contextoCatalogo}
 ${contextoPlanos ? `\nPLANOS/PACOTES DE ASSINATURA (preços reais):\n${contextoPlanos}` : ""}
+
+PROMOÇÃO ATUAL:
+${contextoPromocao || "Nenhuma promoção ativa no momento."}
 
 FIDELIDADE E INDICAÇÃO:
 ${contextoFidelidade}

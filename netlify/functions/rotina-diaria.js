@@ -35,6 +35,19 @@ async function enviarTextoZapi({ instanceId, token, clientToken, telefone, mensa
   return data;
 }
 
+async function enviarImagemZapi({ instanceId, token, clientToken, telefone, imagemUrl, legenda }) {
+  const limpo = String(telefone || "").replace(/\D/g, "");
+  const phone = limpo.startsWith("55") ? limpo : "55" + limpo;
+  const r = await fetch(`${ZAPI_BASE}/instances/${instanceId}/token/${token}/send-image`, {
+    method: "POST",
+    headers: headersZapi(clientToken),
+    body: JSON.stringify({ phone, image: imagemUrl, caption: legenda || "" }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || data.message || `Z-API respondeu ${r.status}`);
+  return data;
+}
+
 async function jaEnviado({ companyId, clienteId, tipo, referenciaId, desde }) {
   let query = supabaseAdmin
     .from("automacoes_whatsapp_log")
@@ -264,6 +277,82 @@ async function rodarAniversario(integ, credZapi) {
   }
 }
 
+// #10 — Campanhas com envio automático: mesmo filtro de público-alvo que o
+// botão manual "Enviar Campanha" usa no sistema (Todos/Ativos/Inativos/VIP/
+// Aniversariantes), só que disparada sozinha pela rotina diária enquanto a
+// campanha estiver dentro do período (periodo_inicio/periodo_fim) e marcada
+// auto_envio=true — campanha antiga sem esses campos nunca dispara sozinha.
+// Dedupe por campanha+cliente (tipo="campanha_auto", referencia_id=campanha.id,
+// sem "desde"): cada cliente recebe UMA vez por campanha, não repete todo dia
+// enquanto o período estiver aberto.
+async function rodarCampanhasAutomaticas(integ, credZapi) {
+  const hoje = hojeBrasilia();
+  const hojeISO = `${hoje.ano}-${String(hoje.mes).padStart(2, "0")}-${String(hoje.dia).padStart(2, "0")}`;
+
+  const { data: campanhas } = await supabaseAdmin
+    .from("campanhas")
+    .select("id, nome, publico, mensagem, imagem_url")
+    .eq("company_id", integ.company_id)
+    .eq("ativa", true)
+    .eq("auto_envio", true)
+    .lte("periodo_inicio", hojeISO)
+    .gte("periodo_fim", hojeISO);
+  if (!campanhas || !campanhas.length) return;
+
+  const [{ data: config }, { data: clientes }] = await Promise.all([
+    supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo").eq("company_id", integ.company_id).single(),
+    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario").eq("company_id", integ.company_id),
+  ]);
+  const neg = config?.nome_negocio || "nossa loja";
+  const diasInativoLimite = parseInt(config?.dias_inativo || 30);
+
+  for (const camp of campanhas) {
+    const pub = (camp.publico || "Todos").toLowerCase().trim();
+    let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim());
+
+    if (pub === "ativos") {
+      destinatarios = destinatarios.filter((c) => c.status === "ativo");
+    } else if (pub === "inativos") {
+      destinatarios = destinatarios.filter((c) => {
+        if (!c.ultima_compra) return true;
+        const dias = Math.floor((Date.now() - new Date(c.ultima_compra).getTime()) / 86400000);
+        return dias > diasInativoLimite;
+      });
+    } else if (pub === "vip") {
+      destinatarios = destinatarios.filter((c) => c.status === "vip");
+    } else if (pub === "aniversariantes") {
+      destinatarios = destinatarios.filter((c) => {
+        if (!c.aniversario) return false;
+        const [, mesAniv, diaAniv] = c.aniversario.split("-").map(Number);
+        return mesAniv === hoje.mes && diaAniv === hoje.dia;
+      });
+    }
+
+    let enviados = 0;
+    for (const cliente of destinatarios) {
+      if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
+      try {
+        if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id })) continue;
+
+        const mensagem = (camp.mensagem || `Oi, {nome}! Temos uma novidade em ${neg}: ${camp.nome}.`)
+          .replace(/\{nome\}/g, cliente.nome || "").replace(/\{negocio\}/g, neg);
+
+        if (camp.imagem_url) {
+          await enviarImagemZapi({ ...credZapi, telefone: cliente.telefone, imagemUrl: camp.imagem_url, legenda: mensagem });
+        } else {
+          await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
+        }
+        await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id });
+        console.log("[rotina-diaria] campanha automática enviada:", camp.id, cliente.id);
+        enviados++;
+        await pausar(1500);
+      } catch (e) {
+        console.error("[rotina-diaria] erro campanha automática", camp.id, cliente.id, e.message);
+      }
+    }
+  }
+}
+
 exports.handler = async function () {
   const { data: integracoes, error } = await supabaseAdmin
     .from("integracoes_zapi").select("company_id, instance_id, token, client_token");
@@ -279,6 +368,7 @@ exports.handler = async function () {
     await rodarFiado(integ, credZapi);
     await rodarReativacao(integ, credZapi);
     await rodarAniversario(integ, credZapi);
+    await rodarCampanhasAutomaticas(integ, credZapi);
   }
 
   return { statusCode: 200, body: "ok" };

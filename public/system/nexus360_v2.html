@@ -2168,6 +2168,21 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <option value="">Nenhum (sem responsável)</option>
       </select>
     </div>
+    <div class="form-group"><label>Imagem (URL)</label><input id="camp-imagem" placeholder="https://..."><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Opcional. Se preenchido, vai como imagem no WhatsApp com a mensagem de legenda.</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
+      <div>
+        <div style="font-size:13px;color:var(--text2);font-weight:500">Envio automático</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Dispara sozinho pro público-alvo dentro do período, sem precisar clicar em "Enviar" pra cada cliente.</div>
+      </div>
+      <label class="toggle" style="width:36px;height:20px;flex-shrink:0">
+        <input type="checkbox" id="camp-auto" onchange="campToggleAuto()">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="form-row" id="campPeriodoRow" style="display:none">
+      <div class="form-group" style="margin:0"><label>Início</label><input type="date" id="camp-periodo-inicio" style="width:100%;box-sizing:border-box"></div>
+      <div class="form-group" style="margin:0"><label>Fim</label><input type="date" id="camp-periodo-fim" style="width:100%;box-sizing:border-box"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalCampanha')">Cancelar</button>
       <button class="btn btn-primary" id="btnSaveCampanha" onclick="saveCampanha()">Salvar Campanha</button>
@@ -5248,6 +5263,7 @@ function renderCampanhas() {
 
     return `<div class="campaign-card">
       <span class="campaign-type tag ${tipoCor[c.tipo]||'tag-blue'}">${(c.tipo||'').toUpperCase()}</span>
+      ${c.auto_envio ? `<span class="tag tag-green" style="margin-left:6px">🤖 AUTOMÁTICA${c.periodo_fim ? ' até '+new Date(c.periodo_fim+'T12:00:00').toLocaleDateString('pt-BR') : ''}</span>` : ''}
       <div class="flex-between mb12">
         <div>
           <div style="font-size:14px;color:var(--text1);font-weight:500">${c.nome}</div>
@@ -5283,6 +5299,11 @@ function _fnPopularSelectCampanha(val='') {
   if (val) sel.value = val;
 }
 
+function campToggleAuto() {
+  const ativo = document.getElementById('camp-auto').checked;
+  document.getElementById('campPeriodoRow').style.display = ativo ? '' : 'none';
+}
+
 function editCampanha(id) {
   const c = state.campanhas.find(x => x.id === id);
   if (!c) return;
@@ -5292,16 +5313,23 @@ function editCampanha(id) {
   document.getElementById('camp-tipo').value      = c.tipo || 'promoção';
   document.getElementById('camp-publico').value   = c.publico || 'Todos';
   document.getElementById('camp-msg').value       = c.mensagem || '';
+  document.getElementById('camp-imagem').value    = c.imagem_url || '';
+  document.getElementById('camp-periodo-inicio').value = c.periodo_inicio || '';
+  document.getElementById('camp-periodo-fim').value    = c.periodo_fim || '';
+  document.getElementById('camp-auto').checked    = Boolean(c.auto_envio);
+  campToggleAuto();
   _fnPopularSelectCampanha(c.funcionario_id||'');
   openModal('modalCampanha');
 }
 
 function openModalNewCampanha() {
   document.getElementById('modalCampanhaTitle').textContent = 'Nova Campanha';
-  ['camp-id','camp-nome','camp-msg'].forEach(id => document.getElementById(id).value = '');
+  ['camp-id','camp-nome','camp-msg','camp-imagem','camp-periodo-inicio','camp-periodo-fim'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('campIAPanel').style.display = 'none';
   document.getElementById('camp-tipo').value    = 'promoção';
   document.getElementById('camp-publico').value = 'Todos';
+  document.getElementById('camp-auto').checked  = false;
+  campToggleAuto();
   _fnPopularSelectCampanha();
   openModal('modalCampanha');
 }
@@ -5393,6 +5421,13 @@ async function saveCampanha() {
   const tipo = document.getElementById('camp-tipo').value;
   if (!tipo) { toast('Selecione o tipo de campanha', 'error'); return; }
   const id = document.getElementById('camp-id').value;
+  const autoEnvio = document.getElementById('camp-auto').checked;
+  const periodoInicio = document.getElementById('camp-periodo-inicio').value || null;
+  const periodoFim    = document.getElementById('camp-periodo-fim').value || null;
+  if (autoEnvio && (!periodoInicio || !periodoFim)) {
+    toast('Informe início e fim do período para envio automático', 'error');
+    return;
+  }
   setBtn('btnSaveCampanha', true);
   const payload = {
     company_id: state.companyId,
@@ -5400,6 +5435,10 @@ async function saveCampanha() {
     tipo,
     publico:        document.getElementById('camp-publico').value,
     mensagem:       document.getElementById('camp-msg').value.trim() || null,
+    imagem_url:     document.getElementById('camp-imagem').value.trim() || null,
+    periodo_inicio: periodoInicio,
+    periodo_fim:    periodoFim,
+    auto_envio:     autoEnvio,
     funcionario_id: parseInt(document.getElementById('camp-funcionario')?.value)||null,
     ativa:          true,
     ...(id ? {} : { receita: 0, vendas: 0, enviados: 0, respostas: 0 }),
