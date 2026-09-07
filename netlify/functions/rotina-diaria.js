@@ -75,6 +75,16 @@ async function gerarMensagemIA(prompt, fallback) {
 const inicioDeHoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); };
 const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
 
+// Netlify roda em UTC — usar new Date().getDate()/getMonth() direto compara
+// o dia errado boa parte da noite no horário de Brasília (UTC já virou o
+// dia seguinte). Calcula a data de "hoje" sempre no fuso de Brasília.
+function hojeBrasilia() {
+  const [ano, mes, dia] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date()).split("-").map(Number);
+  return { ano, mes, dia }; // mes: 1-12
+}
+
 // Limite de envios por tipo por execução, e pausa entre cada um — sem isso,
 // uma base grande (ex: 167 clientes inativos de uma vez) manda tudo em
 // segundos, o que o WhatsApp detecta como spam e pode banir o número. O
@@ -220,19 +230,22 @@ async function rodarReativacao(integ, credZapi) {
 // #9 — Aniversário: mesmo prompt que o botão manual já usa no sistema
 // (gerador de mensagem de aniversário), só que disparado sozinho no dia.
 async function rodarAniversario(integ, credZapi) {
-  const hoje = new Date();
+  const hoje = hojeBrasilia();
   const { data: clientes } = await supabaseAdmin
     .from("clientes").select("id, nome, telefone, aniversario").eq("company_id", integ.company_id);
+  console.log("[rotina-diaria] aniversario: checando", { hoje, totalClientes: clientes?.length || 0 });
   let enviados = 0;
   for (const cliente of clientes || []) {
     if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
     try {
       if (!cliente.aniversario) continue;
-      const aniv = new Date(cliente.aniversario + "T12:00:00");
-      if (aniv.getDate() !== hoje.getDate() || aniv.getMonth() !== hoje.getMonth()) continue;
+      // aniversario é sempre "AAAA-MM-DD" (string) — compara texto direto,
+      // sem passar por Date/timezone.
+      const [, mesAniv, diaAniv] = cliente.aniversario.split("-").map(Number);
+      if (mesAniv !== hoje.mes || diaAniv !== hoje.dia) continue;
       if (!cliente.telefone) continue;
 
-      const referenciaAno = String(hoje.getFullYear());
+      const referenciaAno = String(hoje.ano);
       if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "aniversario", referenciaId: referenciaAno })) continue;
 
       const prompt = "Crie uma mensagem curta e calorosa de felicitacao de aniversario para WhatsApp de um estabelecimento para um cliente. Use {nome} para o nome do cliente. Maximo 2 linhas. Sem markdown. Sem emojis excessivos.";
