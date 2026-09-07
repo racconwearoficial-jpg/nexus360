@@ -252,9 +252,15 @@ INDICAÇÃO: quem indica ganha +${fcfg.indPts} pontos quando o amigo indicado fa
 - Se ele recusar participar, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:recusado
 - Se a mensagem não tiver nada a ver com isso, ignore esse assunto e não emita nenhuma linha #ACAO_FIDELIDADE.`;
     } else {
-      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. Depois de responder a mensagem dele normalmente, se fizer sentido no tom da conversa, convide-o a participar em 1-2 frases, deixando claras as vantagens: acumula pontos em toda compra, troca pontos por desconto, entra no ranking mensal e concorre a prêmios, e pode virar VIP com benefício extra. NÃO cite valor em reais nem quantidade de pontos (esses números mudam de configuração, não trave o convite neles) — venda o benefício de forma qualitativa, não com número específico.
-REGRA CRÍTICA, NUNCA QUEBRE: a linha #ACAO_FIDELIDADE:convidado só pode aparecer se as 1-2 frases de convite com as vantagens estiverem escritas na MESMA resposta, visíveis pro cliente. Nunca emita a linha marcando "convidado" sem o convite estar de fato no texto — isso deixaria o cliente marcado como convidado sem nunca ter visto o convite.
-Se não for um bom momento pra convidar (ex: cliente irritado, pergunta urgente, assunto de saúde), não convide e não emita nenhuma linha #ACAO_FIDELIDADE.`;
+      // Convite proativo desligado (07/09/2026, pedido do dono — estava gerando
+      // reclamação de spam). O chatbot não oferece fidelidade por conta própria;
+      // só fala do assunto se o cliente perguntar, usando o bloco FIDELIDADE E
+      // INDICAÇÃO acima. Se o cliente perguntar como participar, aí sim pode
+      // emitir #ACAO_FIDELIDADE:convidado — mas só junto com a explicação real,
+      // nunca de forma proativa.
+      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. NÃO ofereça nem mencione o programa de fidelidade por conta própria — só fale sobre isso se o cliente perguntar primeiro (ex: "tem programa de pontos?", "como funciona a fidelidade?").
+Se o cliente perguntar e quiser participar, explique em 1-2 frases as vantagens (acumula pontos em toda compra, troca por desconto, entra no ranking mensal e concorre a prêmios, pode virar VIP com benefício extra — sem citar valor em reais nem quantidade de pontos) e, na mesma resposta, termine com a linha #ACAO_FIDELIDADE:convidado.
+Se o cliente não tocar no assunto, não emita nenhuma linha #ACAO_FIDELIDADE.`;
     }
 
     // Catálogo real (preço já cadastrado no sistema) — pode ser citado com
