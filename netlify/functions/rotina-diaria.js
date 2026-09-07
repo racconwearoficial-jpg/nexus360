@@ -166,18 +166,43 @@ async function rodarFiado(integ, credZapi) {
 // fidelidade real que já existe. Cooldown de 60 dias por cliente.
 async function rodarReativacao(integ, credZapi) {
   const corteCooldown = diasAtras(30).toISOString();
-  // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
-  // volta a concorrer daqui 30 dias — assim a base de 167 inativos vai
-  // sendo coberta aos poucos (LIMITE_ENVIOS_POR_TIPO por dia), sem repetir
-  // sempre os mesmos primeiros.
-  const { data: clientes } = await supabaseAdmin
-    .from("clientes").select("id, nome, telefone, reativacao_enviada_em")
-    .eq("company_id", integ.company_id).eq("status", "inativo")
-    .or(`reativacao_enviada_em.is.null,reativacao_enviada_em.lt.${corteCooldown}`)
-    .order("reativacao_enviada_em", { ascending: true, nullsFirst: true })
-    .limit(LIMITE_ENVIOS_POR_TIPO);
 
-  for (const cliente of clientes || []) {
+  // O sistema NUNCA grava status='inativo' no banco — calcularStatus() no
+  // nexus360_v2.html computa isso na hora só pra exibir na tela, comparando
+  // ultima_compra com dias_inativo. Filtrar por clientes.status aqui nunca
+  // achava ninguém, mesmo com centenas de inativos reais. Recalcula do
+  // mesmo jeito que o sistema calcula.
+  const [{ data: config }, { data: candidatos }] = await Promise.all([
+    supabaseAdmin.from("configuracoes").select("dias_inativo, fidelidade_config").eq("company_id", integ.company_id).single(),
+    supabaseAdmin.from("clientes")
+      .select("id, nome, telefone, ultima_compra, pontos, total_gasto, reativacao_enviada_em")
+      .eq("company_id", integ.company_id)
+      // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
+      // volta a concorrer daqui 30 dias — assim uma base grande de inativos
+      // vai sendo coberta aos poucos (LIMITE_ENVIOS_POR_TIPO por dia).
+      .or(`reativacao_enviada_em.is.null,reativacao_enviada_em.lt.${corteCooldown}`)
+      .order("reativacao_enviada_em", { ascending: true, nullsFirst: true }),
+  ]);
+
+  const diasInativoLimite = parseInt(config?.dias_inativo || 30);
+  let vipPts = 1000;
+  try {
+    if (config?.fidelidade_config) vipPts = JSON.parse(config.fidelidade_config).vipPts || 1000;
+  } catch {}
+
+  const agora = Date.now();
+  const clientes = (candidatos || [])
+    .filter((c) => {
+      const pontos = parseInt(c.pontos || 0);
+      const gasto = parseFloat(c.total_gasto || 0);
+      if (pontos >= vipPts || gasto >= 500) return false; // VIP nunca é inativo
+      if (!c.ultima_compra) return true;
+      const dias = Math.floor((agora - new Date(c.ultima_compra).getTime()) / 86400000);
+      return dias > diasInativoLimite;
+    })
+    .slice(0, LIMITE_ENVIOS_POR_TIPO);
+
+  for (const cliente of clientes) {
     try {
       if (!cliente.telefone) continue;
 
