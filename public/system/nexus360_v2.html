@@ -2168,7 +2168,13 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <option value="">Nenhum (sem responsável)</option>
       </select>
     </div>
-    <div class="form-group"><label>Imagem (URL)</label><input id="camp-imagem" placeholder="https://..."><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Opcional. Se preenchido, vai como imagem no WhatsApp com a mensagem de legenda.</div></div>
+    <div class="form-group">
+      <label>Imagem da campanha</label>
+      <input type="hidden" id="camp-imagem">
+      <input type="file" id="camp-imagem-file" accept="image/*" onchange="campUploadImagem(event)">
+      <div id="campImagemPreview" style="margin-top:8px"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Opcional. Se enviada, vai como imagem no WhatsApp com a mensagem de legenda.</div>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
       <div>
         <div style="font-size:13px;color:var(--text2);font-weight:500">Envio automático</div>
@@ -5299,6 +5305,25 @@ function _fnPopularSelectCampanha(val='') {
   if (val) sel.value = val;
 }
 
+async function campUploadImagem(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('campImagemPreview');
+  preview.innerHTML = '<div style="font-size:12px;color:var(--text3)">Enviando imagem...</div>';
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${state.companyId}/${Date.now()}.${ext}`;
+    const { error } = await db.storage.from('campanhas-midia').upload(path, file, { upsert: true });
+    if (error) throw error;
+    const { data } = db.storage.from('campanhas-midia').getPublicUrl(path);
+    document.getElementById('camp-imagem').value = data.publicUrl;
+    preview.innerHTML = `<img src="${data.publicUrl}" style="max-width:160px;max-height:160px;border-radius:8px;border:1px solid var(--border);display:block">`;
+  } catch (e) {
+    preview.innerHTML = '';
+    toast('Erro ao enviar imagem: ' + e.message, 'error');
+  }
+}
+
 function campToggleAuto() {
   const ativo = document.getElementById('camp-auto').checked;
   document.getElementById('campPeriodoRow').style.display = ativo ? '' : 'none';
@@ -5314,6 +5339,8 @@ function editCampanha(id) {
   document.getElementById('camp-publico').value   = c.publico || 'Todos';
   document.getElementById('camp-msg').value       = c.mensagem || '';
   document.getElementById('camp-imagem').value    = c.imagem_url || '';
+  document.getElementById('camp-imagem-file').value = '';
+  document.getElementById('campImagemPreview').innerHTML = c.imagem_url ? `<img src="${c.imagem_url}" style="max-width:160px;max-height:160px;border-radius:8px;border:1px solid var(--border);display:block">` : '';
   document.getElementById('camp-periodo-inicio').value = c.periodo_inicio || '';
   document.getElementById('camp-periodo-fim').value    = c.periodo_fim || '';
   document.getElementById('camp-auto').checked    = Boolean(c.auto_envio);
@@ -5324,7 +5351,8 @@ function editCampanha(id) {
 
 function openModalNewCampanha() {
   document.getElementById('modalCampanhaTitle').textContent = 'Nova Campanha';
-  ['camp-id','camp-nome','camp-msg','camp-imagem','camp-periodo-inicio','camp-periodo-fim'].forEach(id => document.getElementById(id).value = '');
+  ['camp-id','camp-nome','camp-msg','camp-imagem','camp-imagem-file','camp-periodo-inicio','camp-periodo-fim'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('campImagemPreview').innerHTML = '';
   document.getElementById('campIAPanel').style.display = 'none';
   document.getElementById('camp-tipo').value    = 'promoção';
   document.getElementById('camp-publico').value = 'Todos';
