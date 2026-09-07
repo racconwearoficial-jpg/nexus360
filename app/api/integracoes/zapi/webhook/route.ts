@@ -77,17 +77,21 @@ export async function POST(req: NextRequest) {
   try {
     const { data: integracao, error: erroIntegracao } = await supabaseAdmin
       .from("integracoes_zapi")
-      .select("company_id, instance_id, token, client_token, atendimento_auto")
+      .select("company_id, instance_id, token, client_token, atendimento_auto, cadastro_fidelidade_auto")
       .eq("instance_id", instanceId)
       .single();
 
-    // Sem integração cadastrada, ou atendimento automático desligado (é
-    // opt-in) — não responde nada, deixa o dono responder manualmente.
-    if (!integracao || !integracao.atendimento_auto) {
+    // Sem integração cadastrada, ou os dois modos desligados (são opt-in
+    // independentes) — não responde nada, deixa o dono responder manualmente.
+    // atendimento_auto = chatbot completo (responde catálogo, horário, etc).
+    // cadastro_fidelidade_auto = só cadastra cliente novo e convida/registra
+    // fidelidade, sem responder o resto — dá pra ligar um sem o outro.
+    if (!integracao || (!integracao.atendimento_auto && !integracao.cadastro_fidelidade_auto)) {
       console.log("[zapi-webhook] não respondeu:", {
         instanceIdRecebido: instanceId,
         encontrouIntegracao: Boolean(integracao),
         atendimentoAuto: integracao?.atendimento_auto,
+        cadastroFidelidadeAuto: integracao?.cadastro_fidelidade_auto,
         erroBusca: erroIntegracao?.message,
       });
       return NextResponse.json({ ok: true });
@@ -154,6 +158,63 @@ export async function POST(req: NextRequest) {
     const negocio = config?.nome_negocio || "nosso negócio";
     const segmento = config?.segmento || "comércio local";
 
+    // Modo reduzido: só cadastro_fidelidade_auto ligado (sem atendimento_auto)
+    // — não monta o prompt gigante nem responde o que o cliente perguntou, só
+    // toca a máquina de estados de fidelidade (convite/aceite/recusa), com
+    // mensagens fixas + uma extração pequena via IA só quando precisa
+    // interpretar a resposta do cliente ao convite (nome/data/recusa).
+    if (!integracao.atendimento_auto) {
+      if (!cliente) return NextResponse.json({ ok: true });
+      const status = cliente.fidelidade_status || null;
+      try {
+        if (status === "convidado") {
+          const promptFidelidade = `Você está processando a resposta de um cliente a um convite (já enviado) pra participar do programa de fidelidade de ${negocio} por WhatsApp.
+
+Mensagem do cliente: "${mensagemRecebida}"
+
+Responda ESTRITAMENTE em JSON, sem nenhum texto antes ou depois, em uma destas 4 formas:
+- Mensagem traz nome completo E data de nascimento: {"acao":"completo","nome":"<nome completo exatamente como o cliente escreveu>","aniversario":"<data no formato AAAA-MM-DD>"}
+- Mensagem aceita participar mas falta nome completo ou data de nascimento: {"acao":"pedir_dados"}
+- Mensagem recusa participar: {"acao":"recusado"}
+- Mensagem não tem relação com esse convite: {"acao":"ignorar"}`;
+
+          const respostaFid = await fetch(`${SUPABASE_URL}/functions/v1/ia-mensagem`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+            body: JSON.stringify({ prompt: promptFidelidade }),
+          }).then(r => r.json()).catch(() => null);
+
+          let acao: any = { acao: "ignorar" };
+          try {
+            const match = String(respostaFid?.mensagem || "").match(/\{[\s\S]*\}/);
+            if (match) acao = JSON.parse(match[0]);
+          } catch {}
+
+          if (acao.acao === "completo" && typeof acao.nome === "string" && acao.nome.trim() && typeof acao.aniversario === "string" && /^\d{4}-\d{2}-\d{2}$/.test(acao.aniversario)) {
+            const nomeFinal = acao.nome.trim().slice(0, 120);
+            await supabaseAdmin.from("clientes").update({ nome: nomeFinal, aniversario: acao.aniversario, fidelidade_status: "completo" }).eq("id", cliente.id);
+            await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: `Prontinho, ${nomeFinal}! Você já faz parte do nosso programa de fidelidade em ${negocio}.` });
+          } else if (acao.acao === "pedir_dados") {
+            await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Show! Pra concluir seu cadastro no programa de fidelidade, me manda seu nome completo e sua data de nascimento." });
+          } else if (acao.acao === "recusado") {
+            await supabaseAdmin.from("clientes").update({ fidelidade_status: "recusado" }).eq("id", cliente.id);
+            await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Tudo bem! Se mudar de ideia, é só chamar por aqui." });
+          }
+          // "ignorar": mensagem não tem a ver com o convite — modo reduzido não bate papo geral, não responde nada.
+        } else if (status !== "completo" && status !== "recusado") {
+          // Nunca convidado ainda — manda o convite (mensagem fixa, sem IA).
+          await supabaseAdmin.from("clientes").update({ fidelidade_status: "convidado" }).eq("id", cliente.id);
+          await enviarTextoZapi({
+            instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente,
+            mensagem: `Oi, ${cliente.nome}! ${clienteNovo ? `Bem-vindo(a) à ${negocio}. ` : ""}Você já pode participar do nosso programa de fidelidade: acumula pontos em toda compra, troca por desconto, entra no ranking mensal e concorre a prêmios, e ainda pode virar VIP com benefício extra. Quer participar? Responda com seu nome completo e data de nascimento.`,
+          });
+        }
+      } catch (e: any) {
+        console.error("[zapi-webhook] erro no modo reduzido (cadastro_fidelidade_auto):", e.message);
+      }
+      return NextResponse.json({ ok: true });
+    }
+
     const contextoCliente = cliente
       ? `${clienteNovo ? "Cliente NOVO, acabou de ser cadastrado automaticamente agora (primeira mensagem dele) — vale dar boas-vindas" : "Cliente identificado"}: ${cliente.nome}, status ${cliente.status}, nível ${nivelCliente(cliente.pontos || 0)}, ${cliente.pontos || 0} pontos acumulados${cliente.ultima_compra ? ", última compra em " + cliente.ultima_compra : ", ainda sem compra registrada"}.`
       : "Esse número não está cadastrado como cliente ainda.";
@@ -191,7 +252,8 @@ INDICAÇÃO: quem indica ganha +${fcfg.indPts} pontos quando o amigo indicado fa
 - Se ele recusar participar, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:recusado
 - Se a mensagem não tiver nada a ver com isso, ignore esse assunto e não emita nenhuma linha #ACAO_FIDELIDADE.`;
     } else {
-      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. Depois de responder a mensagem dele normalmente, se fizer sentido no tom da conversa, convide-o a participar em 1-2 frases, deixando claras as vantagens: acumula pontos em toda compra, troca pontos por desconto, entra no ranking mensal e concorre a prêmios, e pode virar VIP com benefício extra. NÃO cite valor em reais nem quantidade de pontos (esses números mudam de configuração, não trave o convite neles) — venda o benefício de forma qualitativa, não com número específico. Se convidar agora, termine sua resposta, em uma linha própria, sozinha, com exatamente: #ACAO_FIDELIDADE:convidado
+      contextoConvite = `Esse cliente ainda não foi convidado a participar do programa de fidelidade. Depois de responder a mensagem dele normalmente, se fizer sentido no tom da conversa, convide-o a participar em 1-2 frases, deixando claras as vantagens: acumula pontos em toda compra, troca pontos por desconto, entra no ranking mensal e concorre a prêmios, e pode virar VIP com benefício extra. NÃO cite valor em reais nem quantidade de pontos (esses números mudam de configuração, não trave o convite neles) — venda o benefício de forma qualitativa, não com número específico.
+REGRA CRÍTICA, NUNCA QUEBRE: a linha #ACAO_FIDELIDADE:convidado só pode aparecer se as 1-2 frases de convite com as vantagens estiverem escritas na MESMA resposta, visíveis pro cliente. Nunca emita a linha marcando "convidado" sem o convite estar de fato no texto — isso deixaria o cliente marcado como convidado sem nunca ter visto o convite.
 Se não for um bom momento pra convidar (ex: cliente irritado, pergunta urgente, assunto de saúde), não convide e não emita nenhuma linha #ACAO_FIDELIDADE.`;
     }
 
@@ -292,7 +354,14 @@ Sua resposta:`;
       textoResposta = textoResposta.replace(marcadorAcao[0], "").trim();
       const valorAcao = marcadorAcao[1].trim();
       try {
-        if (valorAcao === "convidado" || valorAcao === "recusado") {
+        // Trava contra a IA marcar "convidado" sem o convite estar de fato no
+        // texto visível pro cliente (visto na prática: às vezes ela emite o
+        // marcador mas esquece a frase de convite — cliente fica marcado sem
+        // nunca ter visto nada sobre fidelidade). Confere se a palavra
+        // aparece na resposta antes de gravar o status.
+        if (valorAcao === "convidado" && !/fidelidade/i.test(textoResposta)) {
+          console.error("[zapi-webhook] IA marcou convidado sem convite visível no texto — ignorando ação:", { telefoneCliente, textoResposta });
+        } else if (valorAcao === "convidado" || valorAcao === "recusado") {
           await supabaseAdmin.from("clientes").update({ fidelidade_status: valorAcao }).eq("id", cliente.id);
         } else if (valorAcao.startsWith("{")) {
           const dados = JSON.parse(valorAcao);
