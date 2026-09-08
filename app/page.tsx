@@ -101,8 +101,8 @@ const SERVICOS = [
   { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca." },
   { i: Ico.clock, c: "#8B5CF6", t: "Mensagens prontas pra enviar", d: "Textos de recuperação, aniversário e cliente VIP já escritos certos. Você só aprova e clica em enviar." },
   { i: Ico.brush, c: "#EC4899", t: "Identidade visual", d: "Logo, cores e tipografia em arquivo pronto para placa, cartão, rede social e fachada." },
-  { i: Ico.play, c: "#EF4444", t: "Artes, posts e Reels", d: "Artes com a sua identidade e vídeos curtos editados a partir do que você grava no celular." },
-  { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta e no Google para quem já tem o básico arrumado. Verba paga direto por você." },
+  { i: Ico.play, c: "#EF4444", t: "Artes e posts", d: "Artes prontas com a identidade do seu negócio, para Instagram, WhatsApp Status e Google." },
+  { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta Ads para quem já tem o básico arrumado. Verba paga direto por você." },
   { i: Ico.insta, c: "#8B5CF6", t: "Instagram profissional", d: "Bio que explica o que você vende, destaques organizados e perfil pronto para quem chega decidir comprar." },
 ];
 
@@ -120,34 +120,28 @@ const RECURSOS = [
 
 const PACOTES = [
   {
-    chave: "recomeco", tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 150", periodo: "pagamento único",
-    desc: "Para quem quer ser encontrado e parar de perder contato",
-    itens: ["Google Meu Negócio otimizado: fotos, categoria e serviços", "Link de avaliação + arte com QR code para imprimir", "Vídeo de apresentação editado, pronto pra postar no Google, Instagram e Status", "Bônus: 10 artes com a cara do seu negócio"],
-    selo: "Entrega em 48h · garantia de 7 dias", destaque: false,
+    chave: "recomeco", tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 197", periodo: "pagamento único",
+    desc: "Para quem quer ser encontrado e parecer profissional agora",
+    itens: ["20 artes prontas para o Instagram, com a cara do seu negócio", "Google Meu Negócio otimizado: categoria, fotos, horário e perguntas frequentes", "Identidade visual no Instagram: paleta de cores, perfil, capas de destaque e bio", "Calendário de postagens do mês", "QR code personalizado para WhatsApp ou avaliação no Google"],
+    selo: "Entrega em 3 dias · garantia de 7 dias", destaque: false,
   },
   {
-    chave: "presenca", tag: "Pacote avulso", nome: "Presença", preco: "R$ 297", periodo: "pagamento único",
-    desc: "Para quem começa do zero ou quer parar de parecer amador",
-    itens: ["Tudo do Recomeço", "Identidade visual: logo, cores e tipografia", "Catálogo digital dos seus produtos, com pedido direto pelo WhatsApp", "12 artes com legendas prontas", "Instagram reescrito: bio, destaques e posts"],
-    selo: "Entrega em 7 dias · arquivos são seus", destaque: false,
-  },
-  {
-    chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 597", periodo: "por mês · sem fidelidade",
-    desc: "Arrumar uma vez traz cliente, manter faz o movimento parar de oscilar",
-    itens: ["Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp com Z-API: a IA monta a mensagem certa pro cliente certo — você anexa a foto e toca em enviar", "Google atualizado toda semana", "Avaliações trabalhadas e respondidas", "12 artes por mês com legendas", "Uma campanha de reativação por mês", "Relatório mensal do seu Google: visualizações, cliques e pedidos de rota"],
+    chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 397", periodo: "por mês + Z-API (custo à parte, direto com eles) · sem fidelidade",
+    desc: "Arrumar uma vez traz cliente, o sistema faz o movimento parar de oscilar",
+    itens: ["Tudo do Recomeço", "Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp com Z-API: a IA monta a mensagem certa pro cliente certo — você anexa a foto e toca em enviar", "Sistema de avaliações trabalhadas e respondidas", "Uma campanha de reativação por mês", "Relatório mensal de resultado"],
     selo: "Implantação gratuita · cancele quando quiser", destaque: true,
   },
   {
-    chave: "aceleracao", tag: "Plano mensal", nome: "Aceleração", preco: "R$ 997", periodo: "por mês + verba de anúncio",
-    desc: "Para quem já tem o básico arrumado e quer acelerar",
-    itens: ["Tudo do Crescimento", "Criação e gestão de anúncios no Meta e Google", "Criativos e textos testados", "4 Reels por mês, editados e legendados", "Ajuste semanal do custo por contato"],
+    chave: "aceleracao", tag: "Plano mensal", nome: "Aceleração", preco: "R$ 897", periodo: "por mês + verba de anúncio",
+    desc: "Para quem já tem o básico redondo e quer acelerar com tráfego pago",
+    itens: ["Tudo do Recomeço e do Crescimento", "Criação e gestão de anúncios no Meta Ads", "Criativos e textos testados", "Ajuste semanal do custo por contato", "Relatório mensal de resultado dos anúncios"],
     selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
   },
 ];
 
 const GARANTIAS = [
   { t: "Garantia de 7 dias", d: "No Recomeço: se em 7 dias você não tiver nenhum contato ou agendamento novo, devolvo o valor integral." },
-  { t: "Prazo por escrito", d: "Recomeço em 48h, Presença em 7 dias. Se atrasar por minha causa, você tem 20% de desconto." },
+  { t: "Prazo por escrito", d: "Recomeço em 3 dias. Se atrasar por minha causa, você tem 20% de desconto." },
   { t: "Sem fidelidade", d: "Mensal é mensal. Avisou, encerra no fim do mês corrente. Sem multa e sem contrato longo." },
   { t: "Seus dados são seus", d: "Google, contas de anúncio, arquivos da marca e a base de clientes: tudo no seu nome, e você exporta quando quiser." },
 ];
@@ -158,8 +152,8 @@ const FAQ = [
   { q: "Preciso te dar acesso ao meu WhatsApp?", a: "Não preciso do seu aparelho. O sistema trabalha com a sua base de clientes e deixa as campanhas montadas; quem dispara é você, em nome do seu negócio. No plano Crescimento, dá pra conectar uma API própria e o sistema manda sozinho — mas a conta continua sendo sua, ligada ao seu número, nunca ao meu." },
   { q: "Em quanto tempo aparece resultado?", a: "A reativação costuma dar retorno na mesma semana, porque fala com quem já te conhece. O Google leva de duas a seis semanas para firmar posição." },
   { q: "O sistema é difícil de usar?", a: "Não. Eu cadastro sua base e acompanho a primeira semana. Funciona no celular e no computador." },
-  { q: "Sou obrigado a assinar mensalidade?", a: "Não. Os pacotes avulsos são completos e funcionam sozinhos. O plano mensal só existe para quem quiser manter." },
-  { q: "Como eu pago?", a: "Só Pix. Nos pacotes avulsos, metade para começar e metade na entrega." },
+  { q: "Sou obrigado a assinar mensalidade?", a: "Não. O pacote avulso é completo e funciona sozinho. O plano mensal só existe para quem quiser manter." },
+  { q: "Como eu pago?", a: "Só Pix. No pacote avulso, metade para começar e metade na entrega." },
 ];
 
 /* ============ estilos ============ */
@@ -226,11 +220,12 @@ export default function Home() {
         details[open] .chev{transform:rotate(45deg)}
         .grid{display:grid;gap:18px}
         .g-serv{grid-template-columns:repeat(4,1fr)}
-        .g-pac{grid-template-columns:repeat(4,1fr);align-items:stretch}
+        .g-pac{grid-template-columns:repeat(3,1fr);align-items:stretch}
         .g-passos{grid-template-columns:repeat(4,1fr)}
         .g-gar{grid-template-columns:repeat(2,1fr)}
-        @media (max-width:1120px){ .g-pac,.g-serv{grid-template-columns:repeat(2,1fr)} }
-        @media (max-width:660px){ .g-pac,.g-serv,.g-gar{grid-template-columns:1fr} }
+        @media (max-width:1120px){ .g-serv{grid-template-columns:repeat(2,1fr)} }
+        @media (max-width:900px){ .g-pac{grid-template-columns:1fr} }
+        @media (max-width:660px){ .g-serv,.g-gar{grid-template-columns:1fr} }
         .float{position:absolute;z-index:3}
         @media (max-width:900px){ .float{display:none} }
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
@@ -517,38 +512,6 @@ export default function Home() {
                 </a>
               </div>
             ))}
-          </div>
-
-          <div style={{ marginTop: 22, ...S.card, padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
-              <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(245,158,11,.14)", border: "1px solid rgba(245,158,11,.28)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{Ico.play("#FCD34D")}</div>
-              <div>
-                <div style={{ fontSize: 10.5, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 7 }}>Adicional</div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 5 }}>Reels, 4 vídeos por mês · R$ 197</h3>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.5, maxWidth: 620 }}>
-                  Você grava clipes curtos no celular seguindo a lista que eu mando. Eu edito, legendo e devolvo pronto. A imagem é sempre a do seu negócio, nada de vídeo genérico.
-                </p>
-              </div>
-            </div>
-            <a href={`${WA}?text=${encodeURIComponent("Oi! Quero saber do adicional de Reels.")}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)", color: "#FCD34D", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "12px 24px", borderRadius: 10, whiteSpace: "nowrap" }}>
-              Saber mais
-            </a>
-          </div>
-
-          <div style={{ marginTop: 14, ...S.card, padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
-              <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(59,130,246,.14)", border: "1px solid rgba(59,130,246,.28)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{Ico.site("#93C5FD")}</div>
-              <div>
-                <div style={{ fontSize: 10.5, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 7 }}>Adicional</div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 5 }}>Site de uma página · R$ 229</h3>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.5, maxWidth: 620 }}>
-                  Página própria com as fotos, cores e identidade do seu negócio — endereço, especialidades, avaliações e botão direto pro WhatsApp. Ideal pra quem depende de confiança antes do primeiro contato, como clínicas.
-                </p>
-              </div>
-            </div>
-            <a href={`${WA}?text=${encodeURIComponent("Oi! Quero saber do adicional de Site de uma página.")}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.35)", color: "#93C5FD", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "12px 24px", borderRadius: 10, whiteSpace: "nowrap" }}>
-              Saber mais
-            </a>
           </div>
         </div>
       </section>

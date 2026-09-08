@@ -11,10 +11,9 @@ export const dynamic = "force-dynamic";
 // Preço e nome vêm SEMPRE do mapa abaixo, nunca do que o navegador manda —
 // evita alguém forjar um valor menor na requisição.
 const PACOTES: Record<string, { nome: string; valor: number; recorrente: boolean }> = {
-  recomeco:    { nome: "Nexus 360 — Recomeço",    valor: 150, recorrente: false },
-  presenca:    { nome: "Nexus 360 — Presença",    valor: 297, recorrente: false },
-  crescimento: { nome: "Nexus 360 — Crescimento", valor: 597, recorrente: true },
-  aceleracao:  { nome: "Nexus 360 — Aceleração",  valor: 997, recorrente: true },
+  recomeco:    { nome: "Nexus 360 — Recomeço",    valor: 197, recorrente: false },
+  crescimento: { nome: "Nexus 360 — Crescimento", valor: 397, recorrente: true },
+  aceleracao:  { nome: "Nexus 360 — Aceleração",  valor: 897, recorrente: true },
 };
 
 const AGENCY_COMPANY_ID = process.env.NEXUS360_AGENCY_COMPANY_ID;
