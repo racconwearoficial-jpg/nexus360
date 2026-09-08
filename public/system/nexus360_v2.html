@@ -5973,6 +5973,23 @@ async function saveVenda() {
   const fnSelect = document.getElementById('vd-funcionario');
   const fnId     = fnSelect?.value ? parseInt(fnSelect.value) : null;
   const fnNome   = fnId ? (fnState.funcionarios.find(f=>f.id==fnId)?.nome || null) : null;
+  // Calcula pontos por categoria de cada item (ou regra geral se não configurada) —
+  // feito antes do insert pra já gravar quantos pontos essa venda especificamente
+  // rendeu (usado depois na mensagem de WhatsApp pós-venda).
+  let pontosTotal = 0;
+  if (cliente) {
+    if (_vendaProdutos.length > 0) {
+      for (const p of _vendaProdutos) {
+        const item = state.itens.find(i => i.id === p.id);
+        const cat  = item?.categoria || null;
+        const val  = p.qtd * p.preco;
+        pontosTotal += lcCalcularPontos(val, cat, fidIsVip(cliente));
+      }
+    } else {
+      // Venda rápida — usa categoria selecionada no select
+      pontosTotal = lcCalcularPontos(total, _catRapida, fidIsVip(cliente));
+    }
+  }
   const payload={
     company_id: state.companyId,
     cliente_id:parseInt(clienteId), cliente_nome:cliente?cliente.nome:null,
@@ -5980,32 +5997,19 @@ async function saveVenda() {
     itens:itensStr, campanha_id:campId,
     funcionario_id: fnId,
     funcionario: fnNome,
+    pontos: pontosTotal,
   };
   setBtn('btnSaveVenda',true,'Salvando...');
   try {
     const {error}=await db.from('vendas').insert(payload);
     if(error) throw error;
     if(cliente){
-      // Calcula pontos por categoria de cada item (ou regra geral se não configurada)
-      let pontosTotal = 0;
-      if (_vendaProdutos.length > 0) {
-        for (const p of _vendaProdutos) {
-          const item = state.itens.find(i => i.id === p.id);
-          const cat  = item?.categoria || null;
-          const val  = p.qtd * p.preco;
-          pontosTotal += lcCalcularPontos(val, cat, fidIsVip(cliente));
-        }
-      } else {
-        // Venda rápida — usa categoria selecionada no select
-        pontosTotal = lcCalcularPontos(total, _catRapida, fidIsVip(cliente));
-      }
-      const pontosVip = pontosTotal;
       await db.from('clientes').update({
         total_gasto:(parseFloat(cliente.total_gasto)||0)+total,
-        pontos:(parseInt(cliente.pontos)||0)+pontosVip,
+        pontos:(parseInt(cliente.pontos)||0)+pontosTotal,
         ultima_compra:payload.data,
       }).eq('id',cliente.id);
-      cliente.pontos = (parseInt(cliente.pontos)||0) + pontosVip;
+      cliente.pontos = (parseInt(cliente.pontos)||0) + pontosTotal;
       // Adiciona venda ao state imediatamente para ranking atualizar sem precisar recarregar
       state.vendas.unshift({ ...payload, id: Date.now(), cliente_id: parseInt(clienteId) });
       // Verifica bônus e VIP
@@ -6062,7 +6066,14 @@ function abrirModalWppVenda(vendaId) {
   const tel     = cliente.telefone.replace(/\D/g,'');
   const num     = tel.startsWith('55') ? tel : '55' + tel;
   const valor   = parseFloat(venda.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const msgDef  = 'Olá, ' + cliente.nome + '! Sua compra foi registrada e você já está participando do programa de fidelidade da ' + neg + '. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos. Obrigado por confiar na gente.';
+  // venda.pontos só existe pra vendas salvas depois da coluna `pontos` ser
+  // criada (supabase/vendas_pontos.sql) — vendas antigas ficam sem essa linha.
+  const pontosGanhos = parseInt(venda.pontos) || 0;
+  const totalPontos  = parseInt(cliente.pontos) || 0;
+  const frasePontos  = pontosGanhos > 0
+    ? ' Você ganhou ' + pontosGanhos + ' pontos com essa compra e já soma ' + totalPontos + ' pontos acumulados.'
+    : '';
+  const msgDef  = 'Olá, ' + cliente.nome + '! Sua compra foi registrada e você já está participando do programa de fidelidade da ' + neg + '. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos.' + frasePontos + ' Obrigado por confiar na gente.';
   const labelBtn = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
 
   var modal = document.createElement('div');
