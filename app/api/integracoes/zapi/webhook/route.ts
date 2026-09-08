@@ -201,14 +201,13 @@ Responda ESTRITAMENTE em JSON, sem nenhum texto antes ou depois, em uma destas 4
             await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Tudo bem! Se mudar de ideia, é só chamar por aqui." });
           }
           // "ignorar": mensagem não tem a ver com o convite — modo reduzido não bate papo geral, não responde nada.
-        } else if (status !== "completo" && status !== "recusado") {
-          // Nunca convidado ainda — manda o convite (mensagem fixa, sem IA).
-          await supabaseAdmin.from("clientes").update({ fidelidade_status: "convidado" }).eq("id", cliente.id);
-          await enviarTextoZapi({
-            instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente,
-            mensagem: `Oi, ${cliente.nome}! ${clienteNovo ? `Bem-vindo(a) à ${negocio}. ` : ""}Você já pode participar do nosso programa de fidelidade: acumula pontos em toda compra, troca por desconto, entra no ranking mensal e concorre a prêmios, e ainda pode virar VIP com benefício extra. Quer participar? Responda com seu nome completo e data de nascimento.`,
-          });
         }
+        // Nunca convidado ainda: NÃO manda convite automático (desligado
+        // 08/09/2026, pedido do dono — gerava reclamação de mensagem repetida
+        // de pontos/fidelidade atrapalhando o atendimento). Cliente novo só é
+        // cadastrado como lead (acima); convite de fidelidade passa a
+        // depender de contato humano ou do cliente perguntar no modo
+        // atendimento_auto completo.
       } catch (e: any) {
         console.error("[zapi-webhook] erro no modo reduzido (cadastro_fidelidade_auto):", e.message);
       }
