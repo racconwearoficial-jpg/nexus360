@@ -96,14 +96,14 @@ const PROBLEMAS = [
 
 
 const SERVICOS = [
-  { i: Ico.pin, c: "#3B82F6", t: "Google Meu Negócio", d: "Perfil reivindicado, categoria certa, fotos, serviços com preço e botão de WhatsApp." },
-  { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "O sistema marca quem parou de comprar e deixa a campanha de retorno pronta. A venda mais rápida do seu negócio." },
-  { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca." },
-  { i: Ico.clock, c: "#8B5CF6", t: "Mensagens prontas pra enviar", d: "Textos de recuperação, aniversário e cliente VIP já escritos certos. Você só aprova e clica em enviar." },
-  { i: Ico.brush, c: "#EC4899", t: "Identidade visual", d: "Logo, cores e tipografia em arquivo pronto para placa, cartão, rede social e fachada." },
-  { i: Ico.play, c: "#EF4444", t: "Artes e posts", d: "Artes prontas com a identidade do seu negócio, para Instagram, WhatsApp Status e Google." },
-  { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta Ads para quem já tem o básico arrumado. Verba paga direto por você." },
-  { i: Ico.insta, c: "#8B5CF6", t: "Instagram profissional", d: "Bio que explica o que você vende, destaques organizados e perfil pronto para quem chega decidir comprar." },
+  { i: Ico.pin, c: "#3B82F6", t: "Google Meu Negócio", d: "Perfil reivindicado, categoria certa, fotos, serviços com preço e botão de WhatsApp.", tier: "Recomeço" },
+  { i: Ico.brush, c: "#EC4899", t: "Identidade visual no Instagram", d: "Paleta de cores, perfil, capas de destaque e bio prontos.", tier: "Recomeço" },
+  { i: Ico.play, c: "#EF4444", t: "Artes e posts", d: "Artes prontas com a identidade do seu negócio, para Instagram, WhatsApp Status e Google.", tier: "Recomeço" },
+  { i: Ico.insta, c: "#8B5CF6", t: "Instagram profissional", d: "Bio que explica o que você vende, destaques organizados e perfil pronto para quem chega decidir comprar.", tier: "Recomeço" },
+  { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "O sistema marca quem parou de comprar e deixa a campanha de retorno pronta. A venda mais rápida do seu negócio.", tier: "Crescimento" },
+  { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca.", tier: "Crescimento" },
+  { i: Ico.clock, c: "#8B5CF6", t: "Mensagens prontas pra enviar", d: "Textos de recuperação, aniversário e cliente VIP já escritos certos. Você só aprova e clica em enviar.", tier: "Crescimento" },
+  { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta Ads para quem já tem o básico arrumado. Verba paga direto por você.", tier: "Aceleração" },
 ];
 
 const RECURSOS = [
@@ -128,13 +128,13 @@ const PACOTES = [
   {
     chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 397", periodo: "por mês + Z-API (custo à parte, direto com eles) · sem fidelidade",
     desc: "Arrumar uma vez traz cliente, o sistema faz o movimento parar de oscilar",
-    itens: ["Tudo do Recomeço", "Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp com Z-API: a IA monta a mensagem certa pro cliente certo — você anexa a foto e toca em enviar", "Sistema de avaliações trabalhadas e respondidas", "Uma campanha de reativação por mês", "Relatório mensal de resultado"],
+    itens: ["Tudo do Recomeço", "Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp com Z-API: a IA monta a mensagem certa pro cliente certo — você anexa a foto e toca em enviar"],
     selo: "Implantação gratuita · cancele quando quiser", destaque: true,
   },
   {
     chave: "aceleracao", tag: "Plano mensal", nome: "Aceleração", preco: "R$ 897", periodo: "por mês + verba de anúncio",
     desc: "Para quem já tem o básico redondo e quer acelerar com tráfego pago",
-    itens: ["Tudo do Recomeço e do Crescimento", "Criação e gestão de anúncios no Meta Ads", "Criativos e textos testados", "Ajuste semanal do custo por contato", "Relatório mensal de resultado dos anúncios"],
+    itens: ["Tudo do Recomeço e do Crescimento", "Criação e gestão de anúncios no Meta Ads", "Ajuste semanal do custo por contato", "Relatório mensal de resultado dos anúncios"],
     selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
   },
 ];
@@ -153,7 +153,7 @@ const FAQ = [
   { q: "Em quanto tempo aparece resultado?", a: "A reativação costuma dar retorno na mesma semana, porque fala com quem já te conhece. O Google leva de duas a seis semanas para firmar posição." },
   { q: "O sistema é difícil de usar?", a: "Não. Eu cadastro sua base e acompanho a primeira semana. Funciona no celular e no computador." },
   { q: "Sou obrigado a assinar mensalidade?", a: "Não. O pacote avulso é completo e funciona sozinho. O plano mensal só existe para quem quiser manter." },
-  { q: "Como eu pago?", a: "Só Pix. No pacote avulso, metade para começar e metade na entrega." },
+  { q: "Como eu pago?", a: "Pix, cartão ou boleto, direto no link de pagamento — você escolhe na hora de pagar." },
 ];
 
 /* ============ estilos ============ */
@@ -300,7 +300,7 @@ export default function Home() {
               Ver pacotes e preços
             </a>
           </div>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", marginBottom: 56 }}>Sem custo, sem compromisso. Se não fizer sentido para o seu caso, eu falo na hora.</p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", marginBottom: 56 }}>Sem custo, sem compromisso. Se não fizer sentido para o seu caso, eu falo na hora. Pacotes a partir de R$ 197.</p>
 
           {/* mockup + cartões flutuantes */}
           <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
@@ -375,8 +375,8 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={S.eyebrow}>O que eu faço</p>
-            <h2 style={{ ...S.h2, marginBottom: 14 }}>Oito serviços, avulsos ou em pacote</h2>
-            <p style={{ ...S.dim, fontSize: 16 }}>Você escolhe o que precisa, ou pega tudo junto e paga menos</p>
+            <h2 style={{ ...S.h2, marginBottom: 14 }}>Tudo isso já vem dentro dos pacotes</h2>
+            <p style={{ ...S.dim, fontSize: 16 }}>Nada aqui é vendido separado — cada peça mora dentro do Recomeço, do Crescimento ou da Aceleração</p>
 
             <div style={{ marginTop: 26, display: "inline-flex", flexWrap: "wrap", gap: 8, justifyContent: "center", alignItems: "center", background: "rgba(59,130,246,.06)", border: "1px solid rgba(59,130,246,.2)", borderRadius: 100, padding: "12px 26px" }}>
               <span style={{ fontSize: 14.5, color: "rgba(255,255,255,.65)" }}>Em qualquer um deles:</span>
@@ -391,7 +391,8 @@ export default function Home() {
                   {s.i(s.c)}
                 </div>
                 <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 9, letterSpacing: -0.2 }}>{s.t}</h3>
-                <p style={{ ...S.dim, fontSize: 14 }}>{s.d}</p>
+                <p style={{ ...S.dim, fontSize: 14, marginBottom: 14 }}>{s.d}</p>
+                <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, color: s.c, background: `${s.c}14`, border: `1px solid ${s.c}28`, borderRadius: 100, padding: "4px 10px" }}>{s.tier}</span>
               </div>
             ))}
           </div>
@@ -406,9 +407,12 @@ export default function Home() {
             <div>
               <p style={{ ...S.eyebrow, color: "#C4B5FD" }}>O diferencial</p>
               <h2 style={{ ...S.h2, marginBottom: 18 }}>Marketing traz cliente<br />o sistema faz ele voltar</h2>
-              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 28 }}>
+              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 18 }}>
                 O Nexus 360 guarda quem comprou, quanto gastou e quando foi a última vez, e acende o alerta assim que alguém passa do prazo sem voltar. Seu negócio inteiro num painel, no celular ou no computador.
               </p>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,.1)", border: "1px solid rgba(139,92,246,.28)", borderRadius: 100, padding: "6px 16px", marginBottom: 22 }}>
+                <span style={{ fontSize: 13, color: "#C4B5FD", fontWeight: 700 }}>Incluso a partir do plano Crescimento</span>
+              </div>
 
               <div style={{ display: "grid", gap: 14, marginBottom: 30 }}>
                 {RECURSOS.map(r => (
