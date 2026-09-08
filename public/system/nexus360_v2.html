@@ -6062,7 +6062,8 @@ function abrirModalWppVenda(vendaId) {
   const tel     = cliente.telefone.replace(/\D/g,'');
   const num     = tel.startsWith('55') ? tel : '55' + tel;
   const valor   = parseFloat(venda.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const msgDef  = 'Olá ' + cliente.nome + '! Sua compra de R$ ' + valor + ' em ' + neg + ' foi registrada. Obrigado pela preferência!';
+  const msgDef  = 'Olá, ' + cliente.nome + '! Sua compra foi registrada e você já está participando do programa de fidelidade da ' + neg + '. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos. Obrigado por confiar na gente.';
+  const labelBtn = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
 
   var modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -6077,7 +6078,7 @@ function abrirModalWppVenda(vendaId) {
     + '<button id="wppVendaIA" class="btn btn-primary" style="font-size:11px;padding:5px 14px">+ Gerar com IA</button>'
     + '<button id="wppVendaReset" class="btn btn-ghost" style="font-size:11px;padding:5px 12px">Redefinir</button>'
     + '</div>'
-    + '<a id="wppVendaBtn" href="https://wa.me/' + num + '?text=' + encodeURIComponent(msgDef) + '" target="_blank" class="btn-wpp" style="text-align:center;text-decoration:none;padding:10px;border-radius:8px;font-size:13px;font-weight:600">Abrir WhatsApp</a>'
+    + '<button id="wppVendaBtn" type="button" class="btn-wpp" style="text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer">' + labelBtn + '</button>'
     + '</div>';
 
   document.body.appendChild(modal);
@@ -6085,13 +6086,8 @@ function abrirModalWppVenda(vendaId) {
   const tmplEl = modal.querySelector('#wppVendaTmpl');
   const btnEl  = modal.querySelector('#wppVendaBtn');
 
-  function atualizarLink() {
-    btnEl.href = 'https://wa.me/' + num + '?text=' + encodeURIComponent(tmplEl.value);
-  }
-  tmplEl.addEventListener('input', atualizarLink);
-
   modal.querySelector('#wppVendaReset').addEventListener('click', function() {
-    tmplEl.value = msgDef; atualizarLink();
+    tmplEl.value = msgDef;
   });
 
   modal.querySelector('#wppVendaIA').addEventListener('click', async function() {
@@ -6105,9 +6101,38 @@ function abrirModalWppVenda(vendaId) {
       });
       var d = await r.json();
       tmplEl.value = (d.mensagem || msgDef).replace(/\*\*/g,'');
-      atualizarLink();
-    } catch(e) { tmplEl.value = msgDef; atualizarLink(); }
+    } catch(e) { tmplEl.value = msgDef; }
     btn.disabled = false; btn.textContent = '+ Gerar com IA';
+  });
+
+  btnEl.addEventListener('click', async function() {
+    const msg = tmplEl.value.trim();
+    if (!msg) { toast('Escreva uma mensagem antes de enviar', 'error'); return; }
+
+    // Com Z-API conectado, envia direto pelo servidor (rápido, sem abrir
+    // aba/app do WhatsApp). Se falhar, cai pro link wa.me como sempre.
+    if (_zapiConectado) {
+      const original = btnEl.textContent;
+      btnEl.disabled = true; btnEl.textContent = 'Enviando...';
+      try {
+        const r = await fetch('/api/integracoes/zapi/enviar', {
+          method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ company_id: state.companyId, telefone: num, mensagem: msg }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
+        toast('Mensagem enviada pelo WhatsApp!', 'success');
+        modal.remove();
+        return;
+      } catch (e) {
+        toast('Não consegui enviar pela API (' + e.message + ') — abrindo o link manual.', 'error', 6000);
+      } finally {
+        btnEl.disabled = false; btnEl.textContent = original;
+      }
+    }
+
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+    modal.remove();
   });
 
   modal.querySelector('#wppVendaClose').addEventListener('click', function() { modal.remove(); });
