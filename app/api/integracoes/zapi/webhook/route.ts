@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     const { data: upsertado, error: erroUpsert } = await supabaseAdmin
       .from("clientes")
       .upsert(
-        { company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, telefone_normalizado: telNormalizado, status: "ativo", pontos: 0 },
+        { company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, telefone_normalizado: telNormalizado || null, status: "ativo", pontos: 0 },
         { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
       )
       .select(camposCliente)
@@ -140,7 +140,16 @@ export async function POST(req: NextRequest) {
       clienteNovo = true;
       console.log("[zapi-webhook] cliente novo cadastrado automaticamente:", { nome: nomeWhatsapp, telefone: telefoneCliente });
     } else {
-      if (erroUpsert) console.log("[zapi-webhook] upsert não criou linha (provável conflito, buscando existente):", erroUpsert.message);
+      // Erro 42P10 = a trava única em (company_id, telefone_normalizado) não
+      // existe ou não é utilizável como alvo de ON CONFLICT (índice parcial,
+      // por exemplo) — nesse caso o upsert nunca chegou a criar nada, então
+      // a busca abaixo vai dar em branco e o cliente simplesmente não é
+      // cadastrado. Loga alto pra não passar batido de novo como em 08/09/2026.
+      if (erroUpsert?.code === "42P10") {
+        console.error("[zapi-webhook] ERRO DE CONFIGURAÇÃO: índice único (company_id, telefone_normalizado) ausente ou não utilizável como alvo de ON CONFLICT — cadastro automático não vai funcionar até corrigir o índice:", erroUpsert.message);
+      } else if (erroUpsert) {
+        console.log("[zapi-webhook] upsert não criou linha (provável conflito, buscando existente):", erroUpsert.message);
+      }
       const { data: existente, error: erroBusca } = await supabaseAdmin
         .from("clientes")
         .select(camposCliente)
