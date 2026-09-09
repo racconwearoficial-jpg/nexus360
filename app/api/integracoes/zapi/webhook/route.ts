@@ -41,6 +41,14 @@ function nivelCliente(pontos: number) {
 function normalizarTelefone(numero: string) {
   let limpo = (numero || "").replace(/\D/g, "");
   if (limpo.startsWith("55") && limpo.length > 11) limpo = limpo.slice(2);
+  // Celular brasileiro sem o 9º dígito (DDD + 8 dígitos) — o WhatsApp/Z-API
+  // às vezes reporta o mesmo número com ou sem o 9 dependendo do momento
+  // (visto em produção em 08/09/2026: mesmo número virou dois normalizados
+  // diferentes). Número local de celular sempre começa com 6-9; fixo
+  // começa com 2-5, então só completa o 9 quando não é fixo de verdade.
+  if (limpo.length === 10 && /^[6-9]/.test(limpo.slice(2))) {
+    limpo = limpo.slice(0, 2) + "9" + limpo.slice(2);
+  }
   return limpo;
 }
 
