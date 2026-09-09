@@ -210,7 +210,7 @@ async function rodarReativacao(integ, credZapi) {
   const [{ data: config }, { data: candidatos }] = await Promise.all([
     supabaseAdmin.from("configuracoes").select("dias_inativo, fidelidade_config").eq("company_id", integ.company_id).single(),
     supabaseAdmin.from("clientes")
-      .select("id, nome, telefone, ultima_compra, pontos, total_gasto, reativacao_enviada_em")
+      .select("id, nome, telefone, ultima_compra, pontos, total_gasto, reativacao_enviada_em, created_at")
       .eq("company_id", integ.company_id)
       // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
       // volta a concorrer daqui 30 dias — assim uma base grande de inativos
@@ -231,8 +231,13 @@ async function rodarReativacao(integ, credZapi) {
       const pontos = parseInt(c.pontos || 0);
       const gasto = parseFloat(c.total_gasto || 0);
       if (pontos >= vipPts || gasto >= 500) return false; // VIP nunca é inativo
-      if (!c.ultima_compra) return true;
-      const dias = Math.floor((agora - new Date(c.ultima_compra).getTime()) / 86400000);
+      // Sem compra registrada: só considera inativo depois do mesmo prazo
+      // contado a partir do CADASTRO — senão lead novo (auto-cadastrado pelo
+      // WhatsApp, ultima_compra null por nunca ter comprado) cai aqui no dia
+      // seguinte e recebe "sentimos sua falta" antes até de ser atendido.
+      const referencia = c.ultima_compra || c.created_at;
+      if (!referencia) return false;
+      const dias = Math.floor((agora - new Date(referencia).getTime()) / 86400000);
       return dias > diasInativoLimite;
     })
     .slice(0, LIMITE_ENVIOS_POR_TIPO);
@@ -313,7 +318,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
   const [{ data: config }, { data: clientes }] = await Promise.all([
     supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo").eq("company_id", integ.company_id).single(),
-    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario").eq("company_id", integ.company_id),
+    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario, created_at").eq("company_id", integ.company_id),
   ]);
   const neg = config?.nome_negocio || "nossa loja";
   const diasInativoLimite = parseInt(config?.dias_inativo || 30);
@@ -326,8 +331,11 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
       destinatarios = destinatarios.filter((c) => c.status === "ativo");
     } else if (pub === "inativos") {
       destinatarios = destinatarios.filter((c) => {
-        if (!c.ultima_compra) return true;
-        const dias = Math.floor((Date.now() - new Date(c.ultima_compra).getTime()) / 86400000);
+        // Mesma correção do rodarReativacao: sem compra usa o cadastro como
+        // referência, não conta lead novo como inativo no dia seguinte.
+        const referencia = c.ultima_compra || c.created_at;
+        if (!referencia) return false;
+        const dias = Math.floor((Date.now() - new Date(referencia).getTime()) / 86400000);
         return dias > diasInativoLimite;
       });
     } else if (pub === "vip") {
