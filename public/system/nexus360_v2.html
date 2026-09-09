@@ -13753,12 +13753,13 @@ function fnClientesRecorrentes(fnId, fnNome) {
 }
 
 function fnClientesRecuperados(fnId, fnNome) {
-  // Todas as vendas do funcionário (não só do mês)
-  const vendasFn = (state.vendas||[]).filter(v => {
-    if (fnId && v.funcionario_id == fnId) return true;
-    if (fnNome && (v.funcionario||'').toLowerCase() === fnNome.toLowerCase()) return true;
-    return false;
-  });
+  // Só conta recuperação que aconteceu no mês selecionado -- antes usava
+  // vendas de todos os tempos, e como cada recuperado vale +500 pts no
+  // ranking (fnScoreRanking), isso deixava um funcionário com histórico
+  // antigo forte em 1º lugar no ranking do mês mesmo sem vender nada nesse
+  // mês (achado em produção 09/09/2026: "Alaine" zero vendas em setembro,
+  // ainda assim em 1º por recuperações de meses passados).
+  const vendasFn = fnVendasDoMes(fnId, fnNome);
 
   const clientesContados = new Set();
   let recuperados = 0;
