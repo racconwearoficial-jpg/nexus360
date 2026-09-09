@@ -7003,7 +7003,6 @@ const FID_BONUS = [
 const FID_VIP_PONTOS   = 1000;
 const FID_VIP_BONUS    = 100;
 const FID_VIP_DIAS     = 60;
-const FID_MIN_COMPRA   = 20; // desconto só vale em compras acima de R$20
 
 function fidProximoBeneficio(pts) {
   return FID_RECOMPENSAS.find(r => r.pontos > pts) || null;
@@ -7335,11 +7334,11 @@ function fidAtualizarResgatar(cliId, pontos, cli) {
     const prox = FID_RECOMPENSAS[0];
     area.innerHTML = '<div style="text-align:center;padding:20px 0">'
       + '<div style="font-size:13px;color:rgba(255,255,255,.4)">Nenhum beneficio disponivel.</div>'
-      + '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Necessario ' + (prox?prox.pontos:100) + ' pontos e compra acima de R$' + FID_MIN_COMPRA + '.</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Necessario ' + (prox?prox.pontos:100) + ' pontos e compra acima de R$' + (window.FID_MIN_COMPRA||20) + '.</div>'
       + '</div>';
     return;
   }
-  area.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">Valido em compras acima de R$' + FID_MIN_COMPRA + '. Apenas 1 beneficio por compra.</div>'
+  area.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">Valido em compras acima de R$' + (window.FID_MIN_COMPRA||20) + '. Apenas 1 beneficio por compra.</div>'
     + disponiveis.map(r =>
       '<div style="width:100%;padding:12px 14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;margin-bottom:8px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
@@ -14066,6 +14065,7 @@ function fnFiltrar() {
         <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="fnOpenModal('editar',${f.id})">Editar</button>
         <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="fnOpenFollowup(${f.id})">+ Follow-up</button>
         ${f.telefone?`<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="window.open('https://wa.me/55'+('${f.telefone}'.replace(/\\D/g,'')))">WhatsApp</button>`:''}
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;color:#EF4444" onclick="fnExcluir(${f.id},'${f.nome.replace(/'/g,"\\'")}')">Excluir</button>
       </div>
     </div>`;
   }).join('');
@@ -14444,6 +14444,21 @@ async function fnSalvar() {
     closeModal('modalFuncionario');
     fnAba(fnState.abaAtual);
   } catch(e) { toast('Erro: '+e.message,'error'); }
+}
+
+async function fnExcluir(id, nome) {
+  if(!confirm('Excluir '+nome+'? As vendas e comissões já registradas continuam no histórico, só o cadastro do funcionário é removido.'))return;
+  try {
+    // employee_goals tem FK pra employees sem cascade -- apaga as metas do
+    // funcionário antes, senão o delete abaixo falha com violação de FK.
+    await db.from('employee_goals').delete().eq('funcionario_id',id);
+    const {error} = await db.from('employees').delete().eq('id',id);
+    if(error) throw error;
+    fnState.funcionarios = fnState.funcionarios.filter(f=>f.id!=id);
+    fnState.metas        = fnState.metas.filter(m=>m.funcionario_id!=id);
+    fnAba(fnState.abaAtual);
+    toast('Funcionário removido','success');
+  } catch(e){toast('Erro: '+e.message,'error');}
 }
 
 // ══════════════════════════════════════════════════════════════════════
