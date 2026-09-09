@@ -104,9 +104,8 @@ export async function POST(req: NextRequest) {
     // sem cair no bug de fuso horário perto da meia-noite.
     const hojeISO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
-    const [{ data: config }, { data: clientes }, { data: itens }, { data: planos }, { data: promocoes }] = await Promise.all([
+    const [{ data: config }, { data: itens }, { data: planos }, { data: promocoes }] = await Promise.all([
       supabaseAdmin.from("configuracoes").select("nome_negocio, segmento, chatbot_horario, chatbot_endereco, chatbot_pagamento, chatbot_faq, fidelidade_config").eq("company_id", companyId).single(),
-      supabaseAdmin.from("clientes").select("id, nome, telefone, pontos, status, ultima_compra, fidelidade_status").eq("company_id", companyId),
       supabaseAdmin.from("itens").select("nome, preco, tipo, estoque").eq("company_id", companyId).order("nome").limit(60),
       supabaseAdmin.from("planos_assinatura").select("nome, descricao, valor, ciclo").eq("company_id", companyId).eq("ativo", true),
       supabaseAdmin.from("campanhas").select("nome, mensagem, periodo_fim").eq("company_id", companyId).eq("ativa", true)
@@ -114,27 +113,42 @@ export async function POST(req: NextRequest) {
     ]);
 
     const telNormalizado = normalizarTelefone(telefoneCliente);
-    let cliente = (clientes || []).find((c: any) => normalizarTelefone(c.telefone) === telNormalizado);
+    const camposCliente = "id, nome, telefone, pontos, status, ultima_compra, fidelidade_status";
 
-    // Número não cadastrado ainda — cadastra automaticamente usando o nome do
-    // perfil do WhatsApp (senderName, vem pronto no payload do Z-API, não
-    // precisa perguntar nada nem depender da IA interpretar texto livre).
-    // Sem pontos, sem compra — só transforma o contato em lead no CRM.
+    // Upsert atômico por (company_id, telefone_normalizado) — antes disso o
+    // código buscava todo mundo, procurava em memória e só depois inseria,
+    // o que deixava uma janela pra duas mensagens quase simultâneas (ou um
+    // reenvio do Z-API) criarem dois cadastros pro mesmo número. Achado em
+    // produção em 08/09/2026 (Ibanez e Bruno duplicados, IDs sequenciais).
+    // ignoreDuplicates faz o Postgres não sobrescrever nome/pontos de quem
+    // já existe — se o conflito acontecer, o upsert não retorna a linha,
+    // então busca ela em seguida.
+    let cliente: any = null;
     let clienteNovo = false;
-    if (!cliente) {
-      const nomeWhatsapp = String(payload.senderName || payload.chatName || "").trim().slice(0, 80) || "Cliente WhatsApp";
-      const { data: novo, error: erroNovoCliente } = await supabaseAdmin
+    const nomeWhatsapp = String(payload.senderName || payload.chatName || "").trim().slice(0, 80) || "Cliente WhatsApp";
+    const { data: upsertado, error: erroUpsert } = await supabaseAdmin
+      .from("clientes")
+      .upsert(
+        { company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, telefone_normalizado: telNormalizado, status: "ativo", pontos: 0 },
+        { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
+      )
+      .select(camposCliente)
+      .single();
+
+    if (upsertado) {
+      cliente = upsertado;
+      clienteNovo = true;
+      console.log("[zapi-webhook] cliente novo cadastrado automaticamente:", { nome: nomeWhatsapp, telefone: telefoneCliente });
+    } else {
+      if (erroUpsert) console.log("[zapi-webhook] upsert não criou linha (provável conflito, buscando existente):", erroUpsert.message);
+      const { data: existente, error: erroBusca } = await supabaseAdmin
         .from("clientes")
-        .insert({ company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, status: "ativo", pontos: 0 })
-        .select("id, nome, telefone, pontos, status, ultima_compra, fidelidade_status")
-        .single();
-      if (novo) {
-        cliente = novo;
-        clienteNovo = true;
-        console.log("[zapi-webhook] cliente novo cadastrado automaticamente:", { nome: nomeWhatsapp, telefone: telefoneCliente });
-      } else {
-        console.error("[zapi-webhook] falha ao cadastrar cliente automaticamente:", erroNovoCliente?.message);
-      }
+        .select(camposCliente)
+        .eq("company_id", companyId)
+        .eq("telefone_normalizado", telNormalizado)
+        .maybeSingle();
+      if (existente) cliente = existente;
+      else console.error("[zapi-webhook] falha ao cadastrar/buscar cliente:", erroBusca?.message);
     }
 
     // Reservas em aberto do cliente (produto separado aguardando retirada) —
