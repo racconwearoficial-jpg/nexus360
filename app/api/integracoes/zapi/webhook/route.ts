@@ -38,6 +38,21 @@ function nivelCliente(pontos: number) {
   return "Bronze";
 }
 
+// Prazo pro cliente responder o convite de fidelidade antes de virar
+// "esquecido" — achado em produção 09/09/2026: 23 clientes presos em
+// "convidado" (um há 111 dias) faziam TODA mensagem futura deles, mesmo sem
+// nenhuma relação com fidelidade, ser interpretada pela IA como resposta ao
+// convite (ex: cliente mandou só "Indo" e recebeu pedido de nome/data de
+// nascimento). Depois desse prazo sem completar nem recusar, trata como se
+// nunca tivesse sido convidado.
+const DIAS_EXPIRAR_CONVITE_FIDELIDADE = 4;
+
+function conviteFidelidadeExpirado(cliente: any) {
+  if (!cliente?.fidelidade_convite_em) return false;
+  const dias = (Date.now() - new Date(cliente.fidelidade_convite_em).getTime()) / 86400000;
+  return dias > DIAS_EXPIRAR_CONVITE_FIDELIDADE;
+}
+
 function normalizarTelefone(numero: string) {
   let limpo = (numero || "").replace(/\D/g, "");
   if (limpo.startsWith("55") && limpo.length > 11) limpo = limpo.slice(2);
@@ -121,7 +136,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const telNormalizado = normalizarTelefone(telefoneCliente);
-    const camposCliente = "id, nome, telefone, pontos, status, ultima_compra, fidelidade_status";
+    const camposCliente = "id, nome, telefone, pontos, status, ultima_compra, fidelidade_status, fidelidade_convite_em";
 
     // Upsert atômico por (company_id, telefone_normalizado) — antes disso o
     // código buscava todo mundo, procurava em memória e só depois inseria,
@@ -196,7 +211,12 @@ export async function POST(req: NextRequest) {
     // interpretar a resposta do cliente ao convite (nome/data/recusa).
     if (!integracao.atendimento_auto) {
       if (!cliente) return NextResponse.json({ ok: true });
-      const status = cliente.fidelidade_status || null;
+      let status = cliente.fidelidade_status || null;
+      if (status === "convidado" && conviteFidelidadeExpirado(cliente)) {
+        status = null;
+        await supabaseAdmin.from("clientes").update({ fidelidade_status: null }).eq("id", cliente.id);
+        console.log("[zapi-webhook] convite de fidelidade expirado, resetando status:", cliente.id);
+      }
       try {
         if (status === "convidado") {
           const promptFidelidade = `Você está processando a resposta de um cliente a um convite (já enviado) pra participar do programa de fidelidade de ${negocio} por WhatsApp.
@@ -271,7 +291,12 @@ INDICAÇÃO: quem indica ganha +${fcfg.indPts} pontos quando o amigo indicado fa
     // "#ACAO_FIDELIDADE:<valor>", que é extraída e aplicada no banco abaixo
     // (nunca aparece pro cliente final). Só nome e aniversario podem ser
     // gravados por essa ação — nada de pontos, status de cliente ou telefone.
-    const statusFidelidade = cliente?.fidelidade_status || null;
+    let statusFidelidade = cliente?.fidelidade_status || null;
+    if (statusFidelidade === "convidado" && conviteFidelidadeExpirado(cliente)) {
+      statusFidelidade = null;
+      await supabaseAdmin.from("clientes").update({ fidelidade_status: null }).eq("id", cliente.id);
+      console.log("[zapi-webhook] convite de fidelidade expirado, resetando status:", cliente.id);
+    }
     let contextoConvite: string;
     if (statusFidelidade === "completo" || statusFidelidade === "recusado") {
       contextoConvite = "Esse assunto já foi resolvido com esse cliente antes — não convide de novo, só fale sobre fidelidade se ele perguntar.";
@@ -397,7 +422,9 @@ Sua resposta:`;
         // aparece na resposta antes de gravar o status.
         if (valorAcao === "convidado" && !/fidelidade/i.test(textoResposta)) {
           console.error("[zapi-webhook] IA marcou convidado sem convite visível no texto — ignorando ação:", { telefoneCliente, textoResposta });
-        } else if (valorAcao === "convidado" || valorAcao === "recusado") {
+        } else if (valorAcao === "convidado") {
+          await supabaseAdmin.from("clientes").update({ fidelidade_status: valorAcao, fidelidade_convite_em: new Date().toISOString() }).eq("id", cliente.id);
+        } else if (valorAcao === "recusado") {
           await supabaseAdmin.from("clientes").update({ fidelidade_status: valorAcao }).eq("id", cliente.id);
         } else if (valorAcao.startsWith("{")) {
           const dados = JSON.parse(valorAcao);
