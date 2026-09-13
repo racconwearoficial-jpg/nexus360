@@ -120,7 +120,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 /* Reflow automático: quando itens somem por permissão de role (data-admin-only), os que restam preenchem o espaço em vez de deixar buraco */
 .metric-row{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start}
+.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
 
 /* KPIs — Stripe style */
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-1);transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
@@ -555,37 +555,21 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="metric-icon" style="background:rgba(16,185,129,.14)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
           <div class="metric-label">Clientes Ativos</div><div class="metric-value text-green" id="m-ativos">—</div>
         </div>
-      </div>
-
-      <!-- Métricas secundárias -->
-      <div class="grid4 metric-row mb16" style="opacity:.85">
-        <div class="metric card-sm" data-admin-only>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.68 12.39a2 2 0 0 0 2 1.61h8.72a2 2 0 0 0 2-1.61L22 7H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
-            <div class="metric-label" style="margin-bottom:0">Total de Vendas</div>
-          </div>
-          <div class="metric-value" style="font-size:18px" id="m-vendas-total">—</div>
+        <div class="metric" data-admin-only>
+          <div class="metric-icon" style="background:rgba(255,255,255,.06)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.68 12.39a2 2 0 0 0 2 1.61h8.72a2 2 0 0 0 2-1.61L22 7H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div>
+          <div class="metric-label">Total de Vendas</div><div class="metric-value" id="m-vendas-total">—</div>
         </div>
-        <div class="metric card-sm">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <div class="metric-label" style="margin-bottom:0">Clientes Inativos</div>
-          </div>
-          <div class="metric-value text-red" style="font-size:18px" id="m-inativos">—</div>
+        <div class="metric">
+          <div class="metric-icon" style="background:rgba(239,68,68,.12)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="metric-label">Clientes Inativos</div><div class="metric-value text-red" id="m-inativos">—</div>
         </div>
-        <div class="metric card-sm">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            <div class="metric-label" style="margin-bottom:0">Total de Produtos</div>
-          </div>
-          <div class="metric-value" style="font-size:18px" id="m-produtos">—</div>
+        <div class="metric">
+          <div class="metric-icon" style="background:rgba(255,255,255,.06)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+          <div class="metric-label">Total de Produtos</div><div class="metric-value" id="m-produtos">—</div>
         </div>
-        <div class="metric card-sm">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-            <div class="metric-label" style="margin-bottom:0">Campanhas Ativas</div>
-          </div>
-          <div class="metric-value" style="font-size:18px;color:var(--purple)" id="m-campanhas-ativas">—</div>
+        <div class="metric">
+          <div class="metric-icon" style="background:rgba(139,92,246,.14)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></div>
+          <div class="metric-label">Campanhas Ativas</div><div class="metric-value" style="color:var(--purple)" id="m-campanhas-ativas">—</div>
         </div>
       </div>
 
