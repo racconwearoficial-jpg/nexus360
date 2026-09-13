@@ -605,18 +605,30 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
             <div id="premiumChartLabels" style="display:flex;justify-content:space-between;padding:0 4px;margin-top:4px"></div>
           </div>
         </div>
-        <div class="card" style="flex:1">
-          <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg>Distribuição de Clientes</div>
-          <div class="donut-wrap" id="donutChart" style="margin-top:8px">
-            <div style="color:var(--text3);font-size:12px">Carregando...</div>
+        <div style="display:flex;flex-direction:column;gap:14px;flex:1">
+          <div class="card">
+            <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg>Distribuição de Clientes</div>
+            <div class="donut-wrap" id="donutChart" style="margin-top:8px">
+              <div style="color:var(--text3);font-size:12px">Carregando...</div>
+            </div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.9L22 9.5l-5.6 4.8L18 22l-6-4-6 4 1.6-7.7L2 9.5l7.4-.6L12 2z"/></svg>Insights do Negócio</div>
+            <div id="insightsDash"><div style="color:rgba(255,255,255,.2);font-size:12px">Carregando...</div></div>
           </div>
         </div>
       </div>
 
-      <!-- Fidelidade -->
-      <div class="card mb14">
-        <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.9L22 9.5l-5.6 4.8L18 22l-6-4-6 4 1.6-7.7L2 9.5l7.4-.6L12 2z"/></svg>Fidelidade</div>
-        <div id="fidelidadeDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
+      <!-- Fidelidade + Aniversariantes -->
+      <div class="grid2 dash-flex-row mb14">
+        <div class="card">
+          <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.9L22 9.5l-5.6 4.8L18 22l-6-4-6 4 1.6-7.7L2 9.5l7.4-.6L12 2z"/></svg>Fidelidade</div>
+          <div id="fidelidadeDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Aniversariantes do Mês</div>
+          <div id="aniversariantesDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
+        </div>
       </div>
 
       <!-- Ações recomendadas + últimas vendas -->
@@ -628,18 +640,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="card">
           <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 3 5-7"/></svg>Últimas Vendas</div>
           <div id="activityFeed"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
-        </div>
-      </div>
-
-      <!-- Insights + Aniversariantes -->
-      <div class="grid2 dash-flex-row mb14">
-        <div class="card">
-          <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.9L22 9.5l-5.6 4.8L18 22l-6-4-6 4 1.6-7.7L2 9.5l7.4-.6L12 2z"/></svg>Insights do Negócio</div>
-          <div id="insightsDash"><div style="color:rgba(255,255,255,.2);font-size:12px">Carregando...</div></div>
-        </div>
-        <div class="card">
-          <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Aniversariantes do Mês</div>
-          <div id="aniversariantesDash"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
         </div>
       </div>
 
