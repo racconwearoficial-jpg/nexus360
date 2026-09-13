@@ -120,7 +120,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 /* Reflow automático: quando itens somem por permissão de role (data-admin-only), os que restam preenchem o espaço em vez de deixar buraco */
 .metric-row{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start}
 
 /* KPIs — Stripe style */
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-1);transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
@@ -620,7 +620,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       </div>
 
       <!-- Ações recomendadas + últimas vendas -->
-      <div class="grid2 mb14" id="gridAdminAcoes">
+      <div class="grid2 dash-flex-row mb14" id="gridAdminAcoes">
         <div class="card">
           <div class="section-title mb12"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Ações Recomendadas</div>
           <div id="sugestoes"><div style="color:var(--text3);font-size:12px">Carregando...</div></div>
@@ -3677,8 +3677,12 @@ function renderDashboard() {
       return total;
     };
     const semanaAtual = somaDias(0), semanaAnterior = somaDias(7);
-    if (semanaAnterior >= 50) {
-      const pct = Math.max(-99, Math.min(300, Math.round(((semanaAtual - semanaAnterior) / semanaAnterior) * 100)));
+    const pctBruto = semanaAnterior > 0 ? ((semanaAtual - semanaAnterior) / semanaAnterior) * 100 : null;
+    // Só mostra a variação quando a semana anterior teve volume suficiente pra
+    // servir de base de comparação — abaixo disso o % fica instável e engana
+    // (ex: R$50 -> R$300 "parece" +500% mas é só um dia bom isolado).
+    if (semanaAnterior >= 300 && pctBruto !== null && Math.abs(pctBruto) <= 200) {
+      const pct = Math.round(pctBruto);
       const subiu = pct >= 0;
       trendEl.style.display = 'flex';
       trendEl.style.background = subiu ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.14)';
