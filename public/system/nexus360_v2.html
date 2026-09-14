@@ -2683,7 +2683,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalWpp')">Cancelar</button>
-      <button class="btn-wpp" id="btnConfirmarWpp" style="padding:9px 20px;border-radius:7px;font-size:13px;cursor:pointer;border:none;font-weight:500" onclick="confirmarWpp()">Abrir WhatsApp</button>
+      <button class="btn-wpp" id="btnConfirmarWpp" style="padding:9px 20px;border-radius:7px;font-size:13px;cursor:pointer;border:none;font-weight:500" onclick="confirmarWpp()">Enviar agora</button>
     </div>
   </div>
 </div>
@@ -6206,7 +6206,7 @@ function abrirModalWppVenda(vendaId) {
     ? ' Você ganhou ' + pontosGanhos + ' pontos com essa compra e já soma ' + totalPontos + ' pontos acumulados.'
     : '';
   const msgDef  = 'Olá, ' + cliente.nome + '! Sua compra foi registrada e você já está participando do programa de fidelidade da ' + neg + '. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos.' + frasePontos + ' Obrigado por confiar na gente.';
-  const labelBtn = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
+  const labelBtn = 'Enviar agora';
 
   var modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -9041,7 +9041,7 @@ function wppAbrir(numero, msgPadrao, campId) {
   _wppCampId = campId || null;
   document.getElementById('wppMsgEdit').value = msgPadrao || '';
   const btn = document.getElementById('btnConfirmarWpp');
-  if (btn) btn.textContent = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
+  if (btn) btn.textContent = 'Enviar agora';
 
   wppRemoverImagem(); // limpa imagem de uma abertura anterior do modal
   const imagemBox = document.getElementById('wppImagemBox');
