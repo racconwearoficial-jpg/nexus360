@@ -1,27 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const WA = "https://wa.me/5563981062551";
-const WA_DIAG = `${WA}?text=${encodeURIComponent("Oi! Quero o diagnóstico gratuito do meu negócio.")}`;
+const WA_DEMO = `${WA}?text=${encodeURIComponent("Oi! Quero ver o sistema Nexus 360 funcionando.")}`;
 const IG = "https://instagram.com/nexus360mkt";
 
 /* ============ ícones ============ */
 const Ico = {
-  pin: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="10" r="2.6" stroke={c} strokeWidth="1.8"/></svg>,
+  bell: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
   chat: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 8.5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4H9l-4.5 3.2V17.4A4 4 0 0 1 3 13.5v-5Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
   star: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="m12 3.4 2.6 5.4 5.9.85-4.3 4.15 1.03 5.9L12 16.9l-5.23 2.8L7.8 13.8 3.5 9.65l5.9-.85L12 3.4Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
-  clock: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.6" stroke={c} strokeWidth="1.8"/><path d="M12 7.4v4.9l3.2 2" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  brush: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3.6c-4.7 0-8.5 3.6-8.5 8 0 4.5 3.4 6.9 6.3 6.9 1.7 0 2.2-1 1.8-2.2-.4-1.2.3-2.1 1.7-2.1h2.2c2.8 0 5-1.9 5-4.9 0-3.6-3.6-5.7-8.5-5.7Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><circle cx="8.4" cy="10" r="1.1" fill={c}/><circle cx="12" cy="8.2" r="1.1" fill={c}/><circle cx="15.6" cy="10" r="1.1" fill={c}/></svg>,
-  play: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.6" stroke={c} strokeWidth="1.8"/><path d="m10.4 9.4 4.6 2.6-4.6 2.6V9.4Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
   chart: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.6" stroke={c} strokeWidth="1.8"/><path d="M7.4 15.6V11M12 15.6V8.4M16.6 15.6v-3" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
   megaphone: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9.6h3.4L14.6 5v14l-7.2-4.6H4a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M18 9.4a4 4 0 0 1 0 5.2" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  insta: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="5" stroke={c} strokeWidth="1.8"/><circle cx="12" cy="12" r="4.1" stroke={c} strokeWidth="1.8"/><circle cx="17.2" cy="6.8" r="1.2" fill={c}/></svg>,
-  site: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.4" stroke={c} strokeWidth="1.8"/><path d="M3.4 8.4h17.2" stroke={c} strokeWidth="1.8"/><circle cx="6.2" cy="6.4" r="0.6" fill={c}/><circle cx="8.2" cy="6.4" r="0.6" fill={c}/></svg>,
-  check: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#3B82F6" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  funnel: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 5h16l-6 8v6l-4-2v-4L4 5Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
+  gift: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="9.4" width="17.2" height="11.2" rx="1.6" stroke={c} strokeWidth="1.8"/><path d="M3.4 9.4h17.2V6.6a1.4 1.4 0 0 0-1.4-1.4H4.8a1.4 1.4 0 0 0-1.4 1.4v2.8Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M12 5.2v15.4" stroke={c} strokeWidth="1.8"/><path d="M12 5.2c0-1.9-1.6-3.4-3.4-2.6-1.8.8-1.3 2.6 1 2.6H12ZM12 5.2c0-1.9 1.6-3.4 3.4-2.6 1.8.8 1.3 2.6-1 2.6H12Z" stroke={c} strokeWidth="1.6" strokeLinejoin="round"/></svg>,
+  link: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9.5 14.5 14.5 9.5" stroke={c} strokeWidth="1.8" strokeLinecap="round"/><path d="M11 6.5 12.6 5a4 4 0 0 1 5.6 5.6l-1.5 1.6M13 17.5 11.4 19a4 4 0 0 1-5.6-5.6l1.5-1.6" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
+  check: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#818CF8" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   checkG: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#34D399" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-  search: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="rgba(255,255,255,.35)" strokeWidth="2"/><path d="m16 16 4.5 4.5" stroke="rgba(255,255,255,.35)" strokeWidth="2" strokeLinecap="round"/></svg>,
 };
 
 /* ============ textura de fundo ============ */
@@ -41,124 +38,51 @@ const Grid = ({ o = 0.35 }: { o?: number }) => (
   </svg>
 );
 
-/* ============ ilustração: Google antes x depois ============ */
-function GoogleCard({ depois }: { depois: boolean }) {
-  const dim = "rgba(255,255,255,.28)";
-  return (
-    <div style={{
-      background: depois ? "rgba(255,255,255,.035)" : "rgba(255,255,255,.015)",
-      border: depois ? "1px solid rgba(52,211,153,.3)" : "1px dashed rgba(255,255,255,.13)",
-      borderRadius: 16, padding: "18px 18px 20px",
-      boxShadow: depois ? "0 20px 50px rgba(0,0,0,.4), 0 0 40px rgba(52,211,153,.07)" : "none",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,.06)" }}>
-        {Ico.search}
-        <span style={{ fontSize: 12, color: dim }}>farmácia perto de mim</span>
-      </div>
-
-      <div style={{ display: "flex", gap: 12 }}>
-        <div style={{ width: 54, height: 54, borderRadius: 10, flexShrink: 0, background: depois ? "linear-gradient(135deg,#1E3A8A,#3B82F6)" : "rgba(255,255,255,.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {depois
-            ? <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 20V10l8-5 8 5v10" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/><path d="M9.5 20v-5h5v5" stroke="rgba(255,255,255,.7)" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-            : <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 17.5 9 12l3.5 3.5L16 12l4 4" stroke="rgba(255,255,255,.14)" strokeWidth="1.8" strokeLinejoin="round"/><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.4" stroke="rgba(255,255,255,.14)" strokeWidth="1.8"/></svg>}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 700, color: depois ? "#fff" : dim, marginBottom: 5 }}>Seu negócio</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-            <span style={{ color: depois ? "#FBBF24" : "rgba(255,255,255,.14)", fontSize: 11.5, letterSpacing: 1 }}>{depois ? "★★★★★" : "☆☆☆☆☆"}</span>
-            <span style={{ fontSize: 10.5, color: dim }}>{depois ? "avaliações reais" : "sem avaliações"}</span>
-          </div>
-          <div style={{ fontSize: 11, color: dim, lineHeight: 1.6 }}>
-            {depois ? <>Farmácia · Aberto agora<br />Fecha às 22h · 20 fotos</> : <>Categoria genérica<br />Sem foto · sem horário</>}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 14, display: "flex", gap: 7 }}>
-        <div style={{ flex: 1, textAlign: "center", fontSize: 11.5, fontWeight: 700, padding: "9px 0", borderRadius: 8, background: depois ? "#10B981" : "rgba(255,255,255,.045)", color: depois ? "#04140E" : "rgba(255,255,255,.18)" }}>
-          {depois ? "WhatsApp" : "—"}
-        </div>
-        <div style={{ flex: 1, textAlign: "center", fontSize: 11.5, fontWeight: 700, padding: "9px 0", borderRadius: 8, background: depois ? "rgba(59,130,246,.16)" : "rgba(255,255,255,.045)", color: depois ? "#93C5FD" : "rgba(255,255,255,.18)" }}>
-          {depois ? "Como chegar" : "—"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ============ dados ============ */
 const PROBLEMAS = [
-  { n: "01", t: "Você não aparece no “perto de mim”", d: "Perfil do Google incompleto ou na categoria errada te tira da busca de quem já está com o dinheiro na mão." },
-  { n: "02", t: "A mensagem chega e ninguém responde", d: "Meia hora de espera no WhatsApp e o cliente já foi pro concorrente que respondeu em dois minutos." },
-  { n: "03", t: "Seus clientes antigos sumiram e ninguém chamou", d: "Dezenas já compraram, gostaram e pararam de voltar. É a venda mais barata que existe, parada." },
-  { n: "04", t: "Ninguém sabe quem é seu melhor cliente", d: "Sem histórico, quem compra todo mês recebe o mesmo tratamento de quem apareceu uma vez." },
-];
-
-
-const SERVICOS = [
-  { i: Ico.pin, c: "#3B82F6", t: "Google Meu Negócio", d: "Perfil reivindicado, categoria certa, fotos, serviços com preço e botão de WhatsApp.", tier: "Recomeço" },
-  { i: Ico.brush, c: "#EC4899", t: "Identidade visual no Instagram", d: "Paleta de cores, perfil, capas de destaque e bio prontos.", tier: "Recomeço" },
-  { i: Ico.play, c: "#EF4444", t: "Artes e posts", d: "Artes prontas com a identidade do seu negócio, para Instagram, WhatsApp Status e Google.", tier: "Recomeço" },
-  { i: Ico.insta, c: "#8B5CF6", t: "Instagram profissional", d: "Bio que explica o que você vende, destaques organizados e perfil pronto para quem chega decidir comprar.", tier: "Recomeço" },
-  { i: Ico.chat, c: "#10B981", t: "Reativação de clientes", d: "O sistema marca quem parou de comprar e deixa a campanha de retorno pronta. A venda mais rápida do seu negócio.", tier: "Crescimento" },
-  { i: Ico.star, c: "#F59E0B", t: "Sistema de avaliações", d: "Link de avaliação e arte com QR code prontos. Nota alta muda posição na busca.", tier: "Crescimento" },
-  { i: Ico.clock, c: "#8B5CF6", t: "Mensagens prontas pra enviar", d: "Textos de recuperação, aniversário e cliente VIP já escritos certos. Você só aprova e clica em enviar.", tier: "Crescimento" },
-  { i: Ico.megaphone, c: "#10B981", t: "Tráfego pago", d: "Anúncio no Meta Ads para quem já tem o básico arrumado. Verba paga direto por você.", tier: "Aceleração" },
+  { n: "01", t: "Cliente some e ninguém percebe", d: "Sem alerta automático, quem parou de comprar vira só mais um nome esquecido na lista — até você lembrar, ele já é cliente de outro lugar." },
+  { n: "02", t: "Cada atendente lembra do seu jeito", d: "Sem histórico central, quem atende hoje não sabe o que quem atendeu ontem já combinou com o cliente." },
+  { n: "03", t: "A campanha de reativação nunca sai do papel", d: "Sem automação, mandar mensagem pra quem sumiu depende de alguém lembrar — e ninguém lembra todo dia." },
+  { n: "04", t: "Todo cliente recebe o mesmo tratamento", d: "Sem ranking nem pontos, quem compra toda semana é tratado igual a quem veio uma vez e nunca mais voltou." },
 ];
 
 const RECURSOS = [
-  { t: "Cadastro de clientes", d: "Histórico de compra, contato e observações de cada um" },
-  { t: "Fidelidade com pontos", d: "Quem compra mais junta pontos e troca por desconto" },
-  { t: "Ranking e níveis", d: "Você enxerga na hora quem é VIP e quem sumiu" },
-  { t: "Campanhas de WhatsApp", d: "Separa o público certo e deixa a campanha pronta para disparar" },
-  { t: "Programa de indicação", d: "Cliente indica amigo, os dois ganham, você cresce sem anúncio" },
-  { t: "Relatórios de verdade", d: "Faturamento, ticket médio e vendas, atualizado sozinho" },
-  { t: "Integração com Bling", d: "Clientes e vendas do seu ERP sincronizados sozinhos" },
-  { t: "Assinatura recorrente", d: "Cliente assina um plano e é cobrado todo mês via Pix, sem precisar voltar" },
-  { t: "WhatsApp automatizado (Crescimento)", d: "Via Z-API, a IA já monta a mensagem certa pro cliente certo — você só anexa a foto e dá o toque de enviar" },
+  { i: Ico.bell, c: "#818CF8", t: "Alerta de cliente inativo", d: "O sistema marca sozinho quem passou do prazo sem comprar — o diferencial que a maioria dos concorrentes não tem." },
+  { i: Ico.chat, c: "#34D399", t: "Campanhas de WhatsApp automáticas", d: "Escolhe o público — ativos, inativos, VIP, aniversariantes — e o sistema dispara sozinho, dentro do limite seguro." },
+  { i: Ico.star, c: "#FCD34D", t: "Fidelidade com pontos e ranking", d: "Cada compra pontua, o cliente disputa posição no ranking do mês e resgata prêmio que você define." },
+  { i: Ico.funnel, c: "#A78BFA", t: "CRM e funil de vendas", d: "Acompanha a negociação do primeiro contato até o fechamento, com lembrete de follow-up." },
+  { i: Ico.gift, c: "#F472B6", t: "Programa de indicação", d: "Cliente indica um amigo, os dois ganham — você cresce sem gastar em anúncio." },
+  { i: Ico.chart, c: "#818CF8", t: "Relatórios em tempo real", d: "Faturamento, ticket médio, vendas do dia — atualizado sozinho, sem planilha." },
+  { i: Ico.link, c: "#34D399", t: "Integração com Bling", d: "Estoque e vendas do seu ERP sincronizados automaticamente, sem digitar duas vezes." },
+  { i: Ico.megaphone, c: "#FCD34D", t: "Chatbot no WhatsApp", d: "Responde promoção ativa e dúvida simples sozinho, sem tirar o time do atendimento real." },
 ];
 
-const PACOTES = [
-  {
-    chave: "recomeco", tag: "Pacote avulso", nome: "Recomeço", preco: "R$ 197", periodo: "pagamento único",
-    desc: "Para quem quer ser encontrado e parecer profissional agora",
-    itens: ["20 artes prontas para o Instagram, com a cara do seu negócio", "Google Meu Negócio otimizado: categoria, fotos, horário e perguntas frequentes", "Identidade visual no Instagram: paleta de cores, perfil, capas de destaque e bio", "Calendário de postagens do mês", "QR code personalizado para WhatsApp ou avaliação no Google"],
-    selo: "Entrega em 3 dias · garantia de 7 dias", destaque: false,
-  },
-  {
-    chave: "crescimento", tag: "Plano mensal · recomendado", nome: "Crescimento", preco: "R$ 397", periodo: "por mês + Z-API (custo à parte, direto com eles) · sem fidelidade",
-    desc: "Arrumar uma vez traz cliente, o sistema faz o movimento parar de oscilar",
-    itens: ["Tudo do Recomeço", "Sistema Nexus 360 completo, com sua base cadastrada", "WhatsApp com Z-API: a IA monta a mensagem certa pro cliente certo — você anexa a foto e toca em enviar"],
-    selo: "Implantação gratuita · cancele quando quiser", destaque: true,
-  },
-  {
-    chave: "aceleracao", tag: "Plano mensal", nome: "Aceleração", preco: "R$ 897", periodo: "por mês + verba de anúncio",
-    desc: "Para quem já tem o básico redondo e quer acelerar com tráfego pago",
-    itens: ["Tudo do Recomeço e do Crescimento", "Criação e gestão de anúncios no Meta Ads", "Ajuste semanal do custo por contato", "Relatório mensal de resultado dos anúncios"],
-    selo: "A verba fica no seu cartão, não passa por mim", destaque: false,
-  },
+const PASSOS = [
+  { n: "01", t: "Você manda sua base de clientes", d: "Telefone e histórico de compra — eu cadastro tudo pra você, sem trabalho manual." },
+  { n: "02", t: "O sistema começa a rastrear sozinho", d: "Quem comprou, quando foi a última vez, quem tá perto de virar inativo." },
+  { n: "03", t: "As campanhas certas saem no automático", d: "Reativação, aniversário, pontos a resgatar — o sistema dispara pro público certo, na hora certa." },
+  { n: "04", t: "Você acompanha tudo num painel só", d: "No celular ou no computador, sem precisar abrir três telas diferentes." },
 ];
 
 const GARANTIAS = [
-  { t: "Garantia de 7 dias", d: "No Recomeço: se em 7 dias você não tiver nenhum contato ou agendamento novo, devolvo o valor integral." },
-  { t: "Prazo por escrito", d: "Recomeço em 3 dias. Se atrasar por minha causa, você tem 20% de desconto." },
-  { t: "Sem fidelidade", d: "Mensal é mensal. Avisou, encerra no fim do mês corrente. Sem multa e sem contrato longo." },
-  { t: "Seus dados são seus", d: "Google, contas de anúncio, arquivos da marca e a base de clientes: tudo no seu nome, e você exporta quando quiser." },
+  { t: "Sem fidelidade", d: "Avisou, cancela no fim do mês corrente. Sem multa e sem contrato longo." },
+  { t: "Seus dados são seus", d: "Sua base de clientes e o histórico de vendas: tudo no seu nome, e você exporta quando quiser." },
+  { t: "WhatsApp conectado no seu número", d: "O disparo automático usa uma API própria ligada ao seu número — nunca ao meu." },
+  { t: "Implantação com sua base pronta", d: "Eu cadastro seus clientes atuais pra você começar já usando, sem digitar do zero." },
 ];
 
 const FAQ = [
-  { q: "Preciso ter CNPJ?", a: "Não. Dá para fazer tudo com negócio informal, inclusive o perfil no Google." },
-  { q: "E se eu não souber mexer em nada?", a: "Melhor ainda. Eu entrego tudo montado e funcionando. Uma ou outra coisa depende do seu login, como a verificação do Google — nessas eu ligo e a gente resolve junto em poucos minutos." },
-  { q: "Preciso te dar acesso ao meu WhatsApp?", a: "Não preciso do seu aparelho. O sistema trabalha com a sua base de clientes e deixa as campanhas montadas; quem dispara é você, em nome do seu negócio. No plano Crescimento, dá pra conectar uma API própria e o sistema manda sozinho — mas a conta continua sendo sua, ligada ao seu número, nunca ao meu." },
-  { q: "Em quanto tempo aparece resultado?", a: "A reativação costuma dar retorno na mesma semana, porque fala com quem já te conhece. O Google leva de duas a seis semanas para firmar posição." },
-  { q: "O sistema é difícil de usar?", a: "Não. Eu cadastro sua base e acompanho a primeira semana. Funciona no celular e no computador." },
-  { q: "Sou obrigado a assinar mensalidade?", a: "Não. O pacote avulso é completo e funciona sozinho. O plano mensal só existe para quem quiser manter." },
-  { q: "Como eu pago?", a: "Pix, cartão ou boleto, direto no link de pagamento — você escolhe na hora de pagar." },
+  { q: "Preciso trocar meu sistema de estoque ou PDV?", a: "Não. O Nexus 360 complementa: integra com o Bling se você já usa, ou funciona sozinho cadastrando as vendas na mão." },
+  { q: "É difícil de usar?", a: "Não. As telas são simples e eu cadastro sua base inicial. Funciona no celular e no computador." },
+  { q: "O WhatsApp automático usa meu número?", a: "Sim, conectado via API própria ligada ao seu WhatsApp — a conta continua sua, nunca passa pelo meu número." },
+  { q: "Meus dados ficam seguros?", a: "Sim. Cada negócio tem a própria base isolada — ninguém mais enxerga seus clientes ou suas vendas." },
+  { q: "Preciso ter CNPJ?", a: "Não. O sistema funciona também com negócio informal." },
+  { q: "Quanto custa?", a: "R$ 397 por mês pelo sistema completo, mais R$ 100 por mês da API do WhatsApp (Z-API), contratada direto com eles. Sem fidelidade." },
 ];
 
 /* ============ estilos ============ */
 const S = {
-  eyebrow: { fontSize: 12, color: "#93C5FD", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 2, marginBottom: 16 },
+  eyebrow: { fontSize: 12, color: "#A5B4FC", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 2, marginBottom: 16 },
   h2: { fontSize: "clamp(28px, 4.4vw, 46px)", fontWeight: 900, letterSpacing: -1.6, lineHeight: 1.12 },
   card: { background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20 },
   sec: { position: "relative" as const, zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.05)", overflow: "hidden" as const },
@@ -166,27 +90,6 @@ const S = {
 };
 
 export default function Home() {
-  const [checkoutCarregando, setCheckoutCarregando] = useState<string | null>(null);
-  const [checkoutErro, setCheckoutErro] = useState<{ chave: string; msg: string } | null>(null);
-
-  async function pagarComCartao(chave: string) {
-    setCheckoutErro(null);
-    setCheckoutCarregando(chave);
-    try {
-      const r = await fetch("/api/checkout/criar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pacote: chave }),
-      });
-      const d = await r.json();
-      if (!r.ok || !d.url) throw new Error(d.error || "Não consegui gerar o checkout agora");
-      window.location.href = d.url;
-    } catch (e: any) {
-      setCheckoutErro({ chave, msg: e.message || "Erro ao abrir pagamento" });
-      setCheckoutCarregando(null);
-    }
-  }
-
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");
     const io = new IntersectionObserver(
@@ -214,18 +117,18 @@ export default function Home() {
         .btn{transition:transform .15s ease, box-shadow .15s ease}
         .btn:hover{transform:translateY(-2px)}
         .lift{transition:transform .18s ease, border-color .18s ease}
-        .lift:hover{transform:translateY(-3px);border-color:rgba(59,130,246,.32)}
+        .lift:hover{transform:translateY(-3px);border-color:rgba(129,140,248,.32)}
         details>summary{list-style:none;cursor:pointer}
         details>summary::-webkit-details-marker{display:none}
         details[open] .chev{transform:rotate(45deg)}
         .grid{display:grid;gap:18px}
-        .g-serv{grid-template-columns:repeat(4,1fr)}
-        .g-pac{grid-template-columns:repeat(3,1fr);align-items:stretch}
+        .g-rec{grid-template-columns:repeat(4,1fr)}
         .g-passos{grid-template-columns:repeat(4,1fr)}
         .g-gar{grid-template-columns:repeat(2,1fr)}
-        @media (max-width:1120px){ .g-serv{grid-template-columns:repeat(2,1fr)} }
-        @media (max-width:900px){ .g-pac{grid-template-columns:1fr} }
-        @media (max-width:660px){ .g-serv,.g-gar{grid-template-columns:1fr} }
+        .g-prob{grid-template-columns:repeat(2,1fr)}
+        @media (max-width:1120px){ .g-rec{grid-template-columns:repeat(2,1fr)} .g-passos{grid-template-columns:repeat(2,1fr)} }
+        @media (max-width:660px){ .g-rec,.g-gar,.g-prob,.g-passos{grid-template-columns:1fr} }
+        @media (max-width:820px){ .g-telas{grid-template-columns:1fr!important} }
         .float{position:absolute;z-index:3}
         @media (max-width:900px){ .float{display:none} }
         @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
@@ -242,12 +145,11 @@ export default function Home() {
         }
         .bg-overlay{
           position:fixed; inset:0; pointer-events:none; z-index:0;
-          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,130,246,0.13) 0%, transparent 60%);
+          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(99,102,241,0.14) 0%, transparent 60%);
           background-size:cover, auto;
           background-position:center, center;
           background-repeat:no-repeat, no-repeat;
         }
-        /* position:fixed vira instável no mobile (barra de endereço muda de altura) — troca pra absolute, uma tela cheia de altura, e acompanha o scroll normal */
         @media (max-width:900px){
           .bg-photo, .bg-overlay{ position:absolute; height:100vh }
         }
@@ -263,14 +165,15 @@ export default function Home() {
       {/* ============ NAV ============ */}
       <nav className="np" style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(4,6,15,0.82)", backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#3B82F6,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 17 }}>N</div>
-          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: -0.5 }}>NEXUS<span style={{ color: "#3B82F6" }}>360</span></span>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 17 }}>N</div>
+          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: -0.5 }}>NEXUS<span style={{ color: "#818CF8" }}>360</span></span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <a href="#servicos" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Serviços</a>
-          <a href="#pacotes" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Pacotes</a>
+          <a href="#recursos" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Recursos</a>
+          <a href="#como-funciona" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Como funciona</a>
+          <a href="#contato" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Preço</a>
           <Link href="/login" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 14, fontWeight: 600, padding: "9px 16px", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 9 }}>Entrar no sistema</Link>
-          <a href={WA_DIAG} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "#3B82F6", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 9 }}>Falar agora</a>
+          <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "#6366F1", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 9 }}>Ver demonstração</a>
         </div>
       </nav>
 
@@ -278,29 +181,29 @@ export default function Home() {
       <section className="np" style={{ position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden" }}>
         <Grid o={0.5} />
         <div style={{ position: "relative", zIndex: 4 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 30 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} />
-            <span style={{ fontSize: 13, color: "#6EE7B7", fontWeight: 600 }}>Diagnóstico gratuito · resposta em 24h</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 30 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#818CF8" }} />
+            <span style={{ fontSize: 13, color: "#A5B4FC", fontWeight: 600 }}>Sistema de gestão e recorrência para negócio local</span>
           </div>
 
           <h1 style={{ fontSize: "clamp(38px, 6.2vw, 76px)", fontWeight: 900, lineHeight: 1.04, letterSpacing: -2.6, maxWidth: 900, margin: "0 auto 22px" }}>
-            Seu negócio achado,<br />escolhido e{" "}
-            <span style={{ background: "linear-gradient(90deg,#3B82F6,#8B5CF6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>lembrado</span>
+            Seu negócio nunca mais<br />perde cliente por{" "}
+            <span style={{ background: "linear-gradient(90deg,#818CF8,#A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>esquecimento</span>
           </h1>
 
           <p style={{ fontSize: 18, ...S.dim, maxWidth: 560, margin: "0 auto 36px" }}>
-            Arrumo seu Google, seu WhatsApp e suas redes para virarem <strong style={{ color: "#fff", fontWeight: 600 }}>cliente entrando pela porta</strong>, e te entrego um sistema para não perder mais nenhum.
+            O Nexus 360 guarda cada cliente, avisa quando alguém some e <strong style={{ color: "#fff", fontWeight: 600 }}>dispara a campanha de volta sozinho</strong>, direto no seu WhatsApp.
           </p>
 
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
-            <a href={WA_DIAG} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#3B82F6,#2563EB)", color: "#fff", textDecoration: "none", fontSize: 16.5, fontWeight: 700, padding: "16px 36px", borderRadius: 12, boxShadow: "0 8px 32px rgba(59,130,246,0.35)" }}>
-              Quero meu diagnóstico grátis →
+            <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 16.5, fontWeight: 700, padding: "16px 36px", borderRadius: 12, boxShadow: "0 8px 32px rgba(99,102,241,0.35)" }}>
+              Ver o sistema funcionando →
             </a>
-            <a href="#pacotes" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 16.5, fontWeight: 600, padding: "16px 36px", borderRadius: 12 }}>
-              Ver pacotes e preços
+            <a href="#recursos" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 16.5, fontWeight: 600, padding: "16px 36px", borderRadius: 12 }}>
+              Ver o que o sistema faz
             </a>
           </div>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", marginBottom: 56 }}>Sem custo, sem compromisso. Se não fizer sentido para o seu caso, eu falo na hora. Pacotes a partir de R$ 197.</p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", marginBottom: 56 }}>Sem compromisso. Demonstração gratuita com seus próprios dados.</p>
 
           {/* mockup + cartões flutuantes */}
           <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
@@ -324,198 +227,132 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 8, boxShadow: "0 40px 90px rgba(0,0,0,0.55), 0 0 70px rgba(59,130,246,0.12)", position: "relative", zIndex: 2 }}>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 8, boxShadow: "0 40px 90px rgba(0,0,0,0.55), 0 0 70px rgba(99,102,241,0.14)", position: "relative", zIndex: 2 }}>
               <img src="/dashboard.png" alt="Painel do sistema Nexus 360" style={{ width: "100%", borderRadius: 10, display: "block" }} />
             </div>
-            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14 }}>Painel do Nexus 360, incluso nos planos mensais</p>
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14 }}>Painel real do Nexus 360, em uso todo dia</p>
           </div>
         </div>
       </section>
 
       {/* ============ PROBLEMA ============ */}
       <section className="np" style={{ ...S.sec, padding: "96px 48px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 56, alignItems: "center", marginBottom: 64 }}>
-            <div>
-              <p style={{ ...S.eyebrow, color: "#FCA5A5" }}>O buraco no seu caixa</p>
-              <h2 style={{ ...S.h2, marginBottom: 18 }}>Todo mês entra menos<br />do que deveria</h2>
-              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 22 }}>
-                Quase nunca é o produto. É o caminho até a sua porta, quebrado em quatro pontos que não aparecem no seu balanço.
-              </p>
-              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 4 }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ ...S.eyebrow, color: "#FCA5A5" }}>O buraco no seu caixa</p>
+            <h2 style={{ ...S.h2, marginBottom: 14 }}>Sem sistema, a gestão<br />vira memória e planilha</h2>
+            <p style={{ ...S.dim, fontSize: 16.5, maxWidth: 560, margin: "0 auto" }}>
+              Quase nunca é falta de cliente. É cliente que já comprou de você e sumiu sem que ninguém percebesse.
+            </p>
+          </div>
+
+          <div className="grid g-prob">
+            {PROBLEMAS.map(p => (
+              <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "22px 22px", background: "rgba(239,68,68,0.035)", borderColor: "rgba(239,68,68,0.13)", display: "flex", gap: 16 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(239,68,68,0.7)", flexShrink: 0, paddingTop: 2 }}>{p.n}</div>
                 <div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 8 }}>Antes</div>
-                  <div style={{ width: 230 }}><GoogleCard depois={false} /></div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: "#34D399", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 8 }}>Depois</div>
-                  <div style={{ width: 230 }}><GoogleCard depois={true} /></div>
+                  <h3 style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 7, lineHeight: 1.3 }}>{p.t}</h3>
+                  <p style={{ ...S.dim, fontSize: 13.8 }}>{p.d}</p>
                 </div>
               </div>
-            </div>
-
-            <div style={{ display: "grid", gap: 14 }}>
-              {PROBLEMAS.map(p => (
-                <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "22px 22px", background: "rgba(239,68,68,0.035)", borderColor: "rgba(239,68,68,0.13)", display: "flex", gap: 16 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(239,68,68,0.7)", flexShrink: 0, paddingTop: 2 }}>{p.n}</div>
-                  <div>
-                    <h3 style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 7, lineHeight: 1.3 }}>{p.t}</h3>
-                    <p style={{ ...S.dim, fontSize: 13.8 }}>{p.d}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ============ SERVIÇOS ============ */}
-      <section id="servicos" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
+      {/* ============ RECURSOS ============ */}
+      <section id="recursos" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
         <Grid o={0.35} />
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={S.eyebrow}>O que eu faço</p>
-            <h2 style={{ ...S.h2, marginBottom: 14 }}>Tudo isso já vem dentro dos pacotes</h2>
-            <p style={{ ...S.dim, fontSize: 16 }}>Nada aqui é vendido separado — cada peça mora dentro do Recomeço, do Crescimento ou da Aceleração</p>
-
-            <div style={{ marginTop: 26, display: "inline-flex", flexWrap: "wrap", gap: 8, justifyContent: "center", alignItems: "center", background: "rgba(59,130,246,.06)", border: "1px solid rgba(59,130,246,.2)", borderRadius: 100, padding: "12px 26px" }}>
-              <span style={{ fontSize: 14.5, color: "rgba(255,255,255,.65)" }}>Em qualquer um deles:</span>
-              <span style={{ fontSize: 14.5, color: "#93C5FD", fontWeight: 600 }}>eu monto do meu lado e te entrego funcionando</span>
-            </div>
+            <p style={S.eyebrow}>O que o sistema faz</p>
+            <h2 style={{ ...S.h2, marginBottom: 14 }}>Tudo o que seu negócio<br />precisa, num painel só</h2>
+            <p style={{ ...S.dim, fontSize: 16 }}>Sem planilha, sem caderno, sem depender de lembrar</p>
           </div>
 
-          <div className="grid g-serv">
-            {SERVICOS.map(s => (
-              <div key={s.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px" }}>
-                <div style={{ width: 46, height: 46, borderRadius: 13, background: `${s.c}18`, border: `1px solid ${s.c}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
-                  {s.i(s.c)}
+          <div className="grid g-rec">
+            {RECURSOS.map(r => (
+              <div key={r.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px" }}>
+                <div style={{ width: 46, height: 46, borderRadius: 13, background: `${r.c}18`, border: `1px solid ${r.c}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+                  {r.i(r.c)}
                 </div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 9, letterSpacing: -0.2 }}>{s.t}</h3>
-                <p style={{ ...S.dim, fontSize: 14, marginBottom: 14 }}>{s.d}</p>
-                <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, color: s.c, background: `${s.c}14`, border: `1px solid ${s.c}28`, borderRadius: 100, padding: "4px 10px" }}>{s.tier}</span>
+                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 9, letterSpacing: -0.2 }}>{r.t}</h3>
+                <p style={{ ...S.dim, fontSize: 13.5 }}>{r.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ============ SISTEMA ============ */}
-      <section id="sistema" className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(139,92,246,0.03)", scrollMarginTop: 80 }}>
+      {/* ============ COMO FUNCIONA ============ */}
+      <section id="como-funciona" className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(139,92,246,0.03)", scrollMarginTop: 80 }}>
         <Grid o={0.4} />
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 48, alignItems: "center" }}>
-            <div>
-              <p style={{ ...S.eyebrow, color: "#C4B5FD" }}>O diferencial</p>
-              <h2 style={{ ...S.h2, marginBottom: 18 }}>Marketing traz cliente<br />o sistema faz ele voltar</h2>
-              <p style={{ ...S.dim, fontSize: 16.5, marginBottom: 18 }}>
-                O Nexus 360 guarda quem comprou, quanto gastou e quando foi a última vez, e acende o alerta assim que alguém passa do prazo sem voltar. Seu negócio inteiro num painel, no celular ou no computador.
-              </p>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,.1)", border: "1px solid rgba(139,92,246,.28)", borderRadius: 100, padding: "6px 16px", marginBottom: 22 }}>
-                <span style={{ fontSize: 13, color: "#C4B5FD", fontWeight: 700 }}>Incluso a partir do plano Crescimento</span>
-              </div>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ ...S.eyebrow, color: "#C4B5FD" }}>Como funciona</p>
+            <h2 style={S.h2}>Do cadastro ao cliente voltando sozinho</h2>
+          </div>
 
-              <div style={{ display: "grid", gap: 14, marginBottom: 30 }}>
-                {RECURSOS.map(r => (
-                  <div key={r.t} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <div style={{ marginTop: 3, flexShrink: 0 }}>{Ico.check}</div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>{r.t}</div>
-                      <div style={{ color: "rgba(255,255,255,0.38)", fontSize: 13.5, lineHeight: 1.5 }}>{r.d}</div>
-                    </div>
-                  </div>
-                ))}
+          <div className="grid g-passos">
+            {PASSOS.map(p => (
+              <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "26px 22px" }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#A78BFA", marginBottom: 12 }}>{p.n}</div>
+                <h3 style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 8, lineHeight: 1.3 }}>{p.t}</h3>
+                <p style={{ ...S.dim, fontSize: 13.5 }}>{p.d}</p>
               </div>
+            ))}
+          </div>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Link href="/login" className="btn" style={{ background: "linear-gradient(135deg,#8B5CF6,#6D28D9)", color: "#fff", textDecoration: "none", fontSize: 15, fontWeight: 700, padding: "14px 28px", borderRadius: 11, boxShadow: "0 8px 26px rgba(139,92,246,0.3)" }}>
-                  Entrar no sistema →
-                </Link>
-                <a href={WA_DIAG} target="_blank" rel="noopener noreferrer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 11 }}>
-                  Quero uma demonstração
-                </a>
-              </div>
-            </div>
-
+          <div className="g-telas" style={{ marginTop: 48, display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 40, alignItems: "center" }}>
             <div>
               <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 8, boxShadow: "0 30px 70px rgba(0,0,0,0.5), 0 0 60px rgba(139,92,246,0.12)" }}>
-                <img src="/fidelidade.png" alt="Fidelidade e ranking de clientes no Nexus 360" style={{ width: "100%", borderRadius: 10, display: "block" }} />
+                <img src="/dashboard.png" alt="Painel do Nexus 360 no computador" style={{ width: "100%", borderRadius: 10, display: "block" }} />
               </div>
-              <div style={{ marginTop: 20, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 14, padding: "18px 22px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#6EE7B7", textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 8 }}>Em operação real</div>
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 1.6 }}>
-                  O Nexus 360 roda diariamente em uma farmácia de Palmas, com base de clientes real, fidelidade ativa e campanhas de reativação em uso.
-                </p>
+              <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14, textAlign: "center" }}>No computador, na loja ou no escritório</p>
+            </div>
+            <div style={{ maxWidth: 220, margin: "0 auto" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 26, padding: 8, boxShadow: "0 30px 70px rgba(0,0,0,0.5), 0 0 60px rgba(99,102,241,0.14)" }}>
+                <img src="/dashboard-mobile.png" alt="Painel do Nexus 360 no celular" style={{ width: "100%", borderRadius: 18, display: "block" }} />
               </div>
+              <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14, textAlign: "center" }}>E no celular, de qualquer lugar</p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 40, maxWidth: 640, margin: "40px auto 0" }}>
+            <div style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 14, padding: "18px 22px" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "#6EE7B7", textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 8 }}>Em operação real</div>
+              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 1.6 }}>
+                O Nexus 360 roda diariamente em uma farmácia de Palmas, com base de clientes real, fidelidade ativa e campanhas de reativação em uso todos os dias.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ============ PACOTES ============ */}
-      <section id="pacotes" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
+      {/* ============ PREÇO ============ */}
+      <section id="contato" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
         <Grid o={0.35} />
-        <div style={{ maxWidth: 1160, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 60 }}>
-            <p style={S.eyebrow}>Pacotes e preços</p>
-            <h2 style={{ ...S.h2, marginBottom: 14 }}>Preço fechado, sem letra miúda</h2>
-            <p style={{ ...S.dim, fontSize: 16 }}>Comece pelo avulso e suba para o mensal só se fizer sentido para você</p>
-          </div>
+        <div style={{ maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 4, textAlign: "center" }}>
+          <p style={S.eyebrow}>Investimento</p>
+          <h2 style={{ ...S.h2, fontSize: "clamp(24px,3.4vw,34px)", marginBottom: 40 }}>Um plano só, sistema completo</h2>
 
-          <div className="grid g-pac">
-            {PACOTES.map(p => (
-              <div key={p.nome} className="lift reveal" style={{
-                ...S.card,
-                display: "flex", flexDirection: "column",
-                padding: "32px 26px",
-                background: p.destaque ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.025)",
-                borderColor: p.destaque ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.07)",
-                boxShadow: p.destaque ? "0 0 60px rgba(59,130,246,0.12)" : "none",
-                position: "relative",
-              }}>
-                {p.destaque && (
-                  <div style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#3B82F6,#2563EB)", fontSize: 10.5, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", padding: "5px 14px", borderRadius: 100, whiteSpace: "nowrap" }}>
-                    Mais escolhido
-                  </div>
-                )}
-                <div style={{ fontSize: 10.5, color: p.destaque ? "#93C5FD" : "rgba(255,255,255,0.35)", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 12 }}>{p.tag}</div>
-                <h3 style={{ fontSize: 23, fontWeight: 900, letterSpacing: -0.6, marginBottom: 8 }}>{p.nome}</h3>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13.5, lineHeight: 1.5, marginBottom: 20, minHeight: 40 }}>{p.desc}</p>
+          <div className="reveal lift" style={{ ...S.card, padding: "40px 36px", background: "rgba(99,102,241,0.07)", borderColor: "rgba(99,102,241,0.3)", boxShadow: "0 0 60px rgba(99,102,241,0.12)" }}>
+            <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -1.6, lineHeight: 1 }}>R$ 397<span style={{ fontSize: 17, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>/mês</span></div>
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13.5, marginTop: 10, marginBottom: 26 }}>+ R$ 100/mês da API do WhatsApp (Z-API, contratada à parte, direto com eles)</div>
 
-                <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: -1.6, lineHeight: 1 }}>{p.preco}</div>
-                <div style={{ color: "rgba(255,255,255,0.32)", fontSize: 13, marginTop: 6, marginBottom: 24 }}>{p.periodo}</div>
-
-                <div style={{ display: "grid", gap: 11, marginBottom: 24 }}>
-                  {p.itens.map(i => (
-                    <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <div style={{ marginTop: 2, flexShrink: 0 }}>{Ico.check}</div>
-                      <span style={{ color: "rgba(255,255,255,0.62)", fontSize: 13.8, lineHeight: 1.45 }}>{i}</span>
-                    </div>
-                  ))}
+            <div style={{ display: "grid", gap: 11, marginBottom: 28, textAlign: "left" }}>
+              {["Sistema Nexus 360 completo", "Alerta de cliente inativo", "Campanhas de WhatsApp automáticas", "Fidelidade, ranking e indicação", "CRM, relatórios e integração com Bling", "Implantação com sua base já cadastrada"].map(i => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ marginTop: 2, flexShrink: 0 }}>{Ico.check}</div>
+                  <span style={{ color: "rgba(255,255,255,0.62)", fontSize: 13.8, lineHeight: 1.45 }}>{i}</span>
                 </div>
+              ))}
+            </div>
 
-                <div style={{ flex: 1 }} />
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.45, marginBottom: 18, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>{p.selo}</div>
-
-                <button onClick={() => pagarComCartao(p.chave)} disabled={checkoutCarregando === p.chave} className="btn" style={{
-                  display: "block", width: "100%", textAlign: "center", fontSize: 14.5, fontWeight: 700, padding: "13px", borderRadius: 10,
-                  background: p.destaque ? "linear-gradient(135deg,#3B82F6,#2563EB)" : "rgba(255,255,255,0.07)",
-                  color: "#fff", border: "none",
-                  boxShadow: p.destaque ? "0 8px 24px rgba(59,130,246,0.3)" : "none",
-                  cursor: checkoutCarregando === p.chave ? "default" : "pointer", opacity: checkoutCarregando === p.chave ? 0.6 : 1,
-                }}>
-                  {checkoutCarregando === p.chave ? "Abrindo pagamento..." : "ASSINAR"}
-                </button>
-                {checkoutErro?.chave === p.chave && (
-                  <div style={{ color: "#F87171", fontSize: 11.5, marginTop: 6, textAlign: "center" }}>{checkoutErro.msg}</div>
-                )}
-                <a href={`${WA}?text=${encodeURIComponent(`Oi! Tenho uma dúvida sobre o pacote ${p.nome} antes de assinar.`)}`} target="_blank" rel="noopener noreferrer" className="btn" style={{
-                  display: "block", textAlign: "center", textDecoration: "none", fontSize: 13, fontWeight: 600, padding: "11px", borderRadius: 10, marginTop: 8,
-                  background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)",
-                }}>
-                  Ficou com dúvida? Fala comigo →
-                </a>
-              </div>
-            ))}
+            <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ display: "block", background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 700, padding: "15px", borderRadius: 12, boxShadow: "0 8px 28px rgba(99,102,241,0.35)" }}>
+              Falar no WhatsApp →
+            </a>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 14 }}>Sem fidelidade · cancele quando quiser</p>
           </div>
         </div>
       </section>
@@ -528,18 +365,15 @@ export default function Home() {
             <h2 style={S.h2}>Sem risco para você</h2>
           </div>
           <div className="grid g-gar">
-            {GARANTIAS.map((g, idx) => (
+            {GARANTIAS.map((g) => (
               <div key={g.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: -30, right: -30, width: 90, height: 90, borderRadius: "50%", background: "rgba(59,130,246,.05)" }} />
+                <div style={{ position: "absolute", top: -30, right: -30, width: 90, height: 90, borderRadius: "50%", background: "rgba(99,102,241,.05)" }} />
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(52,211,153,.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>{Ico.checkG}</div>
                 <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 10 }}>{g.t}</h3>
                 <p style={{ ...S.dim, fontSize: 14 }}>{g.d}</p>
               </div>
             ))}
           </div>
-          <p style={{ textAlign: "center", marginTop: 36, color: "rgba(255,255,255,0.35)", fontSize: 15 }}>
-            Só trabalho com o que dá para medir. Se eu achar que um serviço não vai te dar retorno, eu falo antes de você pagar.
-          </p>
         </div>
       </section>
 
@@ -555,7 +389,7 @@ export default function Home() {
               <details key={f.q} className="reveal" style={{ ...S.card, padding: "20px 24px" }}>
                 <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, fontSize: 16, fontWeight: 700 }}>
                   {f.q}
-                  <span className="chev" style={{ color: "#3B82F6", fontSize: 20, lineHeight: 1, transition: "transform .2s ease", flexShrink: 0 }}>+</span>
+                  <span className="chev" style={{ color: "#818CF8", fontSize: 20, lineHeight: 1, transition: "transform .2s ease", flexShrink: 0 }}>+</span>
                 </summary>
                 <p style={{ ...S.dim, fontSize: 14.5, marginTop: 14 }}>{f.a}</p>
               </details>
@@ -565,17 +399,17 @@ export default function Home() {
       </section>
 
       {/* ============ CTA FINAL ============ */}
-      <section className="np" style={{ ...S.sec, padding: "110px 48px", textAlign: "center", background: "radial-gradient(ellipse 70% 100% at 50% 100%, rgba(59,130,246,0.1) 0%, transparent 70%)" }}>
+      <section className="np" style={{ ...S.sec, padding: "110px 48px", textAlign: "center", background: "radial-gradient(ellipse 70% 100% at 50% 100%, rgba(99,102,241,0.12) 0%, transparent 70%)" }}>
         <Grid o={0.4} />
         <div style={{ maxWidth: 680, margin: "0 auto", position: "relative", zIndex: 4 }}>
           <h2 style={{ fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 900, letterSpacing: -2.2, lineHeight: 1.06, marginBottom: 20 }}>
             Seus clientes estão<br />
-            <span style={{ background: "linear-gradient(90deg,#3B82F6,#8B5CF6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>esperando voltar</span>
+            <span style={{ background: "linear-gradient(90deg,#818CF8,#A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>esperando voltar</span>
           </h2>
           <p style={{ ...S.dim, fontSize: 17, marginBottom: 34 }}>
-            Me manda uma foto da fachada e o @ do seu Instagram. Em até 24 horas eu te devolvo, sem custo, três coisas que estão travando clientes de chegarem até você.
+            Me chama no WhatsApp e eu te mostro o sistema funcionando ao vivo, com seus próprios dados.
           </p>
-          <a href={WA_DIAG} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#3B82F6,#2563EB)", color: "#fff", textDecoration: "none", fontSize: 17.5, fontWeight: 700, padding: "18px 46px", borderRadius: 14, boxShadow: "0 8px 40px rgba(59,130,246,0.4)", display: "inline-block", marginBottom: 16 }}>
+          <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 17.5, fontWeight: 700, padding: "18px 46px", borderRadius: 14, boxShadow: "0 8px 40px rgba(99,102,241,0.4)", display: "inline-block", marginBottom: 16 }}>
             Falar no WhatsApp agora →
           </a>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>(63) 98106-2551 · resposta em até 24h · sem compromisso</p>
@@ -585,10 +419,10 @@ export default function Home() {
       {/* ============ FOOTER ============ */}
       <footer className="np" style={{ ...S.sec, padding: "40px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#3B82F6,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13 }}>N</div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: "rgba(255,255,255,0.55)" }}>NEXUS<span style={{ color: "#3B82F6" }}>360</span></span>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13 }}>N</div>
+          <span style={{ fontWeight: 700, fontSize: 15, color: "rgba(255,255,255,0.55)" }}>NEXUS<span style={{ color: "#818CF8" }}>360</span></span>
         </div>
-        <p style={{ color: "rgba(255,255,255,0.18)", fontSize: 12.5 }}>© 2026 Nexus 360 — Marketing e gestão para negócio local</p>
+        <p style={{ color: "rgba(255,255,255,0.18)", fontSize: 12.5 }}>© 2026 Nexus 360 — Sistema de gestão para negócio local</p>
         <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
           <a href={WA} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.32)", textDecoration: "none", fontSize: 13 }}>WhatsApp</a>
           <a href={IG} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.32)", textDecoration: "none", fontSize: 13 }}>@nexus360mkt</a>
@@ -596,7 +430,7 @@ export default function Home() {
         </div>
       </footer>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,#3B82F6,#8B5CF6)", zIndex: 100 }} />
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,#6366F1,#8B5CF6)", zIndex: 100 }} />
     </main>
   );
 }
