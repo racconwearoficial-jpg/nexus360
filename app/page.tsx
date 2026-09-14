@@ -593,6 +593,10 @@ export default function LandingPage() {
                   Gestão + CRM + WhatsApp + Automação + Fidelidade + IA
                 </div>
 
+                <div className="mt-3 text-[11px] text-slate-500">
+                  Integração com WhatsApp via Z-API: R$100/mês adicional
+                </div>
+
                 <ul className="mt-8 space-y-3 text-left text-sm text-slate-300 max-w-md mx-auto">
                   {[
                     "Acesso completo ao Dashboard com identificação de oportunidades",
