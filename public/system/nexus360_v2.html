@@ -9035,34 +9035,20 @@ let _wppNum = '';
 let _wppCampId = null;
 let _wppImagemDataUri = null;
 
-// Envia direto (Z-API quando conectado, sem abrir modal de revisão).
-// Se a Z-API não estiver conectada ou a chamada falhar, cai pro wa.me
-// como única alternativa possível nesse caso.
-async function wppAbrir(numero, msgPadrao, campId) {
-  const tel = (numero || '').replace(/\D/g, '');
-  const num = tel.startsWith('55') ? tel : '55' + tel;
-  const msg = (msgPadrao || '').trim();
-  if (!msg) { toast('Mensagem vazia', 'error'); return; }
-  if (!num) { toast('Número não identificado', 'error'); return; }
+function wppAbrir(numero, msgPadrao, campId) {
+  const tel  = (numero||'').replace(/\D/g,'');
+  _wppNum    = tel.startsWith('55') ? tel : '55'+tel;
+  _wppCampId = campId || null;
+  document.getElementById('wppMsgEdit').value = msgPadrao || '';
+  const btn = document.getElementById('btnConfirmarWpp');
+  if (btn) btn.textContent = _zapiConectado ? 'Enviar agora' : 'Abrir WhatsApp';
 
-  if (_zapiConectado) {
-    try {
-      const r = await fetch('/api/integracoes/zapi/enviar', {
-        method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_id: state.companyId, telefone: num, mensagem: msg }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
-      toast('Mensagem enviada pelo WhatsApp!', 'success');
-      if (campId) incrementarEnviado(campId);
-      return;
-    } catch (e) {
-      toast('Não consegui enviar pela API (' + e.message + ') — abrindo o link manual.', 'error', 6000);
-    }
-  }
+  wppRemoverImagem(); // limpa imagem de uma abertura anterior do modal
+  const imagemBox = document.getElementById('wppImagemBox');
+  if (imagemBox) imagemBox.style.display = _zapiConectado ? 'block' : 'none';
 
-  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
-  if (campId) incrementarEnviado(campId);
+  openModal('modalWpp');
+  setTimeout(() => document.getElementById('wppMsgEdit').focus(), 120);
 }
 
 function wppSelecionarImagem(file) {
