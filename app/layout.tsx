@@ -22,10 +22,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Nexus 360 — Gestão, CRM, WhatsApp & Fidelidade",
+  title: "Nexus 360 – Gestão, CRM, WhatsApp & Fidelidade",
   description: "Transforme clientes em vendas recorrentes. CRM, WhatsApp, automação, fidelidade e inteligência comercial em um só lugar.",
   icons: {
-    icon: "/next.svg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" }
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
