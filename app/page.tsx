@@ -7,7 +7,7 @@ import { useState } from "react";
 const WA = "https://wa.me/5563981062551";
 const WA_CONHECER = `${WA}?text=${encodeURIComponent("Olá! Gostaria de conhecer o Nexus 360 e ver uma demonstração prática.")}`;
 const WA_COMECAR = `${WA}?text=${encodeURIComponent("Olá! Quero começar agora com o Nexus 360 no meu negócio.")}`;
-const IG = "https://instagram.com/nexus360mkt";
+const IG = "https://instagram.com/nexus360app";
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<number>(0);
