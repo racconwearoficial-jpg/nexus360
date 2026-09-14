@@ -20,31 +20,31 @@ export default function LandingPage() {
   const productScreens = [
     {
       title: "Veja quem precisa da sua atenção",
-      subtitle: "Dashboard que detecta clientes inativos e sugere ações imediatas de venda.",
-      src: "/screenshots/nexus-dashboard-main.png",
-      badge: "Inteligência Comercial",
-      tag: "Oportunidades em tempo real"
+      subtitle: "Lista inteligente de clientes inativos com botão direto de WhatsApp para recuperação rápida.",
+      src: "/screenshots/nexus-clientes-atencao.png",
+      badge: "Clientes Inativos & Recuperação",
+      tag: "Ações imediatas de WhatsApp"
     },
     {
       title: "Transforme fidelidade em recorrência",
-      subtitle: "Programa de pontos, ranking de VIPs e resgate programado que faz o cliente voltar.",
-      src: "/screenshots/nexus-fidelidade-ranking.png",
-      badge: "Fidelidade & VIPs",
-      tag: "Gamificação de compras"
+      subtitle: "Ranking mensal, participantes ativos, premiação e controle de VIPs para incentivar recompra.",
+      src: "/screenshots/nexus-fidelidade-recorrencia.png",
+      badge: "Programa de Fidelidade & VIPs",
+      tag: "Gamificação comercial"
     },
     {
       title: "Automatize seu relacionamento",
-      subtitle: "CRM com filtros avançados e histórico completo pronto para réguas de WhatsApp.",
-      src: "/screenshots/nexus-clientes-crm.png",
-      badge: "CRM Estratégico",
-      tag: "Segmentação automática"
+      subtitle: "Criação e disparo de campanhas com mensagens personalizadas e rastreamento de receita gerada.",
+      src: "/screenshots/nexus-campanhas-relacionamento.png",
+      badge: "Campanhas de WhatsApp",
+      tag: "Automação e receita"
     },
     {
       title: "Tome decisões com seus dados",
-      subtitle: "Acompanhamento de faturamento, ticket médio e taxa de retorno sem planilhas complexas.",
-      src: "/screenshots/nexus-dashboard-main.png",
-      badge: "Métricas de Negócio",
-      tag: "Clareza operacional"
+      subtitle: "Visão geral completa com faturamento, ticket médio, gráfico de 7 dias e insights do negócio.",
+      src: "/screenshots/nexus-dashboard-visao-geral.png",
+      badge: "Métricas & Visão Geral",
+      tag: "Inteligência comercial 360"
     }
   ];
 
@@ -179,7 +179,7 @@ export default function LandingPage() {
               {/* Real System Screenshot */}
               <div className="relative aspect-[16/9] w-full bg-[#080B14]">
                 <Image
-                  src="/screenshots/nexus-dashboard-main.png"
+                  src="/screenshots/nexus-dashboard-visao-geral.png"
                   alt="Dashboard real do Nexus 360"
                   fill
                   priority
@@ -192,7 +192,7 @@ export default function LandingPage() {
             {/* Floating Micro-Badges */}
             <div className="absolute -bottom-6 left-4 sm:left-8 hidden md:flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0E1528]/95 border border-violet-500/30 shadow-xl backdrop-blur-md">
               <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-                254
+                258
               </div>
               <div className="text-left">
                 <div className="text-xs font-bold text-white">Clientes inativos identificados</div>
@@ -466,7 +466,7 @@ export default function LandingPage() {
                         ⚡
                       </div>
                       <div>
-                        <div className="text-base font-bold text-white">254 clientes inativos</div>
+                        <div className="text-base font-bold text-white">258 clientes inativos</div>
                         <div className="text-xs text-violet-300">Prontos para uma campanha de reativação</div>
                       </div>
                     </div>
