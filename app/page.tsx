@@ -137,7 +137,7 @@ export default function Home() {
     },
     {
       q: "Quanto custa o investimento?",
-      a: "Apenas R$ 397 por mês pelo sistema completo com todas as ferramentas de CRM, inteligência, fidelidade e automação. A API de WhatsApp (Z-API) é contratada à parte (R$ 100/mês diretamente com o provedor). Sem fidelidade ou taxas ocultas.",
+      a: "Apenas R$ 297 por mês pelo sistema completo com todas as ferramentas de CRM, inteligência, fidelidade e automação. A API de WhatsApp (Z-API) é contratada à parte (R$ 100/mês diretamente com o provedor). Sem fidelidade ou taxas ocultas.",
     },
   ];
 
@@ -770,7 +770,7 @@ export default function Home() {
 
               <div className="flex items-baseline justify-center gap-2">
                 <span className="text-2xl font-bold text-slate-400">R$</span>
-                <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">397</span>
+                <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">297</span>
                 <span className="text-slate-400 font-semibold text-lg">/mês</span>
               </div>
               <p className="mt-2 text-xs text-slate-400">
