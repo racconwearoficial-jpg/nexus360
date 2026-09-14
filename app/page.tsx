@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 const WA = "https://wa.me/5563981062551";
 const WA_CONHECER = `${WA}?text=${encodeURIComponent("Olá! Gostaria de conhecer o Nexus 360 e ver uma demonstração prática.")}`;
 const WA_COMECAR = `${WA}?text=${encodeURIComponent("Olá! Quero começar agora com o Nexus 360 no meu negócio.")}`;
-const IG = "https://instagram.com/nexus360mkt";
+const IG = "https://instagram.com/nexus360app";
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -585,7 +585,7 @@ export default function LandingPage() {
 
                 <div className="mt-6 flex items-baseline justify-center gap-2">
                   <span className="text-slate-400 text-xl font-medium">R$</span>
-                  <span className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight">397</span>
+                  <span className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight">297</span>
                   <span className="text-slate-400 text-sm font-normal">/mês</span>
                 </div>
 
