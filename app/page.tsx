@@ -191,7 +191,7 @@ export default function LandingPage() {
               </div>
 
               {/* LCP Otimizado com WebP e tamanhos responsivos */}
-              <div className="relative aspect-[16/9] w-full bg-[#080B14]">
+              <div className="relative aspect-[1920/900] w-full bg-[#080B14]">
                 <Image
                   src="/screenshots/nexus-dashboard-visao-geral.webp"
                   alt="Dashboard real do Nexus 360"
@@ -199,7 +199,7 @@ export default function LandingPage() {
                   priority
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 95vw, 1200px"
                   className="object-cover object-top"
-                  quality={82}
+                  quality={95}
                 />
               </div>
             </div>
@@ -400,7 +400,7 @@ export default function LandingPage() {
               </div>
 
               {/* Screenshot Display Otimizado em WebP */}
-              <div className="relative aspect-[16/9] w-full bg-[#05070D]">
+              <div className="relative aspect-[1920/900] w-full bg-[#05070D]">
                 <Image
                   src={productScreens[activeTab].src}
                   alt={productScreens[activeTab].title}
@@ -408,7 +408,7 @@ export default function LandingPage() {
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 95vw, 1200px"
                   className="object-cover object-top"
                   loading="lazy"
-                  quality={82}
+                  quality={95}
                 />
               </div>
 
