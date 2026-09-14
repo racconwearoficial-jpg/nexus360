@@ -1,95 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const WA = "https://wa.me/5563981062551";
-const WA_DEMO = `${WA}?text=${encodeURIComponent("Oi! Quero ver o sistema Nexus 360 funcionando.")}`;
+const WA_DEMO = `${WA}?text=${encodeURIComponent("Olá! Gostaria de conhecer o Nexus 360 e ver uma demonstração prática.")}`;
+const WA_START = `${WA}?text=${encodeURIComponent("Olá! Quero começar a usar o Nexus 360 no meu negócio.")}`;
 const IG = "https://instagram.com/nexus360mkt";
 
-/* ============ ícones ============ */
-const Ico = {
-  bell: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  chat: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 8.5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4H9l-4.5 3.2V17.4A4 4 0 0 1 3 13.5v-5Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
-  star: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="m12 3.4 2.6 5.4 5.9.85-4.3 4.15 1.03 5.9L12 16.9l-5.23 2.8L7.8 13.8 3.5 9.65l5.9-.85L12 3.4Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
-  chart: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.6" stroke={c} strokeWidth="1.8"/><path d="M7.4 15.6V11M12 15.6V8.4M16.6 15.6v-3" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  megaphone: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9.6h3.4L14.6 5v14l-7.2-4.6H4a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M18 9.4a4 4 0 0 1 0 5.2" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  funnel: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 5h16l-6 8v6l-4-2v-4L4 5Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/></svg>,
-  gift: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.4" y="9.4" width="17.2" height="11.2" rx="1.6" stroke={c} strokeWidth="1.8"/><path d="M3.4 9.4h17.2V6.6a1.4 1.4 0 0 0-1.4-1.4H4.8a1.4 1.4 0 0 0-1.4 1.4v2.8Z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M12 5.2v15.4" stroke={c} strokeWidth="1.8"/><path d="M12 5.2c0-1.9-1.6-3.4-3.4-2.6-1.8.8-1.3 2.6 1 2.6H12ZM12 5.2c0-1.9 1.6-3.4 3.4-2.6 1.8.8 1.3 2.6-1 2.6H12Z" stroke={c} strokeWidth="1.6" strokeLinejoin="round"/></svg>,
-  link: (c: string) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9.5 14.5 14.5 9.5" stroke={c} strokeWidth="1.8" strokeLinecap="round"/><path d="M11 6.5 12.6 5a4 4 0 0 1 5.6 5.6l-1.5 1.6M13 17.5 11.4 19a4 4 0 0 1-5.6-5.6l1.5-1.6" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
-  check: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#818CF8" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-  checkG: <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="#34D399" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-};
-
-/* ============ textura de fundo ============ */
-const Grid = ({ o = 0.35 }: { o?: number }) => (
-  <svg aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: o, pointerEvents: "none" }}>
-    <defs>
-      <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse">
-        <circle cx="1.4" cy="1.4" r="1.4" fill="rgba(255,255,255,0.05)" />
-      </pattern>
-      <radialGradient id="fade" cx="50%" cy="50%" r="60%">
-        <stop offset="0%" stopColor="#fff" stopOpacity="1" />
-        <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-      </radialGradient>
-      <mask id="m"><rect width="100%" height="100%" fill="url(#fade)" /></mask>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#dots)" mask="url(#m)" />
-  </svg>
-);
-
-/* ============ dados ============ */
-const PROBLEMAS = [
-  { n: "01", t: "Cliente some e ninguém percebe", d: "Sem alerta automático, quem parou de comprar vira só mais um nome esquecido na lista — até você lembrar, ele já é cliente de outro lugar." },
-  { n: "02", t: "Cada atendente lembra do seu jeito", d: "Sem histórico central, quem atende hoje não sabe o que quem atendeu ontem já combinou com o cliente." },
-  { n: "03", t: "A campanha de reativação nunca sai do papel", d: "Sem automação, mandar mensagem pra quem sumiu depende de alguém lembrar — e ninguém lembra todo dia." },
-  { n: "04", t: "Todo cliente recebe o mesmo tratamento", d: "Sem ranking nem pontos, quem compra toda semana é tratado igual a quem veio uma vez e nunca mais voltou." },
-];
-
-const RECURSOS = [
-  { i: Ico.bell, c: "#818CF8", t: "Alerta de cliente inativo", d: "O sistema marca sozinho quem passou do prazo sem comprar — o diferencial que a maioria dos concorrentes não tem." },
-  { i: Ico.chat, c: "#34D399", t: "Campanhas de WhatsApp automáticas", d: "Escolhe o público — ativos, inativos, VIP, aniversariantes — e o sistema dispara sozinho, dentro do limite seguro." },
-  { i: Ico.star, c: "#FCD34D", t: "Fidelidade com pontos e ranking", d: "Cada compra pontua, o cliente disputa posição no ranking do mês e resgata prêmio que você define." },
-  { i: Ico.funnel, c: "#A78BFA", t: "CRM e funil de vendas", d: "Acompanha a negociação do primeiro contato até o fechamento, com lembrete de follow-up." },
-  { i: Ico.gift, c: "#F472B6", t: "Programa de indicação", d: "Cliente indica um amigo, os dois ganham — você cresce sem gastar em anúncio." },
-  { i: Ico.chart, c: "#818CF8", t: "Relatórios em tempo real", d: "Faturamento, ticket médio, vendas do dia — atualizado sozinho, sem planilha." },
-  { i: Ico.link, c: "#34D399", t: "Integração com Bling", d: "Estoque e vendas do seu ERP sincronizados automaticamente, sem digitar duas vezes." },
-  { i: Ico.megaphone, c: "#FCD34D", t: "Chatbot no WhatsApp", d: "Responde promoção ativa e dúvida simples sozinho, sem tirar o time do atendimento real." },
-];
-
-const PASSOS = [
-  { n: "01", t: "Você manda sua base de clientes", d: "Telefone e histórico de compra — eu cadastro tudo pra você, sem trabalho manual." },
-  { n: "02", t: "O sistema começa a rastrear sozinho", d: "Quem comprou, quando foi a última vez, quem tá perto de virar inativo." },
-  { n: "03", t: "As campanhas certas saem no automático", d: "Reativação, aniversário, pontos a resgatar — o sistema dispara pro público certo, na hora certa." },
-  { n: "04", t: "Você acompanha tudo num painel só", d: "No celular ou no computador, sem precisar abrir três telas diferentes." },
-];
-
-const GARANTIAS = [
-  { t: "Sem fidelidade", d: "Avisou, cancela no fim do mês corrente. Sem multa e sem contrato longo." },
-  { t: "Seus dados são seus", d: "Sua base de clientes e o histórico de vendas: tudo no seu nome, e você exporta quando quiser." },
-  { t: "WhatsApp conectado no seu número", d: "O disparo automático usa uma API própria ligada ao seu número — nunca ao meu." },
-  { t: "Implantação com sua base pronta", d: "Eu cadastro seus clientes atuais pra você começar já usando, sem digitar do zero." },
-];
-
-const FAQ = [
-  { q: "Preciso trocar meu sistema de estoque ou PDV?", a: "Não. O Nexus 360 complementa: integra com o Bling se você já usa, ou funciona sozinho cadastrando as vendas na mão." },
-  { q: "É difícil de usar?", a: "Não. As telas são simples e eu cadastro sua base inicial. Funciona no celular e no computador." },
-  { q: "O WhatsApp automático usa meu número?", a: "Sim, conectado via API própria ligada ao seu WhatsApp — a conta continua sua, nunca passa pelo meu número." },
-  { q: "Meus dados ficam seguros?", a: "Sim. Cada negócio tem a própria base isolada — ninguém mais enxerga seus clientes ou suas vendas." },
-  { q: "Preciso ter CNPJ?", a: "Não. O sistema funciona também com negócio informal." },
-  { q: "Quanto custa?", a: "R$ 397 por mês pelo sistema completo, mais R$ 100 por mês da API do WhatsApp (Z-API), contratada direto com eles. Sem fidelidade." },
-];
-
-/* ============ estilos ============ */
-const S = {
-  eyebrow: { fontSize: 12, color: "#A5B4FC", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 2, marginBottom: 16 },
-  h2: { fontSize: "clamp(28px, 4.4vw, 46px)", fontWeight: 900, letterSpacing: -1.6, lineHeight: 1.12 },
-  card: { background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20 },
-  sec: { position: "relative" as const, zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.05)", overflow: "hidden" as const },
-  dim: { color: "rgba(255,255,255,0.45)", lineHeight: 1.7 },
+/* ============ Ícones SVG inline otimizados ============ */
+const Icons = {
+  check: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0 text-emerald-400">
+      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  arrowRight: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  sparkles: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-violet-400">
+      <path d="m12 3 1.9 4.9L18.8 9.8l-4.9 1.9L12 16.6l-1.9-4.9-4.9-1.9 4.9-1.9L12 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z" stroke="currentColor" strokeWidth="1.6"/>
+    </svg>
+  ),
+  crm: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-blue-400">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  ),
+  whatsapp: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-emerald-400">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M9.5 9c.3-.3.6-.3.9 0l1.2 1.5c.2.2.2.5 0 .7l-.6.6c.4.8 1.1 1.5 1.9 1.9l.6-.6c.2-.2.5-.2.7 0l1.5 1.2c.3.3.3.6 0 .9-.5.5-1.2.7-1.9.5-2.6-.7-4.7-2.8-5.4-5.4-.2-.7 0-1.4.5-1.9Z" fill="currentColor"/>
+    </svg>
+  ),
+  campaigns: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-indigo-400">
+      <path d="M4 9.6h3.4L14.6 5v14l-7.2-4.6H4a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M18 9.4a4 4 0 0 1 0 5.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M20.5 7a7 7 0 0 1 0 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  ),
+  loyalty: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber-400">
+      <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+    </svg>
+  ),
+  automation: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-purple-400">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
+    </svg>
+  ),
+  ai: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-fuchsia-400">
+      <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M9 9h6v6H9z" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  ),
+  reports: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-cyan-400">
+      <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  integrations: (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-sky-400">
+      <rect x="2" y="2" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+      <rect x="14" y="2" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+      <rect x="2" y="14" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M6 10v4M14 6h-4M18 10v4M14 18h-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <rect x="14" y="14" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+    </svg>
+  ),
+  alert: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-amber-400">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+      <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
 };
 
 export default function Home() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");
     const io = new IntersectionObserver(
@@ -101,158 +101,259 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
     els.forEach((el, i) => {
-      (el as HTMLElement).style.transitionDelay = `${(i % 4) * 70}ms`;
+      (el as HTMLElement).style.transitionDelay = `${(i % 5) * 80}ms`;
       io.observe(el);
     });
     return () => io.disconnect();
   }, []);
 
+  const faqs = [
+    {
+      q: "O Nexus substitui meu sistema atual?",
+      a: "Não necessariamente. O Nexus 360 funciona como o motor de relacionamento e inteligência comercial que seu ERP ou PDV não possui. Ele pode operar integrado ao Bling ou de forma autônoma registrando as vendas e clientes de maneira simples e rápida.",
+    },
+    {
+      q: "O Nexus funciona com WhatsApp?",
+      a: "Sim! A automação e campanhas são enviadas diretamente pelo seu próprio WhatsApp empresarial através de conexão oficial via API. O número permanece sob seu controle total.",
+    },
+    {
+      q: "Preciso instalar algum programa?",
+      a: "Não. O Nexus 360 é 100% em nuvem e responsivo. Você acessa direto pelo navegador no computador, tablet ou celular, de qualquer lugar, sem necessidade de servidores locais.",
+    },
+    {
+      q: "Quais negócios podem usar o Nexus?",
+      a: "Qualquer empresa que atenda clientes com potencial de recorrência: farmácias e drogarias, pet shops e clínicas veterinárias, salões e barbearias, clínicas de estética e saúde, óticas, autopeças e lojas do varejo local.",
+    },
+    {
+      q: "Como funciona a fidelidade?",
+      a: "A cada compra, o cliente acumula pontos automaticamente com base nas regras que você definir. O sistema calcula saldo, ranking dos melhores clientes (VIP) e envia lembretes para estimular o resgate e a volta à sua loja.",
+    },
+    {
+      q: "Como funciona a automação?",
+      a: "O Nexus monitora seus dados 24h por dia. Quando detecta que um cliente não compra há mais de 30 dias, faz aniversário, ou concluiu um ciclo de compra, ele aciona réguas personalizadas de WhatsApp para engajar o cliente no momento certo.",
+    },
+    {
+      q: "Quanto custa o investimento?",
+      a: "Apenas R$ 397 por mês pelo sistema completo com todas as ferramentas de CRM, inteligência, fidelidade e automação. A API de WhatsApp (Z-API) é contratada à parte (R$ 100/mês diretamente com o provedor). Sem fidelidade ou taxas ocultas.",
+    },
+  ];
+
   return (
-    <main style={{ position: "relative", background: "#04060F", color: "#fff", minHeight: "100vh", fontFamily: "'DM Sans', system-ui, sans-serif", overflowX: "hidden" }}>
-      <style>{`
-        .np{padding-left:48px;padding-right:48px}
-        .btn{transition:transform .15s ease, box-shadow .15s ease}
-        .btn:hover{transform:translateY(-2px)}
-        .lift{transition:transform .18s ease, border-color .18s ease}
-        .lift:hover{transform:translateY(-3px);border-color:rgba(129,140,248,.32)}
-        details>summary{list-style:none;cursor:pointer}
-        details>summary::-webkit-details-marker{display:none}
-        details[open] .chev{transform:rotate(45deg)}
-        .grid{display:grid;gap:18px}
-        .g-rec{grid-template-columns:repeat(4,1fr)}
-        .g-passos{grid-template-columns:repeat(4,1fr)}
-        .g-gar{grid-template-columns:repeat(2,1fr)}
-        .g-prob{grid-template-columns:repeat(2,1fr)}
-        @media (max-width:1120px){ .g-rec{grid-template-columns:repeat(2,1fr)} .g-passos{grid-template-columns:repeat(2,1fr)} }
-        @media (max-width:660px){ .g-rec,.g-gar,.g-prob,.g-passos{grid-template-columns:1fr} }
-        @media (max-width:820px){ .g-telas{grid-template-columns:1fr!important} }
-        .float{position:absolute;z-index:3}
-        @media (max-width:900px){ .float{display:none} }
-        @media (max-width:720px){ .np{padding-left:20px;padding-right:20px} .hide-sm{display:none} }
-        .bg-photo{
-          position:fixed; inset:0; pointer-events:none; z-index:-1;
-          background-image:url(/hero-bg.png);
-          background-size:cover; background-position:top center; background-repeat:no-repeat;
-          animation: bgPan 22s ease-in-out infinite alternate;
-          will-change: transform;
-        }
-        @keyframes bgPan {
-          0%   { transform: scale(1) translate3d(0,0,0); }
-          100% { transform: scale(1.14) translate3d(-1.5%,-1.5%,0); }
-        }
-        .bg-overlay{
-          position:fixed; inset:0; pointer-events:none; z-index:0;
-          background-image:linear-gradient(180deg, rgba(4,6,15,.55) 0%, rgba(4,6,15,.75) 40%, #04060F 85%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(99,102,241,0.14) 0%, transparent 60%);
-          background-size:cover, auto;
-          background-position:center, center;
-          background-repeat:no-repeat, no-repeat;
-        }
-        @media (max-width:900px){
-          .bg-photo, .bg-overlay{ position:absolute; height:100vh }
-        }
-        @media (prefers-reduced-motion: reduce){ .bg-photo{ animation:none } }
-        .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)}
-        .reveal.revealed{opacity:1; transform:translateY(0)}
-        @media (prefers-reduced-motion: reduce){ .reveal{opacity:1; transform:none; transition:none} }
-      `}</style>
+    <div className="relative min-h-screen bg-[#04060F] text-slate-100 font-sans selection:bg-indigo-600 selection:text-white overflow-x-hidden">
+      {/* Background Glows e Texturas Ambientais */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-indigo-600/18 via-violet-600/10 to-transparent blur-[140px] rounded-full" />
+        <div className="absolute top-[28%] -left-60 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full" />
+        <div className="absolute top-[55%] -right-60 w-[700px] h-[700px] bg-purple-600/10 blur-[160px] rounded-full" />
+        <div className="absolute top-[80%] left-1/3 w-[800px] h-[600px] bg-indigo-600/10 blur-[150px] rounded-full" />
+        {/* Subtle grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+      </div>
 
-      <div className="bg-photo" />
-      <div className="bg-overlay" />
+      {/* ================= HEADER / NAVBAR ================= */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#04060F]/80 border-b border-white/[0.07] transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-purple-500 p-[1px] shadow-lg shadow-indigo-600/25 group-hover:shadow-indigo-500/40 transition-shadow">
+              <div className="w-full h-full bg-[#080B14] rounded-[11px] flex items-center justify-center font-black text-lg text-white">
+                N
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-xl tracking-tight text-white flex items-center">
+                Nexus<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">360</span>
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium -mt-1">
+                Inteligência Comercial
+              </span>
+            </div>
+          </Link>
 
-      {/* ============ NAV ============ */}
-      <nav className="np" style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(4,6,15,0.82)", backdropFilter: "blur(12px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 17 }}>N</div>
-          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: -0.5 }}>NEXUS<span style={{ color: "#818CF8" }}>360</span></span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <a href="#recursos" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Recursos</a>
-          <a href="#como-funciona" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Como funciona</a>
-          <a href="#contato" className="hide-sm" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontSize: 14, padding: "8px 14px" }}>Preço</a>
-          <Link href="/login" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 14, fontWeight: 600, padding: "9px 16px", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 9 }}>Entrar no sistema</Link>
-          <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "#6366F1", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 9 }}>Ver demonstração</a>
-        </div>
-      </nav>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a>
+            <a href="#dashboard" className="hover:text-white transition-colors">O Sistema</a>
+            <a href="#funcionalidades" className="hover:text-white transition-colors">Recursos</a>
+            <a href="#whatsapp" className="hover:text-white transition-colors">WhatsApp & IA</a>
+            <a href="#preco" className="hover:text-white transition-colors">Planos</a>
+            <a href="#faq" className="hover:text-white transition-colors">Dúvidas</a>
+          </nav>
 
-      {/* ============ HERO ============ */}
-      <section className="np" style={{ position: "relative", zIndex: 10, textAlign: "center", padding: "84px 48px 72px", overflow: "hidden" }}>
-        <Grid o={0.5} />
-        <div style={{ position: "relative", zIndex: 4 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 30 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#818CF8" }} />
-            <span style={{ fontSize: 13, color: "#A5B4FC", fontWeight: 600 }}>Sistema de gestão e recorrência para negócio local</span>
-          </div>
-
-          <h1 style={{ fontSize: "clamp(38px, 6.2vw, 76px)", fontWeight: 900, lineHeight: 1.04, letterSpacing: -2.6, maxWidth: 900, margin: "0 auto 22px" }}>
-            Seu negócio nunca mais<br />perde cliente por{" "}
-            <span style={{ background: "linear-gradient(90deg,#818CF8,#A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>esquecimento</span>
-          </h1>
-
-          <p style={{ fontSize: 18, ...S.dim, maxWidth: 560, margin: "0 auto 36px" }}>
-            O Nexus 360 guarda cada cliente, avisa quando alguém some e <strong style={{ color: "#fff", fontWeight: 600 }}>dispara a campanha de volta sozinho</strong>, direto no seu WhatsApp.
-          </p>
-
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
-            <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 16.5, fontWeight: 700, padding: "16px 36px", borderRadius: 12, boxShadow: "0 8px 32px rgba(99,102,241,0.35)" }}>
-              Ver o sistema funcionando →
-            </a>
-            <a href="#recursos" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 16.5, fontWeight: 600, padding: "16px 36px", borderRadius: 12 }}>
-              Ver o que o sistema faz
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-lg hover:bg-white/[0.05] transition-colors"
+            >
+              Entrar
+            </Link>
+            <a
+              href={WA_DEMO}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all border border-indigo-400/30"
+            >
+              Conheça o Nexus 360
             </a>
           </div>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", marginBottom: 56 }}>Sem compromisso. Demonstração gratuita com seus próprios dados.</p>
+        </div>
+      </header>
 
-          {/* mockup + cartões flutuantes */}
-          <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
-            <div className="float" style={{ top: -22, left: -34, background: "rgba(11,17,25,.92)", border: "1px solid rgba(52,211,153,.3)", borderRadius: 14, padding: "13px 16px", boxShadow: "0 20px 50px rgba(0,0,0,.6)", backdropFilter: "blur(8px)", textAlign: "left" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(52,211,153,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>{Ico.checkG}</div>
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>Alerta de cliente inativo</div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.35)" }}>avisa quem parou de voltar</div>
-                </div>
+      {/* ================= HERO SECTION ================= */}
+      <section className="relative z-10 pt-16 sm:pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        {/* Badge superior */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs sm:text-sm font-semibold tracking-wide mb-8 backdrop-blur-md shadow-sm">
+          {Icons.sparkles}
+          <span>SISTEMA DE GESTÃO & INTELIGÊNCIA COMERCIAL</span>
+        </div>
+
+        {/* Headline Principal */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] max-w-5xl mx-auto">
+          Transforme seus clientes em{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-300 to-purple-400">
+            vendas recorrentes
+          </span>
+        </h1>
+
+        {/* Subheadline */}
+        <p className="mt-6 sm:mt-8 text-lg sm:text-2xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+          CRM, WhatsApp, automação, fidelidade e inteligência comercial em um só lugar.
+        </p>
+
+        {/* CTAs */}
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5">
+          <a
+            href={WA_DEMO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-xl shadow-indigo-600/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 active:translate-y-0 transition-all border border-indigo-400/30"
+          >
+            <span>Conheça o Nexus 360</span>
+            {Icons.arrowRight}
+          </a>
+          <a
+            href="#como-funciona"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base sm:text-lg font-semibold text-slate-200 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 transition-all backdrop-blur-sm"
+          >
+            Ver como funciona
+          </a>
+        </div>
+
+        {/* Apresentação do Produto Real - Mockup do Dashboard */}
+        <div className="mt-16 sm:mt-20 relative max-w-6xl mx-auto">
+          {/* Glow traseiro da imagem */}
+          <div className="absolute -inset-4 bg-gradient-to-r from-indigo-600/30 via-violet-600/20 to-purple-600/30 rounded-3xl blur-2xl opacity-70 pointer-events-none" />
+
+          <div className="relative rounded-2xl p-2 sm:p-3 bg-[#0B1020]/90 border border-white/[0.12] shadow-2xl backdrop-blur-xl">
+            {/* Header da janela simulada */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06] mb-2 bg-[#070B16] rounded-xl text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                <span className="ml-2 font-mono text-[11px] text-slate-500 hidden sm:inline">nexus360.app.br/dashboard</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-medium text-emerald-400 text-[11px]">Sistema em Operação</span>
               </div>
             </div>
 
-            <div className="float" style={{ top: 90, right: -40, background: "rgba(11,17,25,.92)", border: "1px solid rgba(139,92,246,.32)", borderRadius: 14, padding: "13px 16px", boxShadow: "0 20px 50px rgba(0,0,0,.6)", backdropFilter: "blur(8px)", textAlign: "left" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(139,92,246,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>{Ico.star("#C4B5FD")}</div>
+            {/* Imagem real do sistema */}
+            <div className="relative overflow-hidden rounded-xl group">
+              <img
+                src="/dashboard.png"
+                alt="Painel do Nexus 360 mostrando gestão de clientes, métricas comerciais e automações"
+                className="w-full h-auto object-cover rounded-xl shadow-inner border border-white/[0.05]"
+              />
+
+              {/* Badges flutuantes destacando inteligência real */}
+              <div className="hidden lg:flex absolute bottom-8 left-8 p-4 rounded-xl bg-[#090E1D]/90 border border-indigo-500/40 backdrop-blur-md shadow-2xl items-center gap-4 text-left max-w-sm animate-fade-in">
+                <div className="w-12 h-12 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                  {Icons.alert}
+                </div>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>Fidelidade com pontos</div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.35)" }}>e ranking de clientes</div>
+                  <div className="text-xs uppercase tracking-wider text-indigo-300 font-bold">Oportunidade Detectada</div>
+                  <div className="text-sm font-semibold text-white">254 clientes inativos prontos para reativação</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Disparo automatizado via WhatsApp</div>
+                </div>
+              </div>
+
+              <div className="hidden lg:flex absolute top-16 right-8 p-4 rounded-xl bg-[#090E1D]/90 border border-violet-500/40 backdrop-blur-md shadow-2xl items-center gap-3 text-left animate-fade-in">
+                <div className="w-10 h-10 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0 text-violet-300">
+                  {Icons.loyalty}
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-violet-300 font-bold">Programa Fidelidade</div>
+                  <div className="text-sm font-semibold text-white">Ranking VIP & Pontos Automáticos</div>
                 </div>
               </div>
             </div>
-
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 8, boxShadow: "0 40px 90px rgba(0,0,0,0.55), 0 0 70px rgba(99,102,241,0.14)", position: "relative", zIndex: 2 }}>
-              <img src="/dashboard.png" alt="Painel do sistema Nexus 360" style={{ width: "100%", borderRadius: 10, display: "block" }} />
-            </div>
-            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14 }}>Painel real do Nexus 360, em uso todo dia</p>
           </div>
         </div>
       </section>
 
-      {/* ============ PROBLEMA ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ ...S.eyebrow, color: "#FCA5A5" }}>O buraco no seu caixa</p>
-            <h2 style={{ ...S.h2, marginBottom: 14 }}>Sem sistema, a gestão<br />vira memória e planilha</h2>
-            <p style={{ ...S.dim, fontSize: 16.5, maxWidth: 560, margin: "0 auto" }}>
-              Quase nunca é falta de cliente. É cliente que já comprou de você e sumiu sem que ninguém percebesse.
+      {/* ================= SEÇÃO: O PROBLEMA ================= */}
+      <section className="relative z-10 py-24 border-t border-white/[0.06] bg-[#060914]/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">O Gargalo do Negócio Local</span>
+            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              Seus clientes já estão aí. O problema é transformar relacionamento em novas vendas.
+            </h2>
+            <p className="mt-4 text-base sm:text-lg text-slate-400">
+              A maioria dos negócios atende bem no balcão, mas não possui nenhuma rotina para fazer o cliente voltar.
             </p>
           </div>
 
-          <div className="grid g-prob">
-            {PROBLEMAS.map(p => (
-              <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "22px 22px", background: "rgba(239,68,68,0.035)", borderColor: "rgba(239,68,68,0.13)", display: "flex", gap: 16 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: "rgba(239,68,68,0.7)", flexShrink: 0, paddingTop: 2 }}>{p.n}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: "Clientes que compram e somem",
+                desc: "Centenas de clientes compraram uma vez e nunca mais voltaram, sem que ninguém no seu negócio perceba o abandono.",
+                badge: "Perda silenciosa",
+                border: "border-rose-500/20 hover:border-rose-500/40",
+                badgeColor: "bg-rose-500/10 text-rose-400",
+              },
+              {
+                title: "Clientes esquecidos",
+                desc: "Sem alertas automáticos, o contato só acontece quando o cliente lembra de você, e não quando ele precisa do seu produto.",
+                badge: "Falta de contato",
+                border: "border-amber-500/20 hover:border-amber-500/40",
+                badgeColor: "bg-amber-500/10 text-amber-400",
+              },
+              {
+                title: "Campanhas sem segmentação",
+                desc: "Disparar a mesma mensagem para todo mundo no WhatsApp cansa sua base, gera bloqueios e traz pouco retorno financeiro.",
+                badge: "Disparos cegos",
+                border: "border-purple-500/20 hover:border-purple-500/40",
+                badgeColor: "bg-purple-500/10 text-purple-400",
+              },
+              {
+                title: "Informações espalhadas",
+                desc: "Nomes em papel, números no celular do atendente e vendas no PDV. Dados desconectados não geram inteligência de vendas.",
+                badge: "Caos de dados",
+                border: "border-blue-500/20 hover:border-blue-500/40",
+                badgeColor: "bg-blue-500/10 text-blue-400",
+              },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className={`p-6 rounded-2xl bg-[#090E1D] border ${item.border} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl shadow-black/40 flex flex-col justify-between`}
+              >
                 <div>
-                  <h3 style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 7, lineHeight: 1.3 }}>{p.t}</h3>
-                  <p style={{ ...S.dim, fontSize: 13.8 }}>{p.d}</p>
+                  <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-semibold ${item.badgeColor} mb-4`}>
+                    {item.badge}
+                  </span>
+                  <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -260,177 +361,568 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ RECURSOS ============ */}
-      <section id="recursos" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
-        <Grid o={0.35} />
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={S.eyebrow}>O que o sistema faz</p>
-            <h2 style={{ ...S.h2, marginBottom: 14 }}>Tudo o que seu negócio<br />precisa, num painel só</h2>
-            <p style={{ ...S.dim, fontSize: 16 }}>Sem planilha, sem caderno, sem depender de lembrar</p>
-          </div>
+      {/* ================= SEÇÃO: COMO O NEXUS FUNCIONA (FLUXO) ================= */}
+      <section id="como-funciona" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#040711]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-violet-400">Ciclo de Inteligência Comercial</span>
+          <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-3xl mx-auto">
+            O Nexus não é só um banco de clientes. Ele transforma dados em ações que vendem.
+          </h2>
+          <p className="mt-4 text-slate-400 max-w-2xl mx-auto text-base sm:text-lg">
+            Um fluxo contínuo e inteligente que identifica o momento exato de abordar cada pessoa da sua base.
+          </p>
 
-          <div className="grid g-rec">
-            {RECURSOS.map(r => (
-              <div key={r.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px" }}>
-                <div style={{ width: 46, height: 46, borderRadius: 13, background: `${r.c}18`, border: `1px solid ${r.c}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
-                  {r.i(r.c)}
+          {/* O Fluxo em 6 Etapas */}
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 relative">
+            {[
+              { step: "01", name: "Clientes", detail: "Cadastro unificado e histórico de cada pessoa", color: "from-blue-600 to-indigo-600" },
+              { step: "02", name: "Dados", detail: "Frequência, valor gasto e datas de compra", color: "from-indigo-600 to-violet-600" },
+              { step: "03", name: "Inteligência", detail: "O sistema detecta quem está sumindo ou pronto pra comprar", color: "from-violet-600 to-purple-600" },
+              { step: "04", name: "Ação", detail: "Mensagem personalizada disparada no WhatsApp", color: "from-purple-600 to-fuchsia-600" },
+              { step: "05", name: "Venda", detail: "O cliente retorna à sua loja e compra de novo", color: "from-fuchsia-600 to-emerald-600" },
+              { step: "06", name: "Fidelização", detail: "Pontuação, benefícios VIP e indicação contínua", color: "from-emerald-600 to-teal-500" },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl bg-[#090E1E] border border-white/[0.08] hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group hover:-translate-y-1"
+              >
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${item.color} flex items-center justify-center font-black text-sm text-white mb-3 shadow-md`}>
+                  {item.step}
                 </div>
-                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 9, letterSpacing: -0.2 }}>{r.t}</h3>
-                <p style={{ ...S.dim, fontSize: 13.5 }}>{r.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ COMO FUNCIONA ============ */}
-      <section id="como-funciona" className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(139,92,246,0.03)", scrollMarginTop: 80 }}>
-        <Grid o={0.4} />
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ ...S.eyebrow, color: "#C4B5FD" }}>Como funciona</p>
-            <h2 style={S.h2}>Do cadastro ao cliente voltando sozinho</h2>
-          </div>
-
-          <div className="grid g-passos">
-            {PASSOS.map(p => (
-              <div key={p.n} className="lift reveal" style={{ ...S.card, padding: "26px 22px" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#A78BFA", marginBottom: 12 }}>{p.n}</div>
-                <h3 style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 8, lineHeight: 1.3 }}>{p.t}</h3>
-                <p style={{ ...S.dim, fontSize: 13.5 }}>{p.d}</p>
+                <h3 className="text-base font-bold text-white mb-1 group-hover:text-indigo-300 transition-colors">{item.name}</h3>
+                <p className="text-xs text-slate-400 leading-snug">{item.detail}</p>
               </div>
             ))}
           </div>
 
-          <div className="g-telas" style={{ marginTop: 48, display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 40, alignItems: "center" }}>
+          <div className="mt-12 p-6 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
             <div>
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 8, boxShadow: "0 30px 70px rgba(0,0,0,0.5), 0 0 60px rgba(139,92,246,0.12)" }}>
-                <img src="/dashboard.png" alt="Painel do Nexus 360 no computador" style={{ width: "100%", borderRadius: 10, display: "block" }} />
-              </div>
-              <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14, textAlign: "center" }}>No computador, na loja ou no escritório</p>
+              <div className="text-sm font-bold text-white">Pronto para colocar esse fluxo no seu negócio?</div>
+              <div className="text-xs text-slate-400">Implementação rápida com sua base de clientes atual já cadastrada.</div>
             </div>
-            <div style={{ maxWidth: 220, margin: "0 auto" }}>
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 26, padding: 8, boxShadow: "0 30px 70px rgba(0,0,0,0.5), 0 0 60px rgba(99,102,241,0.14)" }}>
-                <img src="/dashboard-mobile.png" alt="Painel do Nexus 360 no celular" style={{ width: "100%", borderRadius: 18, display: "block" }} />
-              </div>
-              <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.22)", marginTop: 14, textAlign: "center" }}>E no celular, de qualquer lugar</p>
-            </div>
+            <a
+              href={WA_DEMO}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shrink-0 shadow-lg shadow-indigo-600/30 transition-all"
+            >
+              <span>Ver demonstração prática</span>
+              {Icons.arrowRight}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: DASHBOARD REAL EM DESTAQUE ================= */}
+      <section id="dashboard" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#070B18]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Visão Geral do Negócio</span>
+            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              O Dashboard que mostra onde estão suas oportunidades
+            </h2>
+            <p className="mt-4 text-slate-400 text-base sm:text-lg">
+              Em poucos segundos você descobre quanto faturou, quem são seus clientes mais valiosos e quem você precisa recuperar hoje.
+            </p>
           </div>
 
-          <div style={{ marginTop: 40, maxWidth: 640, margin: "40px auto 0" }}>
-            <div style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 14, padding: "18px 22px" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#6EE7B7", textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 8 }}>Em operação real</div>
-              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 1.6 }}>
-                O Nexus 360 roda diariamente em uma farmácia de Palmas, com base de clientes real, fidelidade ativa e campanhas de reativação em uso todos os dias.
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            {/* Cards de destaque à esquerda */}
+            <div className="space-y-4">
+              <div className="p-6 rounded-2xl bg-[#090E1F] border border-indigo-500/30 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-400">Alerta Crítico</span>
+                  <span className="text-xs bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-medium">Reativação</span>
+                </div>
+                <div className="text-3xl font-extrabold text-white">254 clientes inativos</div>
+                <p className="text-xs text-slate-400 mt-1">Clientes sem compras há mais de 30 dias que você pode recuperar em 1 clique.</p>
+                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-semibold text-indigo-300">
+                  <span>Ação sugerida: Disparo WhatsApp</span>
+                  <span className="text-emerald-400 font-bold">Alta conversão</span>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#090E1F] border border-violet-500/30 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-violet-400">Fidelidade VIP</span>
+                  <span className="text-xs bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-medium">Retenção</span>
+                </div>
+                <div className="text-3xl font-extrabold text-white">Ranking dos Melhores</div>
+                <p className="text-xs text-slate-400 mt-1">Identificação automática dos 20% de clientes responsáveis por 80% do seu faturamento.</p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#090E1F] border border-white/[0.08] shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Ações Recomendadas</span>
+                  <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-medium">IA Comercial</span>
+                </div>
+                <div className="text-xl font-bold text-white">O que fazer agora</div>
+                <p className="text-xs text-slate-400 mt-1">Lembretes de aniversariantes do mês, clientes com pontos acumulados e reposições de produtos.</p>
+              </div>
+            </div>
+
+            {/* Imagem do Dashboard em 2 colunas */}
+            <div className="lg:col-span-2 relative">
+              <div className="relative rounded-2xl p-2 bg-[#0B1021] border border-indigo-500/30 shadow-2xl overflow-hidden group">
+                <img
+                  src="/dashboard.png"
+                  alt="Dashboard comercial Nexus 360"
+                  className="w-full h-auto rounded-xl object-cover"
+                />
+                <div className="absolute top-4 right-4 bg-[#080C18]/90 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 backdrop-blur-md">
+                  Demonstração com dados reais do sistema
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: FUNCIONALIDADES (8 BLOCOS) ================= */}
+      <section id="funcionalidades" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#04060F]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Recursos Completos</span>
+            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Tudo o que seu negócio local precisa para crescer
+            </h2>
+            <p className="mt-4 text-slate-400 text-base sm:text-lg">
+              Ferramentas integradas em um painel simples e objetivo, sem complexidade desnecessária.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: Icons.crm,
+                title: "CRM",
+                desc: "Conheça seus clientes a fundo: histórico de compras, perfil, valor acumulado e data do último atendimento.",
+              },
+              {
+                icon: Icons.whatsapp,
+                title: "WhatsApp",
+                desc: "Relacione-se com seus clientes e automatize comunicações com seu próprio número empresarial conectado.",
+              },
+              {
+                icon: Icons.campaigns,
+                title: "Campanhas",
+                desc: "Crie ações segmentadas para públicos específicos: clientes sumidos, clientes fiéis ou compradores de categorias.",
+              },
+              {
+                icon: Icons.loyalty,
+                title: "Fidelidade",
+                desc: "Incentive recompra com pontos por compra, catálogo de benefícios, pontuação automática e ranking de clientes.",
+              },
+              {
+                icon: Icons.automation,
+                title: "Automação",
+                desc: "Deixe o sistema cuidar das tarefas recorrentes: avisos de aniversário, confirmações e pós-venda sem esforço manual.",
+              },
+              {
+                icon: Icons.ai,
+                title: "Inteligência",
+                desc: "Encontre oportunidades comerciais escondidas na sua base de dados e saiba exatamente quem contatar hoje.",
+              },
+              {
+                icon: Icons.reports,
+                title: "Relatórios",
+                desc: "Entenda o desempenho do negócio: faturamento diário, ticket médio, taxa de retenção e curva de crescimento.",
+              },
+              {
+                icon: Icons.integrations,
+                title: "Integrações",
+                desc: "Conecte o Nexus ao Bling ERP, Z-API para WhatsApp e sistemas que sua empresa já utiliza no dia a dia.",
+              },
+            ].map((f, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-2xl bg-[#090E1E] border border-white/[0.07] hover:border-indigo-500/40 hover:bg-[#0C1226] transition-all duration-300 flex flex-col justify-between group"
+              >
+                <div>
+                  <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                    {f.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">{f.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: WHATSAPP + AUTOMAÇÃO ================= */}
+      <section id="whatsapp" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#060915]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Automação Profissional</span>
+              <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                WhatsApp inteligente que vende por você todos os dias
+              </h2>
+              <p className="mt-5 text-slate-300 text-base sm:text-lg leading-relaxed">
+                Não é apenas um botão de WhatsApp. É uma máquina de mensagens programadas que aborda o cliente com o motivo certo e na hora exata.
+              </p>
+
+              <div className="mt-8 space-y-3.5">
+                {[
+                  { title: "Reativação de clientes inativos", desc: "Mensagem personalizada quando o cliente passa de 30 ou 60 dias sem comprar." },
+                  { title: "Aniversariantes do dia e mês", desc: "Parabéns com cupom exclusivo que faz o cliente comemorar comprando de você." },
+                  { title: "Pós-venda e satisfação", desc: "Acompanhamento após a compra para garantir satisfação e pedir avaliações." },
+                  { title: "Confirmação e agendamento", desc: "Redução de faltas para clínicas, salões e serviços com lembretes automáticos." },
+                  { title: "Acompanhamento de entrega", desc: "Notificação do status do pedido ou entrega direto na conversa do cliente." },
+                  { title: "Cobrança amigável", desc: "Lembrete suave de mensalidades ou boletos antes e no dia do vencimento." },
+                  { title: "Reposição de compra", desc: "Aviso de retorno de estoque ou lembrete de produtos de uso contínuo." },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="mt-0.5">{Icons.check}</div>
+                    <div>
+                      <span className="text-sm font-bold text-white">{item.title}: </span>
+                      <span className="text-xs text-slate-400">{item.desc}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mockup de Mensagem Inteligente WhatsApp */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-emerald-500/10 rounded-3xl blur-2xl pointer-events-none" />
+
+              <div className="relative rounded-3xl p-6 bg-[#0B1220] border border-emerald-500/30 shadow-2xl">
+                <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-400">
+                      WA
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                        Nexus 360 Bot
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      </div>
+                      <div className="text-xs text-slate-400">Régua de Reativação Automática</div>
+                    </div>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold">
+                    Ativo 24/7
+                  </span>
+                </div>
+
+                {/* Balão de mensagem simulado */}
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl rounded-tl-sm bg-[#131F33] border border-white/[0.08] text-sm text-slate-200 leading-relaxed shadow-sm">
+                    <p className="font-semibold text-emerald-400 text-xs mb-1">Nexus 360 · Mensagem para Mariana Silva</p>
+                    <p>
+                      Olá Mariana! Tudo bem? 😊 Sentimos sua falta por aqui na Drogaria! Como já faz um tempinho desde sua última visita, separamos um presente especial pra você voltar hoje:
+                    </p>
+                    <div className="my-2.5 p-2.5 rounded-lg bg-black/30 border border-emerald-500/20 font-mono text-xs text-emerald-300">
+                      🎁 CUPOM: VOLTA15 (15% OFF)
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Seu saldo de fidelidade atual: <strong>120 pontos</strong>.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl rounded-tr-sm bg-indigo-950/40 border border-indigo-500/20 text-sm text-slate-200 ml-8 text-right">
+                    <p className="text-xs text-indigo-300 mb-1">Resposta da Cliente</p>
+                    <p>Que ótimo! Estava precisando repor meus produtos mesmo. Posso pedir pelo WhatsApp?</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs text-slate-400">
+                  <span>Conexão via API Oficial Z-API</span>
+                  <span className="text-indigo-400 font-medium">Seu número, seus clientes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: PROGRAMA DE FIDELIDADE ================= */}
+      <section className="relative z-10 py-28 border-t border-white/[0.06] bg-[#04060F]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Retenção de Clientes</span>
+            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Fidelidade que gera recompra real
+            </h2>
+            <p className="mt-4 text-slate-400 text-base sm:text-lg">
+              Transforme clientes comuns em defensores da sua marca com um sistema de pontuação e benefícios claro e atrativo.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative rounded-2xl p-2 bg-[#090E1D] border border-amber-500/30 shadow-2xl overflow-hidden">
+              <img
+                src="/fidelidade.png"
+                alt="Programa de Fidelidade Nexus 360"
+                className="w-full h-auto rounded-xl object-cover"
+              />
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { step: "Pontos", desc: "Acúmulo automático por valor gasto em cada venda realizada.", icon: "🎯" },
+                  { step: "Benefícios", desc: "Troca por descontos, brindes ou produtos selecionados.", icon: "🎁" },
+                  { step: "Ranking VIP", desc: "Reconhecimento dos seus clientes mais fiéis e lucrativos.", icon: "👑" },
+                  { step: "Recompra", desc: "Lembretes de pontos a expirar estimulam novas visitas.", icon: "🔄" },
+                ].map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-xl bg-[#090E1E] border border-white/[0.07]">
+                    <div className="text-2xl mb-2">{item.icon}</div>
+                    <div className="text-base font-bold text-white">{item.step}</div>
+                    <div className="text-xs text-slate-400 mt-1">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-slate-200 text-sm leading-relaxed">
+                <span className="font-bold text-amber-300">Por que funciona: </span>
+                Clientes que participam de programas de fidelidade compram até <strong>3x mais frequentemente</strong> e têm um ticket médio comprovadamente maior.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: PARA QUEM É ================= */}
+      <section className="relative z-10 py-24 border-t border-white/[0.06] bg-[#060A16]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Segmentos Atendidos</span>
+          <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            Feito para empresas que vivem de clientes recorrentes
+          </h2>
+          <p className="mt-4 text-slate-400 max-w-2xl mx-auto text-base sm:text-lg">
+            O Nexus 360 se adapta perfeitamente à rotina do varejo e serviços locais.
+          </p>
+
+          <div className="mt-14 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { name: "Farmácias & Drogarias", desc: "Uso contínuo e reposição" },
+              { name: "Pet Shops & Clínicas", desc: "Vacinas, banho e ração" },
+              { name: "Salões & Barbearias", desc: "Cortes e procedimentos" },
+              { name: "Clínicas & Estética", desc: "Consultas e pacotes" },
+              { name: "Lojas & Varejo", desc: "Roupas, calçados e óticas" },
+              { name: "Negócios Locais", desc: "Com clientes recorrentes" },
+            ].map((seg, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl bg-[#090E1E] border border-white/[0.07] hover:border-indigo-500/40 hover:-translate-y-1 transition-all flex flex-col justify-center"
+              >
+                <div className="text-sm font-bold text-white mb-1">{seg.name}</div>
+                <div className="text-xs text-slate-400">{seg.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: DIFERENCIAL ================= */}
+      <section className="relative z-10 py-28 border-t border-white/[0.06] bg-[#040712]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-violet-400">O Verdadeiro Diferencial</span>
+          <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">
+            Não é apenas gestão. É inteligência para agir sobre seus clientes.
+          </h2>
+          <p className="mt-5 text-slate-300 max-w-3xl mx-auto text-base sm:text-lg">
+            Softwares tradicionais apenas guardam histórico. O Nexus 360 analisa os dados e diz exatamente o que você deve fazer para vender mais hoje.
+          </p>
+
+          <div className="mt-14 max-w-4xl mx-auto p-8 rounded-3xl bg-[#080C1B] border border-indigo-500/30 shadow-2xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+              <div className="flex-1">
+                <div className="text-xs uppercase font-bold text-slate-400">Entrada</div>
+                <div className="text-xl font-extrabold text-white">Dados da sua empresa</div>
+              </div>
+              <div className="text-indigo-400 font-bold text-xl">→</div>
+              <div className="flex-1">
+                <div className="text-xs uppercase font-bold text-violet-400">Processamento</div>
+                <div className="text-xl font-extrabold text-violet-300">Oportunidades & Ações</div>
+              </div>
+              <div className="text-indigo-400 font-bold text-xl">→</div>
+              <div className="flex-1">
+                <div className="text-xs uppercase font-bold text-emerald-400">Resultado</div>
+                <div className="text-xl font-extrabold text-emerald-300">Vendas & Retenção</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: PREÇO ================= */}
+      <section id="preco" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#060915]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Investimento Transparente</span>
+          <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            Um plano único com sistema completo
+          </h2>
+          <p className="mt-4 text-slate-400 max-w-2xl mx-auto text-base sm:text-lg">
+            Sem pegadinhas ou cobranças ocultas. Todas as funcionalidades inclusas desde o primeiro dia.
+          </p>
+
+          <div className="mt-16 max-w-lg mx-auto">
+            <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-b from-[#0C1226] to-[#080C19] border border-indigo-500/40 shadow-2xl shadow-indigo-600/15 relative overflow-hidden">
+              {/* Badge Top */}
+              <div className="inline-block px-4 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold tracking-wider mb-6">
+                PLANO COMPLETO NEXUS 360
+              </div>
+
+              <div className="flex items-baseline justify-center gap-2">
+                <span className="text-2xl font-bold text-slate-400">R$</span>
+                <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">397</span>
+                <span className="text-slate-400 font-semibold text-lg">/mês</span>
+              </div>
+              <p className="mt-2 text-xs text-slate-400">
+                + R$ 100/mês da API oficial Z-API para WhatsApp (contratada à parte direto com o provedor).
+              </p>
+
+              {/* Lista de Recursos Inclusos */}
+              <div className="mt-8 space-y-3.5 text-left border-t border-white/[0.08] pt-8">
+                {[
+                  "Sistema Nexus 360 completo sem limites",
+                  "Módulo de CRM e gestão completa de clientes",
+                  "Alerta e campanhas de clientes inativos",
+                  "Automações de WhatsApp (aniversário, pós-venda, etc.)",
+                  "Programa de fidelidade, ranking VIP e pontos",
+                  "Inteligência comercial e ações recomendadas",
+                  "Relatórios diários e indicadores de faturamento",
+                  "Integração com Bling ERP e Z-API",
+                  "Suporte dedicado e auxílio na implantação inicial",
+                ].map((feat, idx) => (
+                  <div key={idx} className="flex items-start gap-3 text-sm text-slate-200">
+                    <div className="mt-0.5">{Icons.check}</div>
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA do Plano */}
+              <a
+                href={WA_START}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-base text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-xl shadow-indigo-600/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 active:translate-y-0 transition-all border border-indigo-400/30"
+              >
+                <span>Começar agora</span>
+                {Icons.arrowRight}
+              </a>
+
+              <p className="mt-4 text-xs text-slate-500">
+                Sem fidelidade obrigatória · Cancele quando quiser
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ============ PREÇO ============ */}
-      <section id="contato" className="np" style={{ ...S.sec, padding: "96px 48px", scrollMarginTop: 80 }}>
-        <Grid o={0.35} />
-        <div style={{ maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 4, textAlign: "center" }}>
-          <p style={S.eyebrow}>Investimento</p>
-          <h2 style={{ ...S.h2, fontSize: "clamp(24px,3.4vw,34px)", marginBottom: 40 }}>Um plano só, sistema completo</h2>
+      {/* ================= SEÇÃO: FAQ ================= */}
+      <section id="faq" className="relative z-10 py-28 border-t border-white/[0.06] bg-[#04060F]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Tire Suas Dúvidas</span>
+            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Perguntas Frequentes
+            </h2>
+            <p className="mt-4 text-slate-400 text-base sm:text-lg">
+              Respostas diretas sobre como o Nexus 360 funciona na sua empresa.
+            </p>
+          </div>
 
-          <div className="reveal lift" style={{ ...S.card, padding: "40px 36px", background: "rgba(99,102,241,0.07)", borderColor: "rgba(99,102,241,0.3)", boxShadow: "0 0 60px rgba(99,102,241,0.12)" }}>
-            <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -1.6, lineHeight: 1 }}>R$ 397<span style={{ fontSize: 17, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>/mês</span></div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13.5, marginTop: 10, marginBottom: 26 }}>+ R$ 100/mês da API do WhatsApp (Z-API, contratada à parte, direto com eles)</div>
-
-            <div style={{ display: "grid", gap: 11, marginBottom: 28, textAlign: "left" }}>
-              {["Sistema Nexus 360 completo", "Alerta de cliente inativo", "Campanhas de WhatsApp automáticas", "Fidelidade, ranking e indicação", "CRM, relatórios e integração com Bling", "Implantação com sua base já cadastrada"].map(i => (
-                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ marginTop: 2, flexShrink: 0 }}>{Ico.check}</div>
-                  <span style={{ color: "rgba(255,255,255,0.62)", fontSize: 13.8, lineHeight: 1.45 }}>{i}</span>
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl bg-[#090E1E] border border-white/[0.07] overflow-hidden transition-all"
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-base sm:text-lg text-white hover:text-indigo-300 transition-colors"
+                  >
+                    <span>{faq.q}</span>
+                    <span className="text-indigo-400 text-xl font-mono">{isOpen ? "−" : "+"}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-6 text-sm sm:text-base text-slate-300 leading-relaxed border-t border-white/[0.04] pt-4">
+                      {faq.a}
+                    </div>
+                  )}
                 </div>
-              ))}
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SEÇÃO: CTA FINAL ================= */}
+      <section className="relative z-10 py-28 border-t border-white/[0.06] bg-gradient-to-b from-[#080C1D] to-[#04060F] text-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="p-10 sm:p-16 rounded-3xl bg-gradient-to-r from-indigo-950/60 via-purple-950/50 to-violet-950/60 border border-indigo-500/40 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none" />
+
+            <span className="relative z-10 inline-block text-xs font-bold uppercase tracking-widest text-indigo-300 mb-4">
+              Comece Hoje Mesmo
+            </span>
+            <h2 className="relative z-10 text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-3xl mx-auto">
+              Seu negócio já tem clientes. Agora transforme relacionamento em recorrência.
+            </h2>
+            <p className="relative z-10 mt-5 text-slate-300 text-base sm:text-lg max-w-2xl mx-auto">
+              Veja na prática como o Nexus 360 recupera clientes sumidos e aumenta o faturamento da sua loja.
+            </p>
+
+            <div className="relative z-10 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href={WA_DEMO}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-xl shadow-indigo-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all border border-indigo-400/30"
+              >
+                <span>Conheça o Nexus 360</span>
+                {Icons.arrowRight}
+              </a>
+              <a
+                href={WA_START}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base sm:text-lg font-semibold text-slate-200 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition-all"
+              >
+                Começar agora
+              </a>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ display: "block", background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 700, padding: "15px", borderRadius: 12, boxShadow: "0 8px 28px rgba(99,102,241,0.35)" }}>
-              Falar no WhatsApp →
+      {/* ================= RODAPÉ ================= */}
+      <footer className="relative z-10 py-12 border-t border-white/[0.06] bg-[#03050C]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center font-black text-sm text-white">
+              N
+            </div>
+            <span className="font-extrabold text-base tracking-tight text-white">
+              Nexus<span className="text-indigo-400">360</span>
+            </span>
+            <span className="text-slate-500 text-xs ml-2">
+              © 2026 Nexus 360 — Sistema de gestão e inteligência comercial para negócio local
+            </span>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm text-slate-400">
+            <a href={WA} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+              WhatsApp Oficial
             </a>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 14 }}>Sem fidelidade · cancele quando quiser</p>
+            <a href={IG} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+              @nexus360mkt
+            </a>
+            <Link href="/login" className="hover:text-white transition-colors font-semibold text-slate-300">
+              Acesso ao Sistema
+            </Link>
           </div>
-        </div>
-      </section>
-
-      {/* ============ GARANTIAS ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px", background: "rgba(255,255,255,0.012)" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={S.eyebrow}>Combinado claro</p>
-            <h2 style={S.h2}>Sem risco para você</h2>
-          </div>
-          <div className="grid g-gar">
-            {GARANTIAS.map((g) => (
-              <div key={g.t} className="lift reveal" style={{ ...S.card, padding: "28px 24px", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: -30, right: -30, width: 90, height: 90, borderRadius: "50%", background: "rgba(99,102,241,.05)" }} />
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(52,211,153,.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>{Ico.checkG}</div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 10 }}>{g.t}</h3>
-                <p style={{ ...S.dim, fontSize: 14 }}>{g.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ FAQ ============ */}
-      <section className="np" style={{ ...S.sec, padding: "96px 48px" }}>
-        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <p style={S.eyebrow}>Respostas diretas</p>
-            <h2 style={S.h2}>O que todo mundo pergunta</h2>
-          </div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {FAQ.map(f => (
-              <details key={f.q} className="reveal" style={{ ...S.card, padding: "20px 24px" }}>
-                <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, fontSize: 16, fontWeight: 700 }}>
-                  {f.q}
-                  <span className="chev" style={{ color: "#818CF8", fontSize: 20, lineHeight: 1, transition: "transform .2s ease", flexShrink: 0 }}>+</span>
-                </summary>
-                <p style={{ ...S.dim, fontSize: 14.5, marginTop: 14 }}>{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ CTA FINAL ============ */}
-      <section className="np" style={{ ...S.sec, padding: "110px 48px", textAlign: "center", background: "radial-gradient(ellipse 70% 100% at 50% 100%, rgba(99,102,241,0.12) 0%, transparent 70%)" }}>
-        <Grid o={0.4} />
-        <div style={{ maxWidth: 680, margin: "0 auto", position: "relative", zIndex: 4 }}>
-          <h2 style={{ fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 900, letterSpacing: -2.2, lineHeight: 1.06, marginBottom: 20 }}>
-            Seus clientes estão<br />
-            <span style={{ background: "linear-gradient(90deg,#818CF8,#A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>esperando voltar</span>
-          </h2>
-          <p style={{ ...S.dim, fontSize: 17, marginBottom: 34 }}>
-            Me chama no WhatsApp e eu te mostro o sistema funcionando ao vivo, com seus próprios dados.
-          </p>
-          <a href={WA_DEMO} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff", textDecoration: "none", fontSize: 17.5, fontWeight: 700, padding: "18px 46px", borderRadius: 14, boxShadow: "0 8px 40px rgba(99,102,241,0.4)", display: "inline-block", marginBottom: 16 }}>
-            Falar no WhatsApp agora →
-          </a>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>(63) 98106-2551 · resposta em até 24h · sem compromisso</p>
-        </div>
-      </section>
-
-      {/* ============ FOOTER ============ */}
-      <footer className="np" style={{ ...S.sec, padding: "40px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 18 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13 }}>N</div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: "rgba(255,255,255,0.55)" }}>NEXUS<span style={{ color: "#818CF8" }}>360</span></span>
-        </div>
-        <p style={{ color: "rgba(255,255,255,0.18)", fontSize: 12.5 }}>© 2026 Nexus 360 — Sistema de gestão para negócio local</p>
-        <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-          <a href={WA} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.32)", textDecoration: "none", fontSize: 13 }}>WhatsApp</a>
-          <a href={IG} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.32)", textDecoration: "none", fontSize: 13 }}>@nexus360mkt</a>
-          <Link href="/login" style={{ color: "rgba(255,255,255,0.32)", textDecoration: "none", fontSize: 13 }}>Entrar</Link>
         </div>
       </footer>
-
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,#6366F1,#8B5CF6)", zIndex: 100 }} />
-    </main>
+    </div>
   );
 }
