@@ -9,6 +9,22 @@ const WA_CONHECER = `${WA}?text=${encodeURIComponent("Olá! Gostaria de conhecer
 const WA_COMECAR = `${WA}?text=${encodeURIComponent("Olá! Quero começar agora com o Nexus 360 no meu negócio.")}`;
 const IG = "https://instagram.com/nexus360app";
 
+
+const MODULES = [
+  { name: "CRM Funil de Vendas", desc: "Cada oportunidade acompanhada até fechar.", icon: "M3 3h18l-7 8v5l-4 2v-7L3 3z", color: "from-blue-500 to-indigo-600" },
+  { name: "Vendas Rápidas", desc: "Registre uma venda em poucos segundos.", icon: "M13 2 3 14h9l-1 8 10-12h-9l1-8z", color: "from-amber-400 to-orange-600" },
+  { name: "Produtos & Estoque", desc: "Alertas de estoque zerado e reposição.", icon: "M21 8l-9-5-9 5v8l9 5 9-5V8zM3 8l9 5 9-5", color: "from-emerald-400 to-teal-600" },
+  { name: "Entregas & Reservas", desc: "Aviso automático ao cliente a cada etapa.", icon: "M1 3h15v13H1zM16 8h4l3 3v5h-7V8z", color: "from-sky-400 to-blue-600" },
+  { name: "Cobranças & Pendentes", desc: "Cobrança automática via WhatsApp.", icon: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", color: "from-rose-400 to-red-600" },
+  { name: "Assinaturas & Mensalidades", desc: "Recorrência cobrada sozinha todo mês.", icon: "M3 4h18v18H3zM8 2v4M16 2v4M9 16l2 2 4-4", color: "from-violet-400 to-purple-600" },
+  { name: "Programa de Indicação", desc: "Seus clientes trazendo novos clientes.", icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75", color: "from-fuchsia-400 to-pink-600" },
+  { name: "Relatórios & Calendário", desc: "Inteligência comercial do seu negócio.", icon: "M3 3v18h18M7 15l4-4 3 3 5-6", color: "from-cyan-400 to-sky-600" },
+  { name: "Funcionários & Permissões", desc: "Modos admin e funcionário com acessos separados.", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", color: "from-slate-400 to-slate-600" },
+  { name: "Multiempresa", desc: "Várias lojas controladas em um só painel.", icon: "M4 2h16v20H4zM8 6h2v2H8zM14 6h2v2h-2zM8 10h2v2H8zM14 10h2v2h-2zM8 14h2v2H8zM14 14h2v2h-2z", color: "from-indigo-400 to-blue-600" },
+  { name: "Assistente IA", desc: "Recomendações prontas do que fazer agora.", icon: "M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2L12 3z", color: "from-violet-400 to-indigo-600" },
+  { name: "Automações WhatsApp", desc: "Campanhas e gatilhos que vendem sozinhos.", icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", color: "from-green-400 to-emerald-600" },
+];
+
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<number>(0);
 
@@ -418,6 +434,47 @@ export default function LandingPage() {
                   </svg>
                 </a>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ================= MODULOS ================= */}
+        <section id="modulos" className="py-16 sm:py-24 border-t border-white/[0.06] bg-[#070A14] relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <span className="text-xs font-bold uppercase tracking-widest text-violet-400">Sistema completo</span>
+              <h2 className="mt-3 text-2xl sm:text-5xl font-extrabold text-white tracking-tight">
+                Tudo em um só lugar
+              </h2>
+              <p className="mt-3 text-sm sm:text-lg text-slate-300">
+                Além do que você já viu, o Nexus 360 ainda cuida de cada detalhe da sua operação.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {MODULES.map((mod, idx) => (
+                <div
+                  key={idx}
+                  className="group relative rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4 sm:p-5 transition-all duration-300 hover:border-violet-500/50 hover:bg-white/[0.06] hover:-translate-y-1 hover:shadow-lg hover:shadow-violet-600/10 cursor-default"
+                >
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${mod.color} p-2 mb-3 transition-transform duration-300 group-hover:scale-110`}>
+                    <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={mod.icon} />
+                    </svg>
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-white leading-tight">{mod.name}</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-400 mt-1 leading-snug">{mod.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] sm:text-xs">
+              <span className="text-slate-500 font-medium mr-1">Integrações nativas:</span>
+              {["Z-API (WhatsApp)", "Asaas (cobranças)", "Bling (ERP & estoque)"].map((name) => (
+                <span key={name} className="px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.1] text-slate-300 font-semibold">
+                  {name}
+                </span>
+              ))}
             </div>
           </div>
         </section>
