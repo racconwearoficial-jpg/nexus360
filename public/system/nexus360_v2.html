@@ -7131,7 +7131,7 @@ function rmVerHistorico() {
   const medals = ['1°','2°','3°'];
   el.innerHTML = hist.map(h => {
     const data = h.dataEncerramento || h.data || '—';
-    const dtFmt = data !== '—' ? new Date(data).toLocaleDateString('pt-BR') : '—';
+    const dtFmt = data !== '—' ? _dataUltimaCompra(data).toLocaleDateString('pt-BR') : '—';
     return '<div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
       + '<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:8px">Encerrado em ' + dtFmt + '</div>'
       + (h.ranking || []).map((r,i) =>
@@ -7804,7 +7804,7 @@ async function renderFidIndTable() {
     thead.innerHTML = '<th>Quem indicou</th><th>Amigo indicado</th><th>Telefone</th><th>Aniversário</th><th>Status</th><th>Data</th><th>Ação</th>';
   }
   tb.innerHTML = [...indicacoes].reverse().map(ind => {
-    const dt    = ind.data       ? new Date(ind.data).toLocaleDateString('pt-BR')       : '—';
+    const dt    = ind.data       ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR')       : '—';
     const aniv  = ind.aniversario? new Date(ind.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—';
     return '<tr>'
       + '<td style="color:#fff">' + ind.quemNome + '</td>'
@@ -7825,7 +7825,7 @@ async function renderFidFuncIndLista() {
   const indicacoes = await loadIndicacoes();
   if (!indicacoes.length) { el.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:12px">Nenhuma indicação registrada ainda.</div>'; return; }
   el.innerHTML = [...indicacoes].reverse().map(ind => {
-    const dt   = ind.data        ? new Date(ind.data).toLocaleDateString('pt-BR')                                              : '—';
+    const dt   = ind.data        ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR')                                              : '—';
     const aniv = ind.aniversario ? new Date(ind.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : null;
     return '<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
       + '<div style="display:flex;justify-content:space-between;align-items:center">'
@@ -7894,7 +7894,7 @@ async function renderIndTable2() {
   const indicacoes = await loadIndicacoes();
   if (!indicacoes.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-state-text">Nenhuma indicação registrada ainda.</div></div></td></tr>'; return; }
   tb.innerHTML = [...indicacoes].reverse().map(ind => {
-    const dt = ind.data ? new Date(ind.data).toLocaleDateString('pt-BR') : '—';
+    const dt = ind.data ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR') : '—';
     return '<tr>'
       + '<td style="color:#fff">' + ind.quemNome + '</td>'
       + '<td style="color:#fff">' + ind.amigoNome + '</td>'
@@ -8073,7 +8073,7 @@ async function renderIndicacoes() {
   const indicacoes = await loadIndicacoes();
   if (!indicacoes.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-state-text">Nenhuma indicacao registrada ainda.</div></div></td></tr>'; return; }
   tb.innerHTML = [...indicacoes].reverse().map(ind => {
-    const dt = ind.data ? new Date(ind.data).toLocaleDateString('pt-BR') : '—';
+    const dt = ind.data ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR') : '—';
     return '<tr>'
       + '<td style="color:#fff">' + ind.quemNome + '</td>'
       + '<td style="color:#fff">' + ind.amigoNome + '</td>'
@@ -11422,7 +11422,7 @@ function openClientDrawer(clientId) {
     ? '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Sem compras registradas</div>'
     : last5.map(v => {
         const valor = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-        const data  = v.data ? new Date(v.data).toLocaleDateString('pt-BR') : '—';
+        const data  = v.data ? _dataUltimaCompra(v.data).toLocaleDateString('pt-BR') : '—';
         // Categoria ou tipo de venda
         const cat   = v.categoria || null;
         // Itens — mostrar se não for genérico demais
