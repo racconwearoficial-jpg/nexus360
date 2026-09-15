@@ -6969,7 +6969,7 @@ function renderRankingMensal() {
     ? new Date(state.rankingInicio + 'T12:00:00')
     : new Date(agora.getFullYear(), agora.getMonth(), 1);
   const fimCiclo = new Date(inicioCiclo);
-  fimCiclo.setMonth(fimCiclo.getMonth() + duracao - 1);
+  fimCiclo.setMonth(fimCiclo.getMonth() + duracao);
   const periodoLabel = duracao === 1
     ? meses[agora.getMonth()] + ' ' + agora.getFullYear()
     : meses[inicioCiclo.getMonth()] + ' – ' + meses[fimCiclo.getMonth()] + ' ' + fimCiclo.getFullYear();
