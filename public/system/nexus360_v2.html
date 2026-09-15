@@ -3446,17 +3446,21 @@ function avisarAssinaturaWpp(assinatura_id) {
 }
 
 // Calcula status dinamicamente — nunca lê o campo status do banco
+// Converte ultima_compra (data-only "YYYY-MM-DD" ou ISO completo) num Date ao
+// meio-dia local — evita que o fuso (UTC-3) jogue a data pro dia anterior.
+function _dataUltimaCompra(str) {
+  if (!str) return null;
+  return new Date(String(str).split('T')[0] + 'T12:00:00');
+}
+
 function calcularStatus(c) {
-  const gasto  = parseFloat(c.total_gasto || 0);
   const pontos = parseInt(c.pontos || 0);
-  // VIP por pontos (configurável via Configurações de Fidelidade)
-  const vipPts = (typeof FID_VIP_PONTOS !== 'undefined' ? FID_VIP_PONTOS : 1000);
+  // VIP por pontos (configurável via Configurações de Fidelidade — sem fallback por gasto)
+  const vipPts = (typeof window.FID_VIP_PONTOS !== 'undefined' ? window.FID_VIP_PONTOS : FID_VIP_PONTOS);
   if (pontos >= vipPts) return 'vip';
-  // VIP por gasto alto (fallback fixo R$500)
-  if (gasto >= 500) return 'vip';
   // Sem compra → inativo
   if (!c.ultima_compra) return 'inativo';
-  const dias = Math.floor((new Date() - new Date(c.ultima_compra)) / 86400000);
+  const dias = Math.floor((new Date() - _dataUltimaCompra(c.ultima_compra)) / 86400000);
   return dias > diasInativo() ? 'inativo' : 'ativo';
 }
 
@@ -3476,7 +3480,7 @@ async function verificarExpiracaoPontos() {
   const hoje = new Date();
   const expirados = state.clientes.filter(c => {
     if (!c.ultima_compra || !c.pontos || c.pontos <= 0) return false;
-    const dias = Math.floor((hoje - new Date(c.ultima_compra)) / 86400000);
+    const dias = Math.floor((hoje - _dataUltimaCompra(c.ultima_compra)) / 86400000);
     return dias >= diasExpira;
   });
   if (!expirados.length) return;
@@ -3623,12 +3627,12 @@ function renderDashboard() {
   const ativos   = clientes.filter(c => {
     if (c.status === 'vip') return true;
     if (!c.ultima_compra) return false;
-    return new Date(c.ultima_compra) >= limiteInativo;
+    return _dataUltimaCompra(c.ultima_compra) >= limiteInativo;
   });
   const inativos = clientes.filter(c => {
     if (c.status === 'vip') return false;
     if (!c.ultima_compra) return true;
-    return new Date(c.ultima_compra) < limiteInativo;
+    return _dataUltimaCompra(c.ultima_compra) < limiteInativo;
   });
   const campAtivas = campanhas.filter(c => c.ativa !== false);
 
@@ -4024,7 +4028,7 @@ function renderInsights() {
   const _hoje30 = new Date(); _hoje30.setDate(_hoje30.getDate() + 30);
   const prtExpirar = state.clientes.filter(c => {
     if (!c.ultima_compra || !c.pontos || c.pontos <= 0) return false;
-    const expira = new Date(c.ultima_compra); expira.setDate(expira.getDate() + diasExpira);
+    const expira = _dataUltimaCompra(c.ultima_compra); expira.setDate(expira.getDate() + diasExpira);
     return expira <= _hoje30 && expira > _hoje;
   });
   if (prtExpirar.length) insights.push({ cor:'#ef4444', dot:'rgba(239,68,68,.7)', texto: prtExpirar.length + ' cliente(s) com pontos prestes a expirar em 30 dias — incentive uma visita!' });
@@ -4470,7 +4474,7 @@ function renderUpsell() {
     const tel  = c.telefone.replace(/\D/g, '');
     const num  = tel.startsWith('55') ? tel : '55' + tel;
     const msg  = buildWppMsg('reativacao', c.nome);
-    const dias = c.ultima_compra ? Math.floor((new Date()-new Date(c.ultima_compra))/86400000) : null;
+    const dias = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const msgEsc = msg.replace(/"/g,'&quot;');
     return `<div class="suggestion" style="padding:8px 12px">
       <div class="suggestion-icon" style="background:rgba(239,68,68,.10);width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" fill="none" stroke="#fca5a5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg></div>
@@ -4543,7 +4547,7 @@ function renderClients(list) {
       cardsDiv.innerHTML = list.map(c => {
         const anivFmt = c.aniversario ? new Date(c.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : null;
         const status  = c.status||'ativo';
-        const dias    = c.ultima_compra?Math.floor((new Date()-new Date(c.ultima_compra))/86400000):null;
+        const dias    = c.ultima_compra?Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000):null;
         const diasTxt = dias===null?'—':dias===0?'Hoje':dias===1?'Ontem':`${dias}d`;
         const gasto   = gastoNum(c);
         const pos     = rankMap.get(c.id)||'—';
@@ -4584,7 +4588,7 @@ function renderClients(list) {
   if (wrap) wrap.style.display = '';
 
   tb.innerHTML = list.map(c => {
-    const dias    = c.ultima_compra ? Math.floor((new Date()-new Date(c.ultima_compra))/86400000) : null;
+    const dias    = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const anivFmt = c.aniversario ? new Date(c.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—';
     const status  = c.status || 'ativo';
     const diasTxt = dias === null ? '—' : dias === 0 ? 'Hoje' : dias === 1 ? 'Ontem' : `${dias} dias`;
@@ -4644,7 +4648,7 @@ function recuperarInativos() {
     const num    = tel.startsWith('55') ? tel : '55' + tel;
     const msg    = msgPadrao.replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg);
     window._campMsgs[idx] = { num, msg };
-    const dias   = c.ultima_compra ? Math.floor((new Date()-new Date(c.ultima_compra))/86400000) : null;
+    const dias   = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const diasTxt = dias !== null ? `${dias} dias sem comprar` : 'Nunca comprou';
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
       <div style="min-width:0">
@@ -6900,13 +6904,26 @@ function rmAdicionarPontos(cliId, pts) {
   // Não é mais necessário — ranking calculado das vendas em tempo real
 }
 
+const RM_CONFIG_DEFAULTS = {
+  p1: { desc:'Kit de produtos', bonus:200 },
+  p2: { desc:'Vale compras', bonus:100 },
+  p3: { desc:'Vale compras', bonus:50 },
+  duracao: 1,
+};
+
 function rmGetConfig() {
-  return JSON.parse(localStorage.getItem('nexus360_rm_config') || JSON.stringify({
-    p1: { desc:'Kit de produtos', bonus:200 },
-    p2: { desc:'Vale compras', bonus:100 },
-    p3: { desc:'Vale compras', bonus:50 },
-    duracao: 1,
-  }));
+  // Fonte de verdade: Supabase (sincroniza entre dispositivos). Cai para
+  // localStorage/padrões só se a config ainda não foi carregada do banco.
+  try {
+    if (state.config && state.config.ranking_config) {
+      return Object.assign({}, RM_CONFIG_DEFAULTS, JSON.parse(state.config.ranking_config));
+    }
+  } catch(e) {}
+  try {
+    const local = JSON.parse(localStorage.getItem('nexus360_rm_config') || 'null');
+    if (local) return Object.assign({}, RM_CONFIG_DEFAULTS, local);
+  } catch(e) {}
+  return Object.assign({}, RM_CONFIG_DEFAULTS);
 }
 
 function rmSalvarConfig() {
@@ -6921,6 +6938,10 @@ function rmSalvarConfig() {
     duracao: parseInt(get('rm-duracao')) || 1,
   };
   try { localStorage.setItem('nexus360_rm_config', JSON.stringify(cfg)); } catch(e) {}
+  if (state.config) state.config.ranking_config = JSON.stringify(cfg);
+  // Salva no Supabase para sincronizar entre dispositivos (mesmo padrão do fcfgSalvar)
+  db.from('configuracoes').upsert({ company_id: state.companyId, ranking_config: JSON.stringify(cfg) }, { onConflict: 'company_id' })
+    .then(({ error }) => { if (error) console.warn('Supabase ranking_config save:', error.message); });
   toast('Prêmios configurados!', 'success');
   renderRankingMensal();
 }
@@ -7156,7 +7177,7 @@ function fidDiasVip(cli) {
     // Sem data salva — usa ultima_compra como referência
     if (!cli.ultima_compra) return null; // null = sem data disponível
     const _vipDias = window.FID_VIP_DIAS || FID_VIP_DIAS || 60;
-    const diasDesde = Math.floor((new Date() - new Date(cli.ultima_compra)) / 86400000);
+    const diasDesde = Math.floor((new Date() - _dataUltimaCompra(cli.ultima_compra)) / 86400000);
     return Math.max(0, _vipDias - diasDesde);
   }
   const _vipDias = window.FID_VIP_DIAS || FID_VIP_DIAS || 60;
@@ -11394,7 +11415,7 @@ function openClientDrawer(clientId) {
   const ticket = vendas.length>0?somaVendas/vendas.length:0;
   document.getElementById('drawerTicket').textContent = 'R$ '+ticket.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('drawerAniv').textContent = c.aniversario?new Date(c.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long'}):'—';
-  document.getElementById('drawerUltima').textContent = c.ultima_compra?new Date(c.ultima_compra).toLocaleDateString('pt-BR'):'—';
+  document.getElementById('drawerUltima').textContent = c.ultima_compra?_dataUltimaCompra(c.ultima_compra).toLocaleDateString('pt-BR'):'—';
   document.getElementById('drawerSince').textContent = c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):'—';
   const last5 = [...vendas].sort((a,b)=>new Date(b.data||b.created_at)-new Date(a.data||a.created_at)).slice(0,5);
   document.getElementById('drawerPurchases').innerHTML = last5.length===0
