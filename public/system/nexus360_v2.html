@@ -4943,7 +4943,7 @@ function normalizarTel(raw) {
   if (!t) return '';
   if (t.startsWith('55') && t.length >= 12) return '+' + t;
   if (t.length === 11 || t.length === 10) return '+55' + t;
-  if (t.length === 9 || t.length === 8) return '+5511' + t; // fallback sem DDD
+  if (t.length === 9 || t.length === 8) return '+5563' + t; // fallback sem DDD (63 = Tocantins/Palmas)
   return '+55' + t;
 }
 
