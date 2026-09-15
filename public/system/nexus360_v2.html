@@ -6962,12 +6962,17 @@ function renderRankingMensal() {
   const meses   = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const agora   = new Date();
   const duracao = cfg.duracao || 1;
-  const ciclo   = Math.floor(agora.getMonth() / duracao);
-  const mesStart= ciclo * duracao;
-  const mesEnd  = Math.min(mesStart + duracao - 1, 11);
+  // Período mostrado = a partir de quando o ciclo realmente começou (último
+  // "Encerrar e premiar"), não um trimestre de calendário fixo — assim bate
+  // com a janela que rmGetRanking() de fato está contando.
+  const inicioCiclo = state.rankingInicio
+    ? new Date(state.rankingInicio + 'T12:00:00')
+    : new Date(agora.getFullYear(), agora.getMonth(), 1);
+  const fimCiclo = new Date(inicioCiclo);
+  fimCiclo.setMonth(fimCiclo.getMonth() + duracao - 1);
   const periodoLabel = duracao === 1
     ? meses[agora.getMonth()] + ' ' + agora.getFullYear()
-    : meses[mesStart] + ' – ' + meses[mesEnd] + ' ' + agora.getFullYear();
+    : meses[inicioCiclo.getMonth()] + ' – ' + meses[fimCiclo.getMonth()] + ' ' + fimCiclo.getFullYear();
   const tipoLabel = { 1:'Mensal', 2:'Bimestral', 3:'Trimestral', 6:'Semestral' }[duracao] || 'Mensal';
 
   const mesEl = document.getElementById('rm-mes-atual');
