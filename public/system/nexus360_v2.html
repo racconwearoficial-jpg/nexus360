@@ -2178,7 +2178,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <select id="camp-tipo"><option value="promoção">Promoção</option><option value="reativação">Reativação</option><option value="aniversário">Aniversário</option><option value="fidelidade">Fidelidade &amp; Indicação</option></select>
       </div>
       <div class="form-group" style="margin:0"><label>Público Alvo</label>
-        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option></select>
+        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option><option value="ComPontos">Ativos com pontos</option></select>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">
+          Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>. Só pra público "Ativos com pontos", também <code>{pontos}</code>, <code>{faltam}</code> e <code>{beneficio}</code>.
+        </div>
       </div>
     </div>
     <div class="form-group">
@@ -8961,12 +8964,19 @@ function enviarCampanha(id) {
 
   const neg = state.config.nome_negocio || 'nossa loja';
 
-  // ── Monta mensagem substituindo {nome} e {negocio} ──────────────────────
-  function montarMsg(nomeCliente) {
-    const base = camp.mensagem || buildWppMsg(camp.tipo, nomeCliente);
+  // ── Monta mensagem substituindo {nome}, {negocio} e, pro público "Ativos com
+  // pontos", também {pontos}/{faltam}/{beneficio} (mesma tabela FID_RECOMPENSAS
+  // usada na aba Fidelidade e no recálculo automático) ──────────────────────
+  function montarMsg(cliente) {
+    const base = camp.mensagem || buildWppMsg(camp.tipo, cliente.nome);
+    const pontos = parseInt(cliente.pontos) || 0;
+    const prox = fidProximoBeneficio(pontos);
     return base
-      .replace(/{nome}/g, nomeCliente || '')
-      .replace(/{negocio}/g, neg);
+      .replace(/{nome}/g, cliente.nome || '')
+      .replace(/{negocio}/g, neg)
+      .replace(/{pontos}/g, String(pontos))
+      .replace(/{faltam}/g, prox ? String(prox.faltam) : '0')
+      .replace(/{beneficio}/g, prox ? prox.label : 'o maior benefício disponível');
   }
 
   // ── Filtra pelo público da campanha (case-insensitive) ───────────────────
@@ -8987,6 +8997,8 @@ function enviarCampanha(id) {
       const d = new Date(c.aniversario + 'T12:00:00');
       return d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth();
     });
+  } else if (pub === 'compontos') {
+    destinatarios = destinatarios.filter(c => c.status === 'ativo' && (parseInt(c.pontos) || 0) > 0);
   }
   // pub === 'todos' → mantém lista completa com telefone
 
@@ -9015,7 +9027,7 @@ function enviarCampanha(id) {
   lista.innerHTML = destinatarios.map((cl, idx) => {
     const tel = cl.telefone.replace(/\D/g, '');
     const num = tel.startsWith('55') ? tel : '55' + tel;
-    const msg = montarMsg(cl.nome);
+    const msg = montarMsg(cl);
     window._campMsgs[idx] = { num, msg, campId: camp.id };
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
       <div style="min-width:0">

@@ -88,6 +88,20 @@ async function gerarMensagemIA(prompt, fallback) {
 const inicioDeHoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); };
 const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
 
+// Mesma tabela de benefícios do painel (FID_RECOMPENSAS em nexus360_v2.html).
+// Duplicado aqui porque essa function é empacotada à parte e não importa o
+// HTML — se a tabela mudar lá, replicar aqui também.
+const FID_RECOMPENSAS = [
+  { pontos: 100, label: "R$5 de desconto", valor: 5 },
+  { pontos: 200, label: "R$12 de desconto", valor: 12 },
+  { pontos: 350, label: "R$20 de desconto", valor: 20 },
+];
+function proximoBeneficio(pontos) {
+  const p = parseInt(pontos) || 0;
+  const prox = FID_RECOMPENSAS.find((r) => r.pontos > p);
+  return prox ? { faltam: prox.pontos - p, label: prox.label } : null;
+}
+
 // Netlify roda em UTC — usar new Date().getDate()/getMonth() direto compara
 // o dia errado boa parte da noite no horário de Brasília (UTC já virou o
 // dia seguinte). Calcula a data de "hoje" sempre no fuso de Brasília.
@@ -318,7 +332,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
   const [{ data: config }, { data: clientes }] = await Promise.all([
     supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo").eq("company_id", integ.company_id).single(),
-    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario, created_at").eq("company_id", integ.company_id),
+    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario, created_at, pontos").eq("company_id", integ.company_id),
   ]);
   const neg = config?.nome_negocio || "nossa loja";
   const diasInativoLimite = parseInt(config?.dias_inativo || 30);
@@ -346,6 +360,8 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         const [, mesAniv, diaAniv] = c.aniversario.split("-").map(Number);
         return mesAniv === hoje.mes && diaAniv === hoje.dia;
       });
+    } else if (pub === "compontos") {
+      destinatarios = destinatarios.filter((c) => c.status === "ativo" && (parseInt(c.pontos) || 0) > 0);
     }
 
     let enviados = 0;
@@ -354,8 +370,14 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
       try {
         if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id })) continue;
 
+        const pontosCliente = parseInt(cliente.pontos) || 0;
+        const prox = proximoBeneficio(pontosCliente);
         const mensagem = (camp.mensagem || `Oi, {nome}! Temos uma novidade em ${neg}: ${camp.nome}.`)
-          .replace(/\{nome\}/g, cliente.nome || "").replace(/\{negocio\}/g, neg);
+          .replace(/\{nome\}/g, cliente.nome || "")
+          .replace(/\{negocio\}/g, neg)
+          .replace(/\{pontos\}/g, String(pontosCliente))
+          .replace(/\{faltam\}/g, prox ? String(prox.faltam) : "0")
+          .replace(/\{beneficio\}/g, prox ? prox.label : "o maior benefício disponível");
 
         if (camp.imagem_url) {
           await enviarImagemZapi({ ...credZapi, telefone: cliente.telefone, imagemUrl: camp.imagem_url, legenda: mensagem });
