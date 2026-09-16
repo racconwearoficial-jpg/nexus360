@@ -2180,7 +2180,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="form-group" style="margin:0"><label>Público Alvo</label>
         <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option></select>
         <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">
-          Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>, <code>{pontos}</code>, <code>{faltam}</code>, <code>{beneficio}</code>.
+          Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>, <code>{pontos}</code>, <code>{faltam}</code>, <code>{beneficio}</code>. Ou use <code>{status_pontos}</code> pra já vir pronto ("Faltam X pontos..." ou, se já bateu o máximo, "Você já pode trocar seus pontos...").
         </div>
       </div>
     </div>
@@ -4670,11 +4670,16 @@ function recuperarInativos() {
   openModal('modalEnvioCampanha');
 }
 
-// Quantos pontos faltam pro próximo benefício de FID_RECOMPENSAS (null se já
-// está no maior nível). Reaproveitado tanto na aba Fidelidade quanto aqui.
-function fidProximoBeneficio(pontos) {
-  const prox = FID_RECOMPENSAS.find(r => r.pontos > (parseInt(pontos) || 0));
-  return prox ? { faltam: prox.pontos - (parseInt(pontos) || 0), meta: prox.pontos, label: prox.label } : null;
+// Frase pronta sobre o progresso de pontos do cliente — usa fidProximoBeneficio
+// (definida mais abaixo, junto de FID_RECOMPENSAS) que já é a função usada em
+// todo o resto da aba Fidelidade. Cliente que já bateu o maior nível recebe
+// aviso de que já pode trocar pontos pelo benefício máximo, não "faltam 0".
+function fidFraseBeneficio(pontos) {
+  const pts  = parseInt(pontos) || 0;
+  const prox = fidProximoBeneficio(pts);
+  if (prox) return `Faltam ${prox.pontos - pts} pontos pra você resgatar ${prox.label}.`;
+  const max = FID_RECOMPENSAS[FID_RECOMPENSAS.length - 1];
+  return `Você já pode trocar seus pontos pelo benefício de ${max.label}!`;
 }
 
 // Campanha de pontos — mensagem individual por cliente (pontos e "faltam X"
@@ -4705,12 +4710,9 @@ function enviarCampanhaPontos() {
     const num    = tel.startsWith('55') ? tel : '55' + tel;
     const pontos = parseInt(c.pontos) || 0;
     const prox   = fidProximoBeneficio(pontos);
-    const fraseBeneficio = prox
-      ? `Faltam ${prox.faltam} pontos pra você resgatar ${prox.label}.`
-      : `Você já pode resgatar o maior benefício disponível!`;
-    const msg = `Oi, ${c.nome}! Você já tem ${pontos} pontos na ${neg}. ${fraseBeneficio} Você também está participando do nosso ranking de clientes e concorrendo a prêmios exclusivos.`;
+    const msg = `Oi, ${c.nome}! Você já tem ${pontos} pontos na ${neg}. ${fidFraseBeneficio(pontos)} Você também está participando do nosso ranking de clientes e concorrendo a prêmios exclusivos.`;
     window._campMsgs[idx] = { num, msg };
-    const statusTxt = prox ? `faltam ${prox.faltam} para ${prox.label}` : 'maior nível já alcançado';
+    const statusTxt = prox ? `faltam ${prox.pontos - pontos} para ${prox.label}` : 'maior nível já alcançado';
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
       <div style="min-width:0">
         <div style="font-size:13px;font-weight:500;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
@@ -6649,8 +6651,8 @@ function nivelLabel(p) { return p>=1000?'Diamond':p>=500?'Gold':p>=200?'Silver':
 const FCFG_DEFAULTS = {
   ptsReal: 1, multVip: 1.1, minPontuar: 0,
   r1Pts: 100, r1Val: 5,
-  r2Pts: 200, r2Val: 12,
-  r3Pts: 350, r3Val: 20,
+  r2Pts: 200, r2Val: 10,
+  r3Pts: 300, r3Val: 20,
   minDesconto: 20,
   vipPts: 1000, vipBonus: 100, vipDias: 60,
   b1Marco: 500, b1Bonus: 30,
@@ -7212,8 +7214,8 @@ function rmVerHistorico() {
 // ══════════════════════════════════════════════════════════════════════════════
 const FID_RECOMPENSAS = [
   { pontos: 100, label: 'R$5 de desconto',                tipo: 'desconto', valor: 5  },
-  { pontos: 200, label: 'R$12 de desconto',               tipo: 'desconto', valor: 12 },
-  { pontos: 350, label: 'R$20 de desconto',    tipo: 'desconto', valor: 20 },
+  { pontos: 200, label: 'R$10 de desconto',               tipo: 'desconto', valor: 10 },
+  { pontos: 300, label: 'R$20 de desconto',    tipo: 'desconto', valor: 20 },
 ];
 const FID_BONUS = [
   { marco: 500, bonus: 30  },
@@ -7551,8 +7553,8 @@ function fidAtualizarResgatar(cliId, pontos, cli) {
   const disponiveis = FID_RECOMPENSAS.filter(r => r.pontos <= pontos);
   const prox = fidProximoBeneficio(pontos);
   const proxHtml = prox
-    ? '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Faltam <strong style="color:var(--accent)">' + prox.faltam + ' pontos</strong> para ' + prox.label + '.</div>'
-    : '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Maior nível de benefício já alcançado.</div>';
+    ? '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Faltam <strong style="color:var(--accent)">' + (prox.pontos - pontos) + ' pontos</strong> para ' + prox.label + '.</div>'
+    : '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Maior nível de benefício já alcançado — já pode trocar pontos pelo benefício de ' + FID_RECOMPENSAS[FID_RECOMPENSAS.length-1].label + '.</div>';
 
   if (!disponiveis.length) {
     area.innerHTML = '<div style="text-align:center;padding:20px 0">'
@@ -8964,19 +8966,21 @@ function enviarCampanha(id) {
 
   const neg = state.config.nome_negocio || 'nossa loja';
 
-  // ── Monta mensagem substituindo {nome}, {negocio} e, pro público "Ativos com
-  // pontos", também {pontos}/{faltam}/{beneficio} (mesma tabela FID_RECOMPENSAS
-  // usada na aba Fidelidade e no recálculo automático) ──────────────────────
+  // ── Monta mensagem substituindo {nome}, {negocio}, {pontos}, {faltam},
+  // {beneficio} e {status_pontos} (frase pronta — usa a mesma tabela
+  // FID_RECOMPENSAS da aba Fidelidade e do recálculo automático) ───────────
   function montarMsg(cliente) {
     const base = camp.mensagem || buildWppMsg(camp.tipo, cliente.nome);
     const pontos = parseInt(cliente.pontos) || 0;
     const prox = fidProximoBeneficio(pontos);
+    const maxBeneficio = FID_RECOMPENSAS[FID_RECOMPENSAS.length - 1].label;
     return base
       .replace(/{nome}/g, cliente.nome || '')
       .replace(/{negocio}/g, neg)
       .replace(/{pontos}/g, String(pontos))
-      .replace(/{faltam}/g, prox ? String(prox.faltam) : '0')
-      .replace(/{beneficio}/g, prox ? prox.label : 'o maior benefício disponível');
+      .replace(/{faltam}/g, prox ? String(prox.pontos - pontos) : '0')
+      .replace(/{beneficio}/g, prox ? prox.label : maxBeneficio)
+      .replace(/{status_pontos}/g, fidFraseBeneficio(pontos));
   }
 
   // ── Filtra pelo público da campanha (case-insensitive) ───────────────────

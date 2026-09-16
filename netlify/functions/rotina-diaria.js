@@ -93,13 +93,21 @@ const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); ret
 // HTML — se a tabela mudar lá, replicar aqui também.
 const FID_RECOMPENSAS = [
   { pontos: 100, label: "R$5 de desconto", valor: 5 },
-  { pontos: 200, label: "R$12 de desconto", valor: 12 },
-  { pontos: 350, label: "R$20 de desconto", valor: 20 },
+  { pontos: 200, label: "R$10 de desconto", valor: 10 },
+  { pontos: 300, label: "R$20 de desconto", valor: 20 },
 ];
 function proximoBeneficio(pontos) {
   const p = parseInt(pontos) || 0;
   const prox = FID_RECOMPENSAS.find((r) => r.pontos > p);
   return prox ? { faltam: prox.pontos - p, label: prox.label } : null;
+}
+// Cliente que já bateu o maior nível recebe aviso de que já pode trocar
+// pontos pelo benefício máximo, em vez de "faltam 0 pontos".
+function fraseBeneficio(pontos) {
+  const prox = proximoBeneficio(pontos);
+  if (prox) return `Faltam ${prox.faltam} pontos pra você resgatar ${prox.label}.`;
+  const max = FID_RECOMPENSAS[FID_RECOMPENSAS.length - 1];
+  return `Você já pode trocar seus pontos pelo benefício de ${max.label}!`;
 }
 
 // Netlify roda em UTC — usar new Date().getDate()/getMonth() direto compara
@@ -370,12 +378,14 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
         const pontosCliente = parseInt(cliente.pontos) || 0;
         const prox = proximoBeneficio(pontosCliente);
+        const maxBeneficio = FID_RECOMPENSAS[FID_RECOMPENSAS.length - 1].label;
         const mensagem = (camp.mensagem || `Oi, {nome}! Temos uma novidade em ${neg}: ${camp.nome}.`)
           .replace(/\{nome\}/g, cliente.nome || "")
           .replace(/\{negocio\}/g, neg)
           .replace(/\{pontos\}/g, String(pontosCliente))
           .replace(/\{faltam\}/g, prox ? String(prox.faltam) : "0")
-          .replace(/\{beneficio\}/g, prox ? prox.label : "o maior benefício disponível");
+          .replace(/\{beneficio\}/g, prox ? prox.label : maxBeneficio)
+          .replace(/\{status_pontos\}/g, fraseBeneficio(pontosCliente));
 
         if (camp.imagem_url) {
           await enviarImagemZapi({ ...credZapi, telefone: cliente.telefone, imagemUrl: camp.imagem_url, legenda: mensagem });
