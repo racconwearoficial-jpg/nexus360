@@ -360,8 +360,6 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         const [, mesAniv, diaAniv] = c.aniversario.split("-").map(Number);
         return mesAniv === hoje.mes && diaAniv === hoje.dia;
       });
-    } else if (pub === "compontos") {
-      destinatarios = destinatarios.filter((c) => c.status === "ativo" && (parseInt(c.pontos) || 0) > 0);
     }
 
     let enviados = 0;

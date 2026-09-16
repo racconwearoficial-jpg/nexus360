@@ -2178,9 +2178,9 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <select id="camp-tipo"><option value="promoção">Promoção</option><option value="reativação">Reativação</option><option value="aniversário">Aniversário</option><option value="fidelidade">Fidelidade &amp; Indicação</option></select>
       </div>
       <div class="form-group" style="margin:0"><label>Público Alvo</label>
-        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option><option value="ComPontos">Ativos com pontos</option></select>
+        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option></select>
         <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">
-          Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>. Só pra público "Ativos com pontos", também <code>{pontos}</code>, <code>{faltam}</code> e <code>{beneficio}</code>.
+          Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>, <code>{pontos}</code>, <code>{faltam}</code>, <code>{beneficio}</code>.
         </div>
       </div>
     </div>
@@ -8997,8 +8997,6 @@ function enviarCampanha(id) {
       const d = new Date(c.aniversario + 'T12:00:00');
       return d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth();
     });
-  } else if (pub === 'compontos') {
-    destinatarios = destinatarios.filter(c => c.status === 'ativo' && (parseInt(c.pontos) || 0) > 0);
   }
   // pub === 'todos' → mantém lista completa com telefone
 
