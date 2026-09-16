@@ -656,6 +656,9 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <button class="btn btn-primary" onclick="recuperarInativos()" style="white-space:nowrap;flex-shrink:0">
           Recuperar inativos
         </button>
+        <button class="btn btn-primary" onclick="enviarCampanhaPontos()" style="white-space:nowrap;flex-shrink:0">
+          Campanha de pontos
+        </button>
       </div>
       <div class="card" id="clientTableWrap">
         <div class="table-wrap">
@@ -4664,6 +4667,60 @@ function recuperarInativos() {
   openModal('modalEnvioCampanha');
 }
 
+// Quantos pontos faltam pro próximo benefício de FID_RECOMPENSAS (null se já
+// está no maior nível). Reaproveitado tanto na aba Fidelidade quanto aqui.
+function fidProximoBeneficio(pontos) {
+  const prox = FID_RECOMPENSAS.find(r => r.pontos > (parseInt(pontos) || 0));
+  return prox ? { faltam: prox.pontos - (parseInt(pontos) || 0), meta: prox.pontos, label: prox.label } : null;
+}
+
+// Campanha de pontos — mensagem individual por cliente (pontos e "faltam X"
+// são diferentes pra cada um, por isso reaproveita o fluxo de envio manual
+// clique-a-clique do recuperarInativos, não o de campanha em massa com texto
+// único pra todo mundo). Público: todo cliente ativo que já tem pontos.
+function enviarCampanhaPontos() {
+  const elegiveis = state.clientes.filter(c => {
+    if (!c.telefone || !c.telefone.trim()) return false;
+    if ((c.status || 'ativo') !== 'ativo') return false;
+    return (parseInt(c.pontos) || 0) > 0;
+  });
+
+  if (!elegiveis.length) {
+    toast('Nenhum cliente ativo com pontos encontrado.', 'info');
+    return;
+  }
+
+  const neg = state.config.nome_negocio || 'nossa loja';
+
+  document.getElementById('envioCampanhaTitulo').textContent = 'Campanha de pontos';
+  document.getElementById('envioCampanhaInfo').textContent =
+    `${elegiveis.length} cliente(s) ativo(s) com pontos. Edite a mensagem e clique em "Enviar" para cada um.`;
+
+  window._campMsgs = {};
+  document.getElementById('envioCampanhaLista').innerHTML = elegiveis.map((c, idx) => {
+    const tel    = c.telefone.replace(/\D/g, '');
+    const num    = tel.startsWith('55') ? tel : '55' + tel;
+    const pontos = parseInt(c.pontos) || 0;
+    const prox   = fidProximoBeneficio(pontos);
+    const fraseBeneficio = prox
+      ? `Faltam ${prox.faltam} pontos pra você resgatar ${prox.label}.`
+      : `Você já pode resgatar o maior benefício disponível!`;
+    const msg = `Oi, ${c.nome}! Você já tem ${pontos} pontos na ${neg}. ${fraseBeneficio} Você também está participando do nosso ranking de clientes e concorrendo a prêmios exclusivos.`;
+    window._campMsgs[idx] = { num, msg };
+    const statusTxt = prox ? `faltam ${prox.faltam} para ${prox.label}` : 'maior nível já alcançado';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${pontos} pontos · ${statusTxt} · ${c.telefone}</div>
+      </div>
+      <button class="btn-wpp" style="font-size:11px;padding:5px 12px;flex-shrink:0"
+        onclick="enviarCampMsg(${idx})">Enviar</button>
+    </div>`;
+  }).join('');
+
+  openModal('modalEnvioCampanha');
+}
+
 function filterClients() {
   const isAdmin = MODO_ATUAL === 'admin';
 
@@ -7489,11 +7546,16 @@ function fidAtualizarResgatar(cliId, pontos, cli) {
   const area = document.getElementById('fid-resgatar-area');
   if (!area) return;
   const disponiveis = FID_RECOMPENSAS.filter(r => r.pontos <= pontos);
+  const prox = fidProximoBeneficio(pontos);
+  const proxHtml = prox
+    ? '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Faltam <strong style="color:var(--accent)">' + prox.faltam + ' pontos</strong> para ' + prox.label + '.</div>'
+    : '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Maior nível de benefício já alcançado.</div>';
+
   if (!disponiveis.length) {
-    const prox = FID_RECOMPENSAS[0];
     area.innerHTML = '<div style="text-align:center;padding:20px 0">'
       + '<div style="font-size:13px;color:rgba(255,255,255,.4)">Nenhum beneficio disponivel.</div>'
-      + '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Necessario ' + (prox?prox.pontos:100) + ' pontos e compra acima de R$' + (window.FID_MIN_COMPRA||20) + '.</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:4px">Necessario ' + (FID_RECOMPENSAS[0]?FID_RECOMPENSAS[0].pontos:100) + ' pontos e compra acima de R$' + (window.FID_MIN_COMPRA||20) + '.</div>'
+      + proxHtml
       + '</div>';
     return;
   }
@@ -7506,7 +7568,8 @@ function fidAtualizarResgatar(cliId, pontos, cli) {
       + '<button class="btn btn-green" style="font-size:12px;flex-shrink:0" onclick="fidResgatar(' + cliId + ',' + r.pontos + ',\'' + r.label + '\')">Resgatar</button>'
       + '</div>'
       + '</div>'
-    ).join('');
+    ).join('')
+    + proxHtml;
 }
 
 async function fidResgatar(cliId, custoPontos, label) {
