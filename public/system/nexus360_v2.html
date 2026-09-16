@@ -10215,6 +10215,60 @@ function lcCalcularPontos(valor, categoria, isVip) {
   return Math.floor(valor * ptsReal * mult);
 }
 
+// Recalcula os pontos de uma venda já salva, usando a categoria real de cada
+// produto (igual saveVenda faz no momento da venda) em vez de adivinhar pelo
+// texto de `itens`. Usado pelo recálculo em massa, que só tem o texto salvo
+// e o valor total — não o carrinho estruturado que saveVenda tinha na hora.
+function lcRecalcularPontosVenda(v, isVip) {
+  const valor = parseFloat(v.valor) || 0;
+  if (!valor) return 0;
+
+  // Categoria já gravada direto na venda (ex: importação futura com coluna categoria)
+  if (v.categoria) return lcCalcularPontos(valor, v.categoria, isVip);
+
+  const itens = (v.itens || '').trim();
+  if (!itens) return lcCalcularPontos(valor, null, isVip);
+
+  // Tenta separar por produto: "Produto A (2x), Produto B (1x)" — formato
+  // exato que saveVenda gera pra venda com carrinho (_vendaProdutos).
+  const partes = itens.split(',').map(s => s.trim()).filter(Boolean);
+  const parsed = partes.map(p => {
+    const m = p.match(/^(.*)\s\((\d+)x\)$/);
+    return m ? { nome: m[1].trim(), qtd: parseInt(m[2], 10) } : null;
+  });
+
+  if (parsed.length && parsed.every(Boolean)) {
+    let pesoTotal = 0;
+    const linhas = parsed.map(p => {
+      const item  = state.itens.find(i => i.nome === p.nome);
+      const preco = item ? (parseFloat(item.preco) || 0) : 0;
+      const peso  = p.qtd * preco;
+      pesoTotal += peso;
+      return { categoria: item ? item.categoria : null, peso };
+    });
+    if (pesoTotal > 0) {
+      // Divide o valor real da venda proporcionalmente ao preço atual de
+      // cada produto, e soma os pontos por categoria — mesma mecânica de
+      // soma-por-item que saveVenda usa, só que com peso proporcional em
+      // vez do preço exato pago na hora (que não fica salvo por item).
+      return linhas.reduce((soma, l) => {
+        const valorProporcional = valor * (l.peso / pesoTotal);
+        return soma + lcCalcularPontos(valorProporcional, l.categoria, isVip);
+      }, 0);
+    }
+    // Nenhum produto do carrinho foi encontrado em state.itens (renomeado/excluído) —
+    // cai pra regra geral sobre o valor total.
+    return lcCalcularPontos(valor, null, isVip);
+  }
+
+  // Venda rápida: "Categoria" sozinha, ou "Categoria — descrição".
+  const semVirgulaParen = !itens.includes(',') && !itens.includes('(')
+    && !itens.includes('Importado') && !itens.includes('rápida');
+  const catRapida = semVirgulaParen ? itens.split(' — ')[0].trim() : null;
+
+  return lcCalcularPontos(valor, catRapida || null, isVip);
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // REALTIME SYNC — sincroniza automaticamente entre dispositivos via Supabase
 // ══════════════════════════════════════════════════════════════════════════════
@@ -10354,14 +10408,7 @@ async function recalcularTodosPontos() {
 
       const isVip = fidIsVip(cli);
 
-      // Categoria: campo categoria > campo itens simples > null
-      const catVenda = v.categoria
-        || (v.itens && !v.itens.includes(',') && !v.itens.includes('(')
-            && !v.itens.includes('Importado') && !v.itens.includes('rápida')
-            && v.itens.trim().length < 40
-            ? v.itens.trim() : null);
-
-      const pts = lcCalcularPontos(parseFloat(v.valor), catVenda || null, isVip);
+      const pts = lcRecalcularPontosVenda(v, isVip);
       if (pts > 0) {
         pontosPorCliente[cliId] = (pontosPorCliente[cliId] || 0) + pts;
       }
@@ -11394,39 +11441,25 @@ window.onload = async function() {
 </div>
 
 <script>
-function openClientDrawer(clientId) {
-  const c = (state.clientes||[]).find(x => x.id == clientId);
-  if (!c) return;
-  drawerClient = c;
-  document.getElementById('drawerAvatar').textContent = (c.nome||'?')[0].toUpperCase();
-  document.getElementById('drawerName').textContent = c.nome||'—';
-  document.getElementById('drawerPhone').textContent = c.telefone||'Sem telefone';
-  const st = window.calcularStatus ? window.calcularStatus(c) : c.status;
-  const statusEl = document.getElementById('drawerStatus');
-  statusEl.textContent = st==='vip'?'VIP':st==='inativo'?'Inativo':'Ativo';
-  statusEl.className = st==='vip'?'tag-purple':st==='inativo'?'tag-red':'tag-green';
-  statusEl.style.cssText = 'padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600';
-  const levelEl = document.getElementById('drawerLevel');
-  if (levelEl && typeof nivel==='function') {
-    levelEl.textContent = typeof nivelLabel==='function' ? nivelLabel(c.pontos||0) : nivel(c.pontos||0);
-    levelEl.className = nivel(c.pontos||0);
-    levelEl.style.cssText = 'padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600';
-  }
-  const totalGasto = parseFloat(c.total_gasto||0);
-  document.getElementById('drawerTotalGasto').textContent = 'R$ '+totalGasto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('drawerPontos').textContent = (c.pontos||0).toLocaleString('pt-BR');
-  const vendas = (state.vendas||[]).filter(v => v.cliente_id==c.id||v.cliente_nome===c.nome);
-  document.getElementById('drawerCompras').textContent = vendas.length;
-  const somaVendas = vendas.reduce((s,v)=>s+parseFloat(v.valor||0),0);
-  const ticket = vendas.length>0?somaVendas/vendas.length:0;
-  document.getElementById('drawerTicket').textContent = 'R$ '+ticket.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('drawerAniv').textContent = c.aniversario?new Date(c.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long'}):'—';
-  document.getElementById('drawerUltima').textContent = c.ultima_compra?_dataUltimaCompra(c.ultima_compra).toLocaleDateString('pt-BR'):'—';
-  document.getElementById('drawerSince').textContent = c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):'—';
-  const last5 = [...vendas].sort((a,b)=>new Date(b.data||b.created_at)-new Date(a.data||a.created_at)).slice(0,5);
-  document.getElementById('drawerPurchases').innerHTML = last5.length===0
+let drawerShowAllVendas = false;
+
+function drawerToggleVendas() {
+  drawerShowAllVendas = !drawerShowAllVendas;
+  if (!drawerClient) return;
+  const vendas = (state.vendas||[]).filter(v => v.cliente_id==drawerClient.id||v.cliente_nome===drawerClient.nome);
+  renderDrawerPurchases(vendas);
+}
+
+function renderDrawerPurchases(vendas) {
+  const ordenadas = [...vendas].sort((a,b)=>new Date(b.data||b.created_at)-new Date(a.data||a.created_at));
+  const lista = drawerShowAllVendas ? ordenadas : ordenadas.slice(0,5);
+
+  const titulo = document.getElementById('drawerPurchasesTitle');
+  if (titulo) titulo.textContent = `${drawerShowAllVendas ? 'Todas as compras' : 'Últimas compras'} (${ordenadas.length})`;
+
+  const itensHtml = lista.length===0
     ? '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Sem compras registradas</div>'
-    : last5.map(v => {
+    : lista.map(v => {
         const valor = parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
         const data  = v.data ? _dataUltimaCompra(v.data).toLocaleDateString('pt-BR') : '—';
         // Categoria ou tipo de venda
@@ -11462,6 +11495,45 @@ function openClientDrawer(clientId) {
           </div>
         </div>`;
       }).join('');
+
+  const toggleHtml = ordenadas.length > 5
+    ? `<button class="btn btn-ghost" style="width:100%;justify-content:center;padding:8px;font-size:12px;margin-top:4px" onclick="drawerToggleVendas()">${drawerShowAllVendas ? 'Ver menos' : `Ver todas as ${ordenadas.length} compras`}</button>`
+    : '';
+
+  document.getElementById('drawerPurchases').innerHTML = itensHtml + toggleHtml;
+}
+
+function openClientDrawer(clientId) {
+  const c = (state.clientes||[]).find(x => x.id == clientId);
+  if (!c) return;
+  drawerClient = c;
+  drawerShowAllVendas = false;
+  document.getElementById('drawerAvatar').textContent = (c.nome||'?')[0].toUpperCase();
+  document.getElementById('drawerName').textContent = c.nome||'—';
+  document.getElementById('drawerPhone').textContent = c.telefone||'Sem telefone';
+  const st = window.calcularStatus ? window.calcularStatus(c) : c.status;
+  const statusEl = document.getElementById('drawerStatus');
+  statusEl.textContent = st==='vip'?'VIP':st==='inativo'?'Inativo':'Ativo';
+  statusEl.className = st==='vip'?'tag-purple':st==='inativo'?'tag-red':'tag-green';
+  statusEl.style.cssText = 'padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600';
+  const levelEl = document.getElementById('drawerLevel');
+  if (levelEl && typeof nivel==='function') {
+    levelEl.textContent = typeof nivelLabel==='function' ? nivelLabel(c.pontos||0) : nivel(c.pontos||0);
+    levelEl.className = nivel(c.pontos||0);
+    levelEl.style.cssText = 'padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600';
+  }
+  const totalGasto = parseFloat(c.total_gasto||0);
+  document.getElementById('drawerTotalGasto').textContent = 'R$ '+totalGasto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('drawerPontos').textContent = (c.pontos||0).toLocaleString('pt-BR');
+  const vendas = (state.vendas||[]).filter(v => v.cliente_id==c.id||v.cliente_nome===c.nome);
+  document.getElementById('drawerCompras').textContent = vendas.length;
+  const somaVendas = vendas.reduce((s,v)=>s+parseFloat(v.valor||0),0);
+  const ticket = vendas.length>0?somaVendas/vendas.length:0;
+  document.getElementById('drawerTicket').textContent = 'R$ '+ticket.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('drawerAniv').textContent = c.aniversario?new Date(c.aniversario+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long'}):'—';
+  document.getElementById('drawerUltima').textContent = c.ultima_compra?_dataUltimaCompra(c.ultima_compra).toLocaleDateString('pt-BR'):'—';
+  document.getElementById('drawerSince').textContent = c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):'—';
+  renderDrawerPurchases(vendas);
   document.getElementById('clientDrawer').style.transform='translateX(0)';
   document.getElementById('drawerOverlay').style.opacity='1';
   document.getElementById('drawerOverlay').style.pointerEvents='all';
@@ -11506,7 +11578,7 @@ function openClientDrawer(clientId) {
       </div>
     </div>
     <div style="margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Últimas compras</div>
+      <div id="drawerPurchasesTitle" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Últimas compras</div>
       <div id="drawerPurchases"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Sem compras registradas</div></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
