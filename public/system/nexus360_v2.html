@@ -1339,6 +1339,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
         <div class="rel-actions">
           <select id="rel-periodo" onchange="renderRelatorios()" class="rel-select">
+            <option value="1">Último mês</option>
             <option value="3">Últimos 3 meses</option>
             <option value="6" selected>Últimos 6 meses</option>
             <option value="12">Últimos 12 meses</option>
@@ -8483,7 +8484,7 @@ function renderRelatorios() {
   const total    = state.clientes.length || 1;
   const segs = [
     {lbl:'VIP',     val:vips,    cor:'#8B5CF6', pct:Math.round(vips/total*100)},
-    {lbl:'Ativos',  val:ativos,  cor:'#6366F1', pct:Math.round(ativos/total*100)},
+    {lbl:'Ativos',  val:ativos,  cor:'#10B981', pct:Math.round(ativos/total*100)},
     {lbl:'Inativos',val:inativos2,cor:'#EF4444',pct:Math.round(inativos2/total*100)},
   ];
   // SVG donut simples
