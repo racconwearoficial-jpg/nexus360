@@ -178,4 +178,196 @@ export default function AdminPage() {
                       >
                         {["trial", "basic", "pro", "enterprise"].map((p) => (
                           <option key={p} value={p}>
-        
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td style={styles.td}>
+                      <span
+                        style={{
+                          ...styles.badge,
+                          background: isActive
+                            ? "rgba(16,185,129,.15)"
+                            : "rgba(239,68,68,.15)",
+                          color: isActive ? "#10b981" : "#ef4444",
+                          border: `1px solid ${isActive ? "rgba(16,185,129,.3)" : "rgba(239,68,68,.3)"}`,
+                        }}
+                      >
+                        {expired ? "Expirado" : c.status}
+                      </span>
+                    </td>
+                    <td style={styles.td}>
+                      <div
+                        style={{
+                          color: expired ? "#ef4444" : "rgba(255,255,255,.5)",
+                          fontSize: 13,
+                        }}
+                      >
+                        {c.expires_at
+                          ? new Date(c.expires_at).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </div>
+                    </td>
+                    <td style={styles.td}>
+                      <div
+                        style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
+                      >
+                        <button
+                          onClick={() => toggleStatus(c)}
+                          style={{
+                            ...styles.actionBtn,
+                            background: isActive
+                              ? "rgba(239,68,68,.15)"
+                              : "rgba(16,185,129,.15)",
+                            color: isActive ? "#ef4444" : "#10b981",
+                          }}
+                        >
+                          {isActive ? "Desativar" : "Ativar"}
+                        </button>
+                        <button
+                          onClick={() => extendPlan(c, 30)}
+                          style={{
+                            ...styles.actionBtn,
+                            background: "rgba(59,130,246,.15)",
+                            color: "#93c5fd",
+                          }}
+                        >
+                          +30 dias
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filtered.length === 0 && (
+            <div style={styles.empty}>Nenhuma empresa encontrada.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#0B0F1A",
+    fontFamily: "system-ui, sans-serif",
+    padding: 24,
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 24,
+  },
+  logo: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: "#fff",
+    letterSpacing: "-0.5px",
+    marginBottom: 4,
+  },
+  adminTag: {
+    background: "rgba(239,68,68,.2)",
+    color: "#ef4444",
+    fontSize: 11,
+    padding: "2px 8px",
+    borderRadius: 4,
+    fontWeight: 600,
+    verticalAlign: "middle",
+    marginLeft: 8,
+  },
+  sub: { fontSize: 13, color: "rgba(255,255,255,.35)" },
+  refreshBtn: {
+    background: "rgba(255,255,255,.05)",
+    color: "rgba(255,255,255,.5)",
+    border: "1px solid rgba(255,255,255,.08)",
+    borderRadius: 8,
+    padding: "8px 16px",
+    fontSize: 13,
+    cursor: "pointer",
+  },
+  statsRow: { display: "flex", gap: 12, marginBottom: 20 },
+  statCard: {
+    background: "#111827",
+    border: "1px solid rgba(255,255,255,.06)",
+    borderRadius: 10,
+    padding: "16px 20px",
+    flex: 1,
+  },
+  statValue: { fontSize: 28, fontWeight: 700, marginBottom: 4 },
+  statLabel: { fontSize: 12, color: "rgba(255,255,255,.4)" },
+  searchWrap: { marginBottom: 16 },
+  search: {
+    width: "100%",
+    maxWidth: 360,
+    background: "rgba(255,255,255,.05)",
+    border: "1px solid rgba(255,255,255,.08)",
+    borderRadius: 8,
+    padding: "10px 14px",
+    color: "#fff",
+    fontSize: 14,
+    outline: "none",
+    boxSizing: "border-box",
+  },
+  loading: {
+    color: "rgba(255,255,255,.4)",
+    fontSize: 14,
+    padding: 24,
+    textAlign: "center",
+  },
+  tableWrap: {
+    background: "#111827",
+    border: "1px solid rgba(255,255,255,.06)",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  table: { width: "100%", borderCollapse: "collapse" },
+  th: {
+    padding: "12px 16px",
+    fontSize: 11,
+    color: "rgba(255,255,255,.4)",
+    textAlign: "left",
+    borderBottom: "1px solid rgba(255,255,255,.06)",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: ".5px",
+  },
+  tr: { borderBottom: "1px solid rgba(255,255,255,.04)" },
+  td: { padding: "14px 16px", verticalAlign: "top" },
+  badge: {
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 600,
+    textTransform: "uppercase",
+  },
+  select: {
+    background: "rgba(255,255,255,.05)",
+    border: "1px solid rgba(255,255,255,.1)",
+    borderRadius: 6,
+    padding: "4px 8px",
+    color: "#fff",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  actionBtn: {
+    border: "none",
+    borderRadius: 6,
+    padding: "5px 12px",
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  empty: {
+    padding: 40,
+    textAlign: "center",
+    color: "rgba(255,255,255,.3)",
+    fontSize: 14,
+  },
+};
