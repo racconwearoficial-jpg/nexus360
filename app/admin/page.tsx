@@ -369,7 +369,7 @@ export default function LandingPage() {
               <div className="lg:col-span-6 relative">
                 <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-950/50 bg-[#080B14]">
                   <Image
-                    src="/farmacia-atendimento.webp"
+                 src="/farmacia_atendimento.jpg"
                     alt="Atendente farmacêutica utilizando o Nexus 360 no balcão da drogaria"
                     width={800}
                     height={800}
