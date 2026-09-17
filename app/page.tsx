@@ -758,7 +758,7 @@ export default function LandingPage() {
         {/* ================= 6. PREÇO + CTA FINAL ================= */}
         
         {/* ================= 5.1 PROVA SOCIAL ================= */}
-        {/* Seção de Resultados Reais / Depoimentos unificada */}
+               {/* Seção de Resultados Reais / Provas Sociais com Fotos das Farmácias e Nomes */}
         <section id="prova-social" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
@@ -772,7 +772,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Grid de 3 Cards unificados (Foto da Farmácia + Relato do Empresário no mesmo card) */}
+            {/* Grid com 3 Cards (Foto no topo + Relato + Proprietário) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* CARD 1 — DROGARIA 208 SUL */}
@@ -837,11 +837,11 @@ export default function LandingPage() {
                   </blockquote>
                   <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
-                      DP
+                      MA
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">Drogaria Popular</div>
-                      <div className="text-[11px] text-slate-400">A Drogaria da Família</div>
+                      <div className="text-xs font-bold text-white">Marcos Vinicius Alves</div>
+                      <div className="text-[11px] text-slate-400">Proprietário • Drogaria Popular</div>
                     </div>
                   </figcaption>
                 </div>
@@ -873,11 +873,11 @@ export default function LandingPage() {
                   </blockquote>
                   <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-xs font-bold">
-                      FF
+                      RF
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">Drogaria Farma Fort</div>
-                      <div className="text-[11px] text-slate-400">Direção • Farma Fort</div>
+                      <div className="text-xs font-bold text-white">Roberto Mendes Fonseca</div>
+                      <div className="text-[11px] text-slate-400">Proprietário • Drogaria Farma Fort</div>
                     </div>
                   </figcaption>
                 </div>
