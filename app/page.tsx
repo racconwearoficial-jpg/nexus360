@@ -302,192 +302,123 @@ export default function LandingPage() {
 
         
         {/* ================= 2.1 PRA QUEM É O NEXUS 360 ================= */}
-        <section id="pra-quem-e" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#05070D] relative overflow-hidden">
+                {/* ================= 2.5 PRA QUEM É O NEXUS 360 ================= */}
+        <section id="pra-quem-e" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_50%)] pointer-events-none" />
+          
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             
-            {/* Bloco 1: Pra quem é o Nexus 360 */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20 sm:mb-28">
+            {/* Bloco Farmácia & Imagem */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-16">
               <div className="lg:col-span-6 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-400">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                  Especializado no Mercado Farma
-                </div>
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                  Especializado para Farmácias & Drogarias
+                </span>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                  Pra quem é o <br />
-                  <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                    Nexus 360?
-                  </span>
+                  Construído para a rotina real de quem está atrás do balcão
                 </h2>
                 <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
-                  O Nexus 360 foi desenvolvido especificamente para <strong className="text-white">farmácias, drogarias e redes de manipulação</strong> que querem parar de depender apenas de clientes espontâneos de balcão e construir uma máquina previsível de recompra e fidelização.
+                  O Nexus 360 foi desenvolvido para a dinâmica prática de farmácias e drogarias: atendimento rápido no balcão, acompanhamento de clientes inativos e relacionamento direto via WhatsApp.
                 </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="p-4 rounded-xl bg-[#0B1020] border border-white/[0.06] hover:border-blue-500/30 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 font-bold mb-3">
-                      ✓
-                    </div>
-                    <h4 className="font-bold text-white text-sm mb-1">Drogarias e Farmácias Independentes</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Que precisam competir com grandes redes sem gastar fortunas em softwares complexos.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#0B1020] border border-white/[0.06] hover:border-violet-500/30 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold mb-3">
-                      ✓
-                    </div>
-                    <h4 className="font-bold text-white text-sm mb-1">Balcão & Tele-entrega</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Equipes que atendem no balcão e no WhatsApp e precisam registrar vendas em segundos sem travar a fila.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#0B1020] border border-white/[0.06] hover:border-indigo-500/30 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold mb-3">
-                      ✓
-                    </div>
-                    <h4 className="font-bold text-white text-sm mb-1">Receituário Contínuo & Crônicos</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Estabelecimentos com clientes de uso contínuo que precisam de lembretes automáticos antes do remédio acabar.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#0B1020] border border-white/[0.06] hover:border-emerald-500/30 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold mb-3">
-                      ✓
-                    </div>
-                    <h4 className="font-bold text-white text-sm mb-1">Redes & Múltiplas Unidades</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Gestores que precisam gerenciar filiais, equipes com permissões restritas e visão unificada dos dados.
-                    </p>
-                  </div>
+                <div className="pt-2">
+                  <a
+                    href={WA_CONHECER}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/25"
+                  >
+                    Ver Demonstração Prática
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </a>
                 </div>
               </div>
 
-              {/* Foto da Atendente / Farmácia */}
               <div className="lg:col-span-6 relative">
                 <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-950/50 bg-[#080B14]">
                   <Image
-                 src="/farmacia_atendimento.jpg"
+                    src="/farmacia_atendimento.jpg"
                     alt="Atendente farmacêutica utilizando o Nexus 360 no balcão da drogaria"
                     width={800}
                     height={800}
                     className="w-full h-auto object-cover"
-                    loading="lazy"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                   />
-                  {/* Overlay gradiente inferior com card informativo */}
-                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-[#05070D] via-[#05070D]/80 to-transparent">
-                    <div className="p-4 rounded-xl bg-[#0B1020]/90 backdrop-blur-md border border-white/10 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 font-bold">
-                        ⚡
-                      </div>
-                      <div>
-                        <div className="text-xs font-semibold text-white">Recompra Automatizada no WhatsApp</div>
-                        <div className="text-[11px] text-slate-300">Lembrete de renovação de medicamento enviado no momento exato</div>
-                      </div>
-                    </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14]/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-[#0B1020]/90 backdrop-blur border border-white/10">
+                    <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Agilidade no Balcão</p>
+                    <p className="text-sm text-slate-200 mt-0.5">Identifique o cliente, consulte o histórico e registre vendas em poucos segundos.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bloco 2: Por que assinar o Nexus 360 */}
-            <div className="mb-20 sm:mb-28">
-              <div className="text-center max-w-3xl mx-auto mb-14">
-                <span className="text-xs font-bold uppercase tracking-widest text-violet-400">Decisão Inteligente</span>
-                <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  Por que você tem que assinar o Nexus 360?
-                </h3>
-                <p className="mt-3 text-sm sm:text-base text-slate-300">
-                  O cliente que entra na sua farmácia hoje não pode sumir amanhã. Veja os motivos que fazem do Nexus 360 um investimento indispensável:
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] relative overflow-hidden group hover:border-violet-500/40 transition-colors">
-                  <div className="text-violet-400 font-mono text-2xl font-black mb-3">01</div>
-                  <h4 className="text-lg font-bold text-white mb-2">Pare de perder clientes para o esquecimento</h4>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    Mais de 60% dos pacientes esquecem de renovar a medicação na data certa ou compram na primeira drogaria do caminho. O Nexus avisa você e o cliente antes do medicamento acabar.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] relative overflow-hidden group hover:border-blue-500/40 transition-colors">
-                  <div className="text-blue-400 font-mono text-2xl font-black mb-3">02</div>
-                  <h4 className="text-lg font-bold text-white mb-2">Imunidade contra grandes redes e farmácias vizinhas</h4>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    Com o programa de fidelidade por pontos e categorias VIP integrado ao balcão, seu cliente tem um motivo real e financeiro para sempre voltar a comprar de você.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] relative overflow-hidden group hover:border-emerald-500/40 transition-colors">
-                  <div className="text-emerald-400 font-mono text-2xl font-black mb-3">03</div>
-                  <h4 className="text-lg font-bold text-white mb-2">Simplicidade real: sua equipe aprende em minutos</h4>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    Sistemas tradicionais são lentos, poluídos e cheios de travas. O Nexus 360 tem registro de Venda Rápida em 3 toques, modo funcionário seguro e zero atrito no atendimento.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bloco 3: Como ele vai ajudar a melhorar o negócio */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#0B1020] via-[#080B14] to-[#0D152A] p-8 sm:p-12 border border-white/10 shadow-2xl">
+            {/* Bloco: Como o Nexus 360 melhora o seu negócio na prática */}
+            <div className="pt-12 border-t border-white/[0.08]">
               <div className="max-w-3xl mb-10">
-                <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Impacto Direto no Faturamento</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Rotina & Resultados</span>
                 <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
                   Como o Nexus 360 melhora o seu negócio na prática
                 </h3>
                 <p className="mt-2 text-sm sm:text-base text-slate-300">
-                  Resultados diretos no dia a dia da drogaria que impactam a última linha do seu balanço:
+                  Recursos desenvolvidos para resolver as tarefas mais importantes do dia a dia da sua loja:
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-lg mb-3">
-                    📈
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-blue-500/30 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
-                  <h5 className="font-bold text-white text-sm mb-1.5">+20% a 35% em Recompra</h5>
+                  <h5 className="font-bold text-white text-sm mb-1.5">Clientes Inativos em Destaque</h5>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Resgate sistemático de clientes que compraram medicamentos de 30 dias e precisam de reposição imediata.
+                    O sistema identifica automaticamente quem comprou e não retornou mais, permitindo ações rápidas de reativação da carteira.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg mb-3">
-                    💬
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
                   </div>
-                  <h5 className="font-bold text-white text-sm mb-1.5">WhatsApp Oficial & Automatizado</h5>
+                  <h5 className="font-bold text-white text-sm mb-1.5">Campanhas via WhatsApp (Z-API)</h5>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Campanhas direcionadas com 1 clique via Z-API, sem bloqueios amadores e com taxa de abertura superior a 90%.
+                    Envie mensagens para aniversariantes, avisos e campanhas segmentadas diretamente aos clientes conectados ao sistema.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-lg mb-3">
-                    🛡️
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-purple-500/30 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-                  <h5 className="font-bold text-white text-sm mb-1.5">Controle Total da Sua Carteira</h5>
+                  <h5 className="font-bold text-white text-sm mb-1.5">Histórico & Dados Centralizados</h5>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Os contatos e o histórico pertencem à farmácia, não ao celular pessoal dos balconistas. Proteção real de ativos.
+                    Histórico de compras e perfis de clientes reunidos em uma única base, com controle de permissões por usuário.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-3">
-                    ⚡
+                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-amber-500/30 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
                   </div>
-                  <h5 className="font-bold text-white text-sm mb-1.5">Operação Ágil sem Burocracia</h5>
+                  <h5 className="font-bold text-white text-sm mb-1.5">Venda Rápida & Balcão Ágil</h5>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Venda Rápida, tele-entrega com status em tempo real e controle de caixa sem telas confusas ou lentidão.
+                    Agilidade total para registrar pedidos de balcão e acompanhar entregas em tempo real sem filas ou complicações.
                   </p>
                 </div>
               </div>
 
               <div className="mt-10 pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-slate-300 text-center sm:text-left">
-                  Pronto para transformar sua farmácia em uma máquina de vendas recorrentes?
+                  Pronto para profissionalizar a gestão e o atendimento da sua farmácia?
                 </div>
                 <a
                   href={WA_CONHECER}
@@ -495,7 +426,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-violet-600/30 transition-all text-center whitespace-nowrap"
                 >
-                  Garantir Nexus 360 por R$297/mês →
+                  Conhecer o Nexus 360 por R$297/mês →
                 </a>
               </div>
             </div>
@@ -503,7 +434,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ================= 3. COMO O NEXUS FUNCIONA ================= */}
         <section id="como-funciona" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#05070D] relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="text-center max-w-3xl mx-auto mb-16">
@@ -519,19 +449,21 @@ export default function LandingPage() {
             {/* Pipeline Interativo */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3 sm:gap-4">
               {[
-                { step: "01", name: "Clientes", detail: "Cadastro unificado", icon: "👥", color: "from-blue-600 to-indigo-600" },
-                { step: "02", name: "Dados", detail: "Histórico & compras", icon: "📊", color: "from-indigo-600 to-violet-600" },
-                { step: "03", name: "Inteligência", detail: "Inativos & VIPs", icon: "⚡", color: "from-violet-600 to-purple-600" },
-                { step: "04", name: "Ação", detail: "Campanha WhatsApp", icon: "🎯", color: "from-purple-600 to-pink-600" },
-                { step: "05", name: "Venda", detail: "Retorno de clientes", icon: "💰", color: "from-emerald-600 to-teal-600" },
-                { step: "06", name: "Fidelização", detail: "Pontos & Recompra", icon: "🏆", color: "from-amber-600 to-orange-600" }
+                { step: "01", name: "Clientes", detail: "Cadastro unificado", path: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z", color: "from-blue-600 to-indigo-600" },
+                { step: "02", name: "Dados", detail: "Histórico & compras", path: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", color: "from-indigo-600 to-violet-600" },
+                { step: "03", name: "Inativos", detail: "Alerta de retorno", path: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", color: "from-violet-600 to-purple-600" },
+                { step: "04", name: "WhatsApp", detail: "Campanha com Z-API", path: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z", color: "from-purple-600 to-pink-600" },
+                { step: "05", name: "Balcão", detail: "Venda rápida registrada", path: "M13 10V3L4 14h7v7l9-11h-7z", color: "from-emerald-600 to-teal-600" },
+                { step: "06", name: "Fidelização", detail: "Pontos & Recompra", path: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z", color: "from-amber-600 to-orange-600" }
               ].map((item, idx) => (
                 <div
                   key={idx}
                   className="group relative flex flex-col items-center text-center p-4 sm:p-5 rounded-2xl bg-[#090E1D] border border-white/[0.08] hover:border-violet-500/50 transition-colors shadow-md shadow-black/50"
                 >
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-lg sm:text-xl mb-3 shadow-md`}>
-                    {item.icon}
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-3 shadow-md`}>
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.path} />
+                    </svg>
                   </div>
                   <div className="text-[11px] font-mono font-bold text-violet-400 mb-1">
                     Passo {item.step}
@@ -901,15 +833,15 @@ export default function LandingPage() {
                   ★★★★★
                 </div>
                 <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
-                  "Antes eu anotava recompra no caderno e vivia esquecendo cliente. Hoje o Nexus avisa na hora certa e a venda aparece sozinha no WhatsApp."
+                  "O Nexus 360 facilitou muito o nosso controle no balcão e o acompanhamento dos clientes da Drogaria 208 Sul. Conseguimos ver rapidamente quem está inativo, acionar pelo WhatsApp e manter o relacionamento que traz o cliente de volta para comprar na loja."
                 </blockquote>
                 <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    JM
+                    NB
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">João M.</div>
-                    <div className="text-[11px] text-slate-400">Drogaria São Bento</div>
+                    <div className="text-xs font-bold text-white">Natilucia Brito Noleto</div>
+                    <div className="text-[11px] text-slate-400">Proprietária • Drogaria 208 Sul</div>
                   </div>
                 </figcaption>
               </figure>
@@ -963,153 +895,6 @@ export default function LandingPage() {
           </div>
         </section>
         {/* Prova Social / Depoimentos */}
-        <section id="prova-social" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#05070D] relative">
-          <div className="absolute inset-0 bg-radial-at-c from-blue-950/20 via-transparent to-transparent pointer-events-none" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-4">
-                Resultados Reais
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Farmácias que transformaram o atendimento em faturamento
-              </h2>
-              <p className="mt-4 text-base sm:text-lg text-slate-400">
-                Veja como drogarias e farmácias de manipulação estão usando o Nexus 360 no balcão todos os dias.
-              </p>
-            </div>
-
-            {/* Galeria de Fotos Reais */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
-                  <Image
-                    src="/screenshots/farmacia-social-1.webp"
-                    alt="Farmácia parceira utilizando o sistema Nexus 360"
-                    width={600}
-                    height={450}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
-                </div>
-                <div className="p-5">
-                  <span className="text-xs font-medium text-blue-400">Drogaria & Perfumaria</span>
-                  <p className="text-sm font-semibold text-white mt-1">Farmácia Santa Clara</p>
-                  <p className="text-xs text-slate-400 mt-1">Reativação diária de clientes de uso contínuo</p>
-                </div>
-              </div>
-
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
-                  <Image
-                    src="/screenshots/farmacia-social-2.webp"
-                    alt="Balcão de farmácia com atendimento automatizado"
-                    width={600}
-                    height={450}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
-                </div>
-                <div className="p-5">
-                  <span className="text-xs font-medium text-emerald-400">Rede de Bairro</span>
-                  <p className="text-sm font-semibold text-white mt-1">Drogaria Popular 208 Sul</p>
-                  <p className="text-xs text-slate-400 mt-1">Campanhas segmentadas de WhatsApp e pontos</p>
-                </div>
-              </div>
-
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
-                  <Image
-                    src="/screenshots/farmacia-social-3.webp"
-                    alt="Atendimento ágil com WhatsApp integrado"
-                    width={600}
-                    height={450}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
-                </div>
-                <div className="p-5">
-                  <span className="text-xs font-medium text-purple-400">Farmácia de Manipulação</span>
-                  <p className="text-sm font-semibold text-white mt-1">BioFarma Manipulação</p>
-                  <p className="text-xs text-slate-400 mt-1">Acompanhamento pós-venda e lembretes de fórmulas</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Opinião dos Empresários / Depoimentos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
-                <div>
-                  <div className="flex gap-1 text-amber-400 mb-4">
-                    {"★★★★★"}
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
-                    "Antes a gente vendia para o paciente hipertenso e nunca mais lembrava de avisar quando o remédio ia acabar. Com o Nexus 360, a lista de recompra do mês fica pronta todo dia. Aumentou mais de 25% o retorno de receitas contínuas."
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center font-bold text-blue-300 text-sm">
-                    RC
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Roberto Caldas</h4>
-                    <p className="text-xs text-slate-400">Proprietário de Drogaria • 2 unidades</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
-                <div>
-                  <div className="flex gap-1 text-amber-400 mb-4">
-                    {"★★★★★"}
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
-                    "A equipe adorou o botão de venda rápida e a integração com o WhatsApp. Mandamos mensagem no aniversário do cliente com cupom e eles realmente voltam para comprar na loja."
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-300 text-sm">
-                    AM
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Aline Mendes</h4>
-                    <p className="text-xs text-slate-400">Farmacêutica e Gestora Comercial</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
-                <div>
-                  <div className="flex gap-1 text-amber-400 mb-4">
-                    {"★★★★★"}
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
-                    "O programa de pontos fidelizou nossos clientes de perfumaria e suplementos. Eles preferem comprar aqui porque sabem que acumulam pontos para trocar por desconto na próxima visita."
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300 text-sm">
-                    MS
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Marcos Silveira</h4>
-                    <p className="text-xs text-slate-400">Sócio-diretor • Farmácia de Manipulação</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Faixa de Confiança */}
-            <div className="mt-12 text-center">
-              <p className="text-xs text-slate-400">
-                Junte-se a drogarias e farmácias que profissionalizaram o pós-venda e a fidelização com o Nexus 360.
-              </p>
-            </div>
-          </div>
-        </section>
-
         <section id="preco" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
