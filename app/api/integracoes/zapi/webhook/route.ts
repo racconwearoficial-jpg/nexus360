@@ -96,6 +96,16 @@ export async function POST(req: NextRequest) {
     console.log("[zapi-webhook] ignorado: faltou instanceId ou phone no payload");
     return NextResponse.json({ ok: true });
   }
+  // Status/canal de transmissão ou contato "@lid" (ID interno do WhatsApp,
+  // não é o número de telefone real) chegam em payload.phone como
+  // "<id>@broadcast" ou "<id>@lid" — normalizarTelefone só tira os
+  // caracteres não numéricos, então esse ID virava um "telefone" válido e
+  // criava cliente fantasma/duplicado (achado em produção em 16/09/2026:
+  // "René Brunes" com telefone "1748953212@broadcast").
+  if (telefoneCliente.includes("@")) {
+    console.log("[zapi-webhook] ignorado: phone não é um contato real (broadcast/lid):", telefoneCliente);
+    return NextResponse.json({ ok: true });
+  }
 
   try {
     const { data: integracao, error: erroIntegracao } = await supabaseAdmin

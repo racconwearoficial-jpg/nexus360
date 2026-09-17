@@ -6355,21 +6355,33 @@ async function deleteVenda(id) {
     // Busca a venda para saber o valor e cliente
     const venda = state.vendas.find(v => v.id === id);
 
-    // Desconta pontos do cliente se a venda tiver cliente_id
+    const { error } = await db.from('vendas').delete().eq('id', id);
+    if (error) throw error;
+
+    // Desconta pontos e valor gasto do cliente, e recalcula última compra/status
+    // com base nas vendas que sobraram (senão o cliente fica travado como
+    // "ativo" com a data da venda excluída, mesmo sem nenhuma compra real).
     if (venda && venda.cliente_id && venda.valor) {
       const cli = state.clientes.find(c => c.id === venda.cliente_id);
       if (cli) {
-        const fcfg   = fcfgGet();
-        const mult   = fidIsVip(cli) ? (fcfg.multVip || 1.1) : 1;
-        const pts    = Math.floor(parseFloat(venda.valor) * (fcfg.ptsReal || 1) * mult);
-        const novos  = Math.max(0, (parseInt(cli.pontos) || 0) - pts);
-        await db.from('clientes').update({ pontos: novos }).eq('id', cli.id);
-        cli.pontos = novos;
+        const fcfg      = fcfgGet();
+        const mult      = fidIsVip(cli) ? (fcfg.multVip || 1.1) : 1;
+        const pts       = Math.floor(parseFloat(venda.valor) * (fcfg.ptsReal || 1) * mult);
+        const novosPts  = Math.max(0, (parseInt(cli.pontos) || 0) - pts);
+        const novoGasto = Math.max(0, (parseFloat(cli.total_gasto) || 0) - parseFloat(venda.valor));
+
+        const { data: restantes } = await db.from('vendas').select('data').eq('cliente_id', cli.id).order('data', { ascending: false }).limit(1);
+        const novaUltima = (restantes && restantes.length) ? restantes[0].data : null;
+        const novoStatus = calcularStatus({ pontos: novosPts, ultima_compra: novaUltima });
+
+        await db.from('clientes').update({ pontos: novosPts, total_gasto: novoGasto, ultima_compra: novaUltima, status: novoStatus }).eq('id', cli.id);
+        cli.pontos = novosPts;
+        cli.total_gasto = novoGasto;
+        cli.ultima_compra = novaUltima;
+        cli.status = novoStatus;
       }
     }
 
-    const { error } = await db.from('vendas').delete().eq('id', id);
-    if (error) throw error;
     toast('Venda removida e pontos descontados.', 'info');
     await loadVendas();
     renderVendas();
