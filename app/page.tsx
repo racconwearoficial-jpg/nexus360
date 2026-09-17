@@ -758,6 +758,7 @@ export default function LandingPage() {
         {/* ================= 6. PREÇO + CTA FINAL ================= */}
         
         {/* ================= 5.1 PROVA SOCIAL ================= */}
+        {/* Seção de Resultados Reais / Depoimentos unificada */}
         <section id="prova-social" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
@@ -771,118 +772,117 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Galeria das 3 farmácias */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
-              {/* FARMÁCIA 1 — substitua o src pela imagem que você vai enviar */}
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
-                <Image
-                  src="/screenshots/farmacia-social-1.webp"
-                  alt="Farmácia parceira Nexus 360"
-                  width={800}
-                  height={600}
-                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
-                </div>
-              </div>
-
-              {/* FARMÁCIA 2 */}
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
-                <Image
-                  src="/screenshots/farmacia-social-2.webp"
-                  alt="Farmácia parceira Nexus 360"
-                  width={800}
-                  height={600}
-                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
-                </div>
-              </div>
-
-              {/* FARMÁCIA 3 */}
-              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
-                <Image
-                  src="/screenshots/farmacia-social-3.webp"
-                  alt="Farmácia parceira Nexus 360"
-                  width={800}
-                  height={600}
-                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Depoimentos */}
+            {/* Grid de 3 Cards unificados (Foto da Farmácia + Relato do Empresário no mesmo card) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* DEPOIMENTO 1 — substitua nome, farmácia e texto pelo depoimento real */}
-              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
-                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
-                  ★★★★★
+              
+              {/* CARD 1 — DROGARIA 208 SUL */}
+              <figure className="relative rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-all overflow-hidden flex flex-col group shadow-xl">
+                <div className="relative w-full aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-[#0B1020]">
+                  <Image
+                    src="/farmacia-208sul.webp"
+                    alt="Fachada Drogaria 208 Sul"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 flex items-center gap-2 bg-[#05070D]/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[11px] font-semibold text-white">Drogaria 208 Sul</span>
+                  </div>
                 </div>
-                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
-                  "O Nexus 360 facilitou muito o nosso controle no balcão e o acompanhamento dos clientes da Drogaria 208 Sul. Conseguimos ver rapidamente quem está inativo, acionar pelo WhatsApp e manter o relacionamento que traz o cliente de volta para comprar na loja."
-                </blockquote>
-                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    NB
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-3 text-sm" aria-label="5 estrelas">
+                    ★★★★★
                   </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Natilucia Brito Noleto</div>
-                    <div className="text-[11px] text-slate-400">Proprietária • Drogaria 208 Sul</div>
-                  </div>
-                </figcaption>
+                  <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                    "O Nexus 360 facilitou muito o nosso controle no balcão e o acompanhamento dos clientes da Drogaria 208 Sul. Conseguimos ver rapidamente quem está inativo, acionar pelo WhatsApp e manter o relacionamento que traz o cliente de volta para comprar na loja."
+                  </blockquote>
+                  <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                      NB
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">Natilucia Brito Noleto</div>
+                      <div className="text-[11px] text-slate-400">Proprietária • Drogaria 208 Sul</div>
+                    </div>
+                  </figcaption>
+                </div>
               </figure>
 
-              {/* DEPOIMENTO 2 */}
-              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
-                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
-                  ★★★★★
+              {/* CARD 2 — DROGARIA POPULAR */}
+              <figure className="relative rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-all overflow-hidden flex flex-col group shadow-xl">
+                <div className="relative w-full aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-[#0B1020]">
+                  <Image
+                    src="/farmacia-popular.webp"
+                    alt="Fachada Drogaria Popular"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 flex items-center gap-2 bg-[#05070D]/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[11px] font-semibold text-white">Drogaria Popular</span>
+                  </div>
                 </div>
-                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
-                  "A diferença é o controle. Sei exatamente o que cada cliente compra, quando volta e quem da equipe atendeu. Nada mais depende do celular dos funcionários."
-                </blockquote>
-                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
-                    AC
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-3 text-sm" aria-label="5 estrelas">
+                    ★★★★★
                   </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Ana C.</div>
-                    <div className="text-[11px] text-slate-400">Farmácia Vida</div>
-                  </div>
-                </figcaption>
+                  <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                    "A agilidade no atendimento e a facilidade de ver os clientes frequentes organizou nossa rotina no balcão da Drogaria Popular. A equipe aprendeu rápido e o contato direto pelo WhatsApp ajudou a manter a fidelidade de quem compra com a gente todo mês."
+                  </blockquote>
+                  <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
+                      DP
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">Drogaria Popular</div>
+                      <div className="text-[11px] text-slate-400">A Drogaria da Família</div>
+                    </div>
+                  </figcaption>
+                </div>
               </figure>
 
-              {/* DEPOIMENTO 3 */}
-              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
-                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
-                  ★★★★★
+              {/* CARD 3 — DROGARIA FARMA FORT */}
+              <figure className="relative rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-all overflow-hidden flex flex-col group shadow-xl">
+                <div className="relative w-full aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-[#0B1020]">
+                  <Image
+                    src="/farmacia-farmafort.webp"
+                    alt="Fachada Drogaria Farma Fort"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 flex items-center gap-2 bg-[#05070D]/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[11px] font-semibold text-white">Drogaria Farma Fort</span>
+                  </div>
                 </div>
-                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
-                  "Em duas semanas já vimos clientes voltando para renovar remédio que ia acabar. A venda rápida no balcão também agilizou muito nossa fila."
-                </blockquote>
-                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold">
-                    RS
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-3 text-sm" aria-label="5 estrelas">
+                    ★★★★★
                   </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Rafael S.</div>
-                    <div className="text-[11px] text-slate-400">Drogaria Central</div>
-                  </div>
-                </figcaption>
+                  <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                    "O controle de clientes e a facilidade de registrar as vendas trouxeram muito mais ritmo para o dia a dia da Drogaria Farma Fort. Não perdemos mais o contato dos clientes e temos clareza total de quem está retornando à loja."
+                  </blockquote>
+                  <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-xs font-bold">
+                      FF
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">Drogaria Farma Fort</div>
+                      <div className="text-[11px] text-slate-400">Direção • Farma Fort</div>
+                    </div>
+                  </figcaption>
+                </div>
               </figure>
+
             </div>
 
             {/* Faixa de confiança */}
@@ -894,7 +894,7 @@ export default function LandingPage() {
 
           </div>
         </section>
-        {/* Prova Social / Depoimentos */}
+
         <section id="preco" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
