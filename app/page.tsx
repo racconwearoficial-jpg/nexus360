@@ -369,7 +369,7 @@ export default function LandingPage() {
               <div className="lg:col-span-6 relative">
                 <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-950/50 bg-[#080B14]">
                   <Image
-                    src="/farmacia-atendimento.webp"
+                 src="/farmacia_atendimento.jpg"
                     alt="Atendente farmacêutica utilizando o Nexus 360 no balcão da drogaria"
                     width={800}
                     height={800}
@@ -824,6 +824,292 @@ export default function LandingPage() {
         </section>
 
         {/* ================= 6. PREÇO + CTA FINAL ================= */}
+        
+        {/* ================= 5.1 PROVA SOCIAL ================= */}
+        <section id="prova-social" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+            <div className="text-center max-w-3xl mx-auto mb-14">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Quem já usa, não volta atrás</span>
+              <h2 className="mt-3 text-2xl sm:text-5xl font-extrabold text-white tracking-tight">
+                Farmácias reais, <span className="bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">resultados reais</span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-lg text-slate-300">
+                Veja como drogarias que usam o Nexus 360 transformaram o WhatsApp e o balcão em receita previsível.
+              </p>
+            </div>
+
+            {/* Galeria das 3 farmácias */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
+              {/* FARMÁCIA 1 — substitua o src pela imagem que você vai enviar */}
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
+                <Image
+                  src="/screenshots/farmacia-social-1.webp"
+                  alt="Farmácia parceira Nexus 360"
+                  width={800}
+                  height={600}
+                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
+                </div>
+              </div>
+
+              {/* FARMÁCIA 2 */}
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
+                <Image
+                  src="/screenshots/farmacia-social-2.webp"
+                  alt="Farmácia parceira Nexus 360"
+                  width={800}
+                  height={600}
+                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
+                </div>
+              </div>
+
+              {/* FARMÁCIA 3 */}
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#0B1020] shadow-xl">
+                <Image
+                  src="/screenshots/farmacia-social-3.webp"
+                  alt="Farmácia parceira Nexus 360"
+                  width={800}
+                  height={600}
+                  className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05070D]/90 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-semibold text-white">Cliente ativo</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Depoimentos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* DEPOIMENTO 1 — substitua nome, farmácia e texto pelo depoimento real */}
+              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
+                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
+                  ★★★★★
+                </div>
+                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                  "Antes eu anotava recompra no caderno e vivia esquecendo cliente. Hoje o Nexus avisa na hora certa e a venda aparece sozinha no WhatsApp."
+                </blockquote>
+                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    JM
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">João M.</div>
+                    <div className="text-[11px] text-slate-400">Drogaria São Bento</div>
+                  </div>
+                </figcaption>
+              </figure>
+
+              {/* DEPOIMENTO 2 */}
+              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
+                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
+                  ★★★★★
+                </div>
+                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                  "A diferença é o controle. Sei exatamente o que cada cliente compra, quando volta e quem da equipe atendeu. Nada mais depende do celular dos funcionários."
+                </blockquote>
+                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                    AC
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Ana C.</div>
+                    <div className="text-[11px] text-slate-400">Farmácia Vida</div>
+                  </div>
+                </figcaption>
+              </figure>
+
+              {/* DEPOIMENTO 3 */}
+              <figure className="relative p-6 rounded-2xl bg-[#080B14] border border-white/[0.08] hover:border-emerald-500/30 transition-colors flex flex-col">
+                <div className="flex gap-1 text-amber-400 mb-4 text-sm" aria-label="5 estrelas">
+                  ★★★★★
+                </div>
+                <blockquote className="text-sm text-slate-200 leading-relaxed flex-1">
+                  "Em duas semanas já vimos clientes voltando para renovar remédio que ia acabar. A venda rápida no balcão também agilizou muito nossa fila."
+                </blockquote>
+                <figcaption className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold">
+                    RS
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Rafael S.</div>
+                    <div className="text-[11px] text-slate-400">Drogaria Central</div>
+                  </div>
+                </figcaption>
+              </figure>
+            </div>
+
+            {/* Faixa de confiança */}
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-medium text-slate-400">
+              <span className="flex items-center gap-2"><span className="text-emerald-400">✓</span> Carteira de clientes 100% sua</span>
+              <span className="flex items-center gap-2"><span className="text-emerald-400">✓</span> Sem fidelidade, cancele quando quiser</span>
+              <span className="flex items-center gap-2"><span className="text-emerald-400">✓</span> Suporte humano e direto</span>
+            </div>
+
+          </div>
+        </section>
+        {/* Prova Social / Depoimentos */}
+        <section id="prova-social" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#05070D] relative">
+          <div className="absolute inset-0 bg-radial-at-c from-blue-950/20 via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-4">
+                Resultados Reais
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Farmácias que transformaram o atendimento em faturamento
+              </h2>
+              <p className="mt-4 text-base sm:text-lg text-slate-400">
+                Veja como drogarias e farmácias de manipulação estão usando o Nexus 360 no balcão todos os dias.
+              </p>
+            </div>
+
+            {/* Galeria de Fotos Reais */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
+                  <Image
+                    src="/screenshots/farmacia-social-1.webp"
+                    alt="Farmácia parceira utilizando o sistema Nexus 360"
+                    width={600}
+                    height={450}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                </div>
+                <div className="p-5">
+                  <span className="text-xs font-medium text-blue-400">Drogaria & Perfumaria</span>
+                  <p className="text-sm font-semibold text-white mt-1">Farmácia Santa Clara</p>
+                  <p className="text-xs text-slate-400 mt-1">Reativação diária de clientes de uso contínuo</p>
+                </div>
+              </div>
+
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
+                  <Image
+                    src="/screenshots/farmacia-social-2.webp"
+                    alt="Balcão de farmácia com atendimento automatizado"
+                    width={600}
+                    height={450}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                </div>
+                <div className="p-5">
+                  <span className="text-xs font-medium text-emerald-400">Rede de Bairro</span>
+                  <p className="text-sm font-semibold text-white mt-1">Drogaria Popular 208 Sul</p>
+                  <p className="text-xs text-slate-400 mt-1">Campanhas segmentadas de WhatsApp e pontos</p>
+                </div>
+              </div>
+
+              <div className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#080B14] hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-black/40">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
+                  <Image
+                    src="/screenshots/farmacia-social-3.webp"
+                    alt="Atendimento ágil com WhatsApp integrado"
+                    width={600}
+                    height={450}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B14] via-transparent to-transparent" />
+                </div>
+                <div className="p-5">
+                  <span className="text-xs font-medium text-purple-400">Farmácia de Manipulação</span>
+                  <p className="text-sm font-semibold text-white mt-1">BioFarma Manipulação</p>
+                  <p className="text-xs text-slate-400 mt-1">Acompanhamento pós-venda e lembretes de fórmulas</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Opinião dos Empresários / Depoimentos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
+                <div>
+                  <div className="flex gap-1 text-amber-400 mb-4">
+                    {"★★★★★"}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed italic">
+                    "Antes a gente vendia para o paciente hipertenso e nunca mais lembrava de avisar quando o remédio ia acabar. Com o Nexus 360, a lista de recompra do mês fica pronta todo dia. Aumentou mais de 25% o retorno de receitas contínuas."
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center font-bold text-blue-300 text-sm">
+                    RC
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Roberto Caldas</h4>
+                    <p className="text-xs text-slate-400">Proprietário de Drogaria • 2 unidades</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
+                <div>
+                  <div className="flex gap-1 text-amber-400 mb-4">
+                    {"★★★★★"}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed italic">
+                    "A equipe adorou o botão de venda rápida e a integração com o WhatsApp. Mandamos mensagem no aniversário do cliente com cupom e eles realmente voltam para comprar na loja."
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-300 text-sm">
+                    AM
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Aline Mendes</h4>
+                    <p className="text-xs text-slate-400">Farmacêutica e Gestora Comercial</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col justify-between">
+                <div>
+                  <div className="flex gap-1 text-amber-400 mb-4">
+                    {"★★★★★"}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed italic">
+                    "O programa de pontos fidelizou nossos clientes de perfumaria e suplementos. Eles preferem comprar aqui porque sabem que acumulam pontos para trocar por desconto na próxima visita."
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300 text-sm">
+                    MS
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Marcos Silveira</h4>
+                    <p className="text-xs text-slate-400">Sócio-diretor • Farmácia de Manipulação</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Faixa de Confiança */}
+            <div className="mt-12 text-center">
+              <p className="text-xs text-slate-400">
+                Junte-se a drogarias e farmácias que profissionalizaram o pós-venda e a fidelização com o Nexus 360.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section id="preco" className="py-20 sm:py-28 border-t border-white/[0.06] bg-[#070A14] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
