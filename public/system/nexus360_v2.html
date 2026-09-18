@@ -14300,7 +14300,7 @@ function fnRenderDashboard() {
       if (v.data !== ds) return false;
       return fns.some(f => v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase());
     }).reduce((s,v)=>s+parseFloat(v.valor||0),0);
-    dias.push({ label: d.toLocaleDateString('pt-BR',{weekday:'short'}), val: total });
+    dias.push({ label: d.toLocaleDateString('pt-BR',{weekday:'short'}), val: total, ds });
   }
   const maxDia = Math.max(...dias.map(d=>d.val),1);
   document.getElementById('fn-chart-semana').innerHTML =
@@ -14320,14 +14320,42 @@ function fnRenderDashboard() {
   const diasComVenda = dias.filter(d=>d.val>0).length;
   const mediaHoje    = diasComVenda ? (totalSemana/diasComVenda) : 0;
   const metricasEl   = document.getElementById('fn-chart-semana-metricas');
+
+  // Funcionário da semana: quem mais vendeu nos últimos 7 dias
+  const datasSemana = new Set(dias.map(d=>d.ds));
+  const daSemana = fns.map(f => {
+    const vds = (state.vendas||[]).filter(v => datasSemana.has(v.data) &&
+      (v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase()));
+    return { nome: f.nome, total: vds.reduce((s,v)=>s+parseFloat(v.valor||0),0), qtd: vds.length };
+  }).sort((a,b)=>b.total-a.total)[0];
+
+  // Semana anterior (7 dias imediatamente antes) para comparação
+  let totalAnterior = 0;
+  for (let i=13; i>=7; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    totalAnterior += (state.vendas||[]).filter(v => v.data===ds &&
+      fns.some(f => v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase())
+    ).reduce((s,v)=>s+parseFloat(v.valor||0),0);
+  }
+  const variacao = totalAnterior > 0 ? Math.round((totalSemana-totalAnterior)/totalAnterior*100) : null;
+  const corVar = variacao===null ? '#94A3B8' : variacao>=0 ? '#10B981' : '#EF4444';
+  const txtVar = variacao===null ? '—' : (variacao>=0?'▲ +':'▼ ')+variacao+'%';
+
   if (metricasEl) metricasEl.innerHTML = [
     { lbl:'Total 7 dias',   val: fnFmt(totalSemana), cor:'#6366F1' },
     { lbl:'Melhor dia',     val: melhorDia?.label||'—', cor:'#8B5CF6' },
     { lbl:'Dias com venda', val: diasComVenda+' de 7', cor:'#10B981' },
     { lbl:'Média por dia',  val: fnFmt(mediaHoje), cor:'#F59E0B' },
+    { lbl:'Funcionário da semana',
+      val: daSemana && daSemana.total>0 ? daSemana.nome.split(' ')[0] : '—', cor:'#F59E0B',
+      sub: daSemana && daSemana.total>0 ? `${fnFmt(daSemana.total)} · ${daSemana.qtd} venda${daSemana.qtd===1?'':'s'}` : 'sem vendas na semana' },
+    { lbl:'Vs. semana anterior', val: txtVar, cor: corVar,
+      sub: totalAnterior>0 ? `${fnFmt(totalAnterior)} nos 7 dias antes` : 'sem dados da semana anterior' },
   ].map(k=>`<div style="padding:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px">
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${k.lbl}</div>
-    <div style="font-size:20px;font-weight:800;color:${k.cor}">${k.val}</div>
+    <div style="font-size:20px;font-weight:800;color:${k.cor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${k.val}</div>
+    ${k.sub?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${k.sub}</div>`:''}
   </div>`).join('');
 
   // Top performers com score inteligente
