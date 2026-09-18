@@ -14054,6 +14054,23 @@ function fnTotalVendido(fnId, fnNome) {
   return fnVendasDoMes(fnId, fnNome).reduce((s,v) => s + parseFloat(v.valor||0), 0);
 }
 
+// Meta mensal em R$ de um funcionário, lida da aba Metas.
+// Prioridade: meta individual → meta da equipe → campo do cadastro → 5000.
+function fnMetaMensal(f) {
+  const doTipo = m => m.tipo==='vendas_valor' && m.periodo==='mensal';
+  const ultima = lista => lista.length ? parseFloat(lista[lista.length-1].valor_meta) : 0;
+  const individual = f ? ultima(fnState.metas.filter(m => doTipo(m) && m.funcionario_id==f.id)) : 0;
+  if (individual > 0) return individual;
+  const equipe = ultima(fnState.metas.filter(m => doTipo(m) && !m.funcionario_id));
+  if (equipe > 0) return equipe;
+  return parseFloat(f?.meta_mensal) || 5000;
+}
+
+// Total vendido no mês por todos os funcionários ativos
+function fnTotalEquipe() {
+  return fnState.funcionarios.filter(f => f.status==='ativo').reduce((s,f) => s + fnTotalVendido(f.id, f.nome), 0);
+}
+
 function fnTicketMedio(fnId, fnNome) {
   const vds = fnVendasDoMes(fnId, fnNome);
   return vds.length ? fnTotalVendido(fnId, fnNome) / vds.length : 0;
@@ -14126,7 +14143,7 @@ function fnFollowupsDoMes(fnId, fnNome) {
 function fnScoreAtendimento(fnId, fnNome) {
   const vendas      = fnVendasDoMes(fnId, fnNome);
   const total       = fnTotalVendido(fnId, fnNome);
-  const meta        = fnState.funcionarios.find(f=>f.id==fnId)?.meta_mensal || 5000;
+  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId));
   const recorrentes = fnClientesRecorrentes(fnId, fnNome);
   const recuperados = fnClientesRecuperados(fnId, fnNome);
   const followups   = fnFollowupsDoMes(fnId, fnNome).length;
@@ -14152,7 +14169,7 @@ function fnNivelAtendimento(score) {
 // Score inteligente para ranking (não só valor vendido)
 function fnScoreRanking(fnId, fnNome) {
   const total       = fnTotalVendido(fnId, fnNome);
-  const meta        = parseFloat(fnState.funcionarios.find(f=>f.id==fnId)?.meta_mensal||5000);
+  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId));
   const ticket      = fnTicketMedio(fnId, fnNome);
   const score_atend = fnScoreAtendimento(fnId, fnNome);
   const recuperados = fnClientesRecuperados(fnId, fnNome);
@@ -14214,7 +14231,7 @@ function fnRenderDashboard() {
   const ranked         = fns.map(f => ({ ...f, total: fnTotalVendido(f.id, f.nome), score: fnScoreRanking(f.id, f.nome) })).sort((a,b)=>b.score-a.score);
   const melhor         = ranked[0];
   const ticketGeral    = fns.length ? totalVendido / Math.max(fns.reduce((s,f) => s + fnVendasDoMes(f.id, f.nome).length, 0), 1) : 0;
-  const metaGeral      = fns.length ? fns.reduce((s,f) => s + Math.min(100, fnTotalVendido(f.id, f.nome) / Math.max(parseFloat(f.meta_mensal||5000),1)*100), 0) / fns.length : 0;
+  const metaGeral      = fns.length ? fns.reduce((s,f) => s + Math.min(100, fnTotalVendido(f.id, f.nome) / Math.max(fnMetaMensal(f),1)*100), 0) / fns.length : 0;
   const ativosHoje     = fns.filter(f => (state.vendas||[]).some(v => v.data===hoje && (v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase()))).length;
   const totalRecup     = fns.reduce((s,f) => s + fnClientesRecuperados(f.id, f.nome), 0);
 
@@ -14234,11 +14251,11 @@ function fnRenderDashboard() {
   const alertas = [];
   const semVendas = fns.filter(f => fnVendasDoMes(f.id,f.nome).length===0);
   const baixaMeta = fns.filter(f => {
-    const pct = Math.round(fnTotalVendido(f.id,f.nome)/Math.max(parseFloat(f.meta_mensal||5000),1)*100);
+    const pct = Math.round(fnTotalVendido(f.id,f.nome)/Math.max(fnMetaMensal(f),1)*100);
     return pct > 0 && pct < 30;
   });
   const bateram = fns.filter(f => {
-    const pct = Math.round(fnTotalVendido(f.id,f.nome)/Math.max(parseFloat(f.meta_mensal||5000),1)*100);
+    const pct = Math.round(fnTotalVendido(f.id,f.nome)/Math.max(fnMetaMensal(f),1)*100);
     return pct >= 100;
   });
   const semFollowup = fns.filter(f => fnFollowupsDoMes(f.id,f.nome).length===0);
@@ -14318,7 +14335,7 @@ function fnRenderDashboard() {
   })).sort((a,b)=>b.score-a.score).slice(0,5);
 
   document.getElementById('fn-top-performers').innerHTML = topR.length ? topR.map((f,i) => {
-    const pct = Math.min(100, Math.round(f.total/Math.max(parseFloat(f.meta_mensal||5000),1)*100));
+    const pct = Math.min(100, Math.round(f.total/Math.max(fnMetaMensal(f),1)*100));
     const cor = pct>=100?'#10B981':pct>=70?'#6366F1':'#F59E0B';
     const nivel = fnNivelAtendimento(f.scoreA);
     return `<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)">
@@ -14360,7 +14377,7 @@ function fnFiltrar() {
     const scoreA = fnScoreAtendimento(f.id, f.nome);
     const nivel  = fnNivelAtendimento(scoreA);
     const recup  = fnClientesRecuperados(f.id, f.nome);
-    const pct    = Math.min(100, Math.round(total/Math.max(parseFloat(f.meta_mensal||5000),1)*100));
+    const pct    = Math.min(100, Math.round(total/Math.max(fnMetaMensal(f),1)*100));
     const cor    = pct>=100?'#10B981':pct>=70?'#6366F1':'#F59E0B';
     const statusCor = f.status==='ativo'?'#10B981':'#EF4444';
     return `<div class="fn-card">
@@ -14373,7 +14390,7 @@ function fnFiltrar() {
         </div>
         <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">${f.cargo}${f.telefone?' · '+f.telefone:''}</div>
         <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${cor};border-radius:3px"></div></div>
-        <div style="font-size:11px;color:var(--text3);margin-top:3px">${pct}% da meta · ${recup} cliente(s) recuperado(s)</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${pct}% da meta de ${fnFmt(fnMetaMensal(f))} · ${recup} cliente(s) recuperado(s)</div>
       </div>
       <div class="fn-card-stats" style="display:flex;gap:20px;flex-shrink:0">
         <div class="fn-stat"><div class="fn-stat-val">${fnFmt(total)}</div><div class="fn-stat-lbl">Vendido</div></div>
@@ -14402,8 +14419,11 @@ function fnRenderMetas() {
   el.innerHTML = metas.map(m => {
     const func = fnState.funcionarios.find(f => f.id == m.funcionario_id);
     let atual = 0;
-    if (m.tipo==='vendas_valor') atual = fnTotalVendido(func?.id, func?.nome||'');
-    else if (m.tipo==='vendas_qtd') atual = fnVendasDoMes(func?.id, func?.nome||'').length;
+    const daEquipe = !m.funcionario_id;
+    if (m.tipo==='vendas_valor') atual = daEquipe ? fnTotalEquipe() : fnTotalVendido(func?.id, func?.nome||'');
+    else if (m.tipo==='vendas_qtd') atual = daEquipe
+      ? fnState.funcionarios.filter(f=>f.status==='ativo').reduce((s,f)=>s+fnVendasDoMes(f.id,f.nome).length,0)
+      : fnVendasDoMes(func?.id, func?.nome||'').length;
     else if (m.tipo==='novos_clientes') {
       const h = new Date();
       atual = (state.clientes||[]).filter(c => {
@@ -14449,7 +14469,7 @@ function fnRenderRanking() {
     recup:    fnClientesRecuperados(f.id, f.nome),
     recorr:   fnClientesRecorrentes(f.id, f.nome),
     followups:fnFollowupsDoMes(f.id, f.nome).length,
-    pctMeta:  Math.min(100, Math.round(fnTotalVendido(f.id,f.nome)/Math.max(parseFloat(f.meta_mensal||5000),1)*100)),
+    pctMeta:  Math.min(100, Math.round(fnTotalVendido(f.id,f.nome)/Math.max(fnMetaMensal(f),1)*100)),
   })).sort((a,b)=>b.scoreR-a.scoreR);
 
   const top3 = fns.slice(0,3);
@@ -14518,11 +14538,11 @@ function fnRenderComissoes() {
 
   const totalBonus = fns.reduce((s,f)=>{
     const total = fnTotalVendido(f.id,f.nome);
-    const pct = Math.min(100,Math.round(total/Math.max(parseFloat(f.meta_mensal||5000),1)*100));
+    const pct = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
     return s + (pct>=100?(cfg.bonus_meta||200):0);
   },0);
   const totalGeral = totalCom + totalBonus;
-  const metaBateram = fns.filter(f=>Math.round(fnTotalVendido(f.id,f.nome)/Math.max(parseFloat(f.meta_mensal||5000),1)*100)>=100).length;
+  const metaBateram = fns.filter(f=>Math.round(fnTotalVendido(f.id,f.nome)/Math.max(fnMetaMensal(f),1)*100)>=100).length;
 
   document.getElementById('fn-com-resumo').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
@@ -14556,7 +14576,7 @@ function fnRenderComissoes() {
   const ranked = fns.map(f => {
     const total = fnTotalVendido(f.id,f.nome);
     const com   = total*(cfg.pct||5)/100;
-    const pct   = Math.min(100,Math.round(total/Math.max(parseFloat(f.meta_mensal||5000),1)*100));
+    const pct   = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
     const bonus = pct>=100?(cfg.bonus_meta||200):0;
     return {...f, total, com, bonus, pct};
   }).sort((a,b)=>b.com-a.com);
@@ -14839,7 +14859,7 @@ function fnVerPerfil(id) {
   const recorr  = fnClientesRecorrentes(f.id,f.nome);
   const fups    = fnFollowupsDoMes(f.id,f.nome);
   const atend   = fnClientesAtendidos(f.id,f.nome);
-  const pct     = Math.min(100,Math.round(total/Math.max(parseFloat(f.meta_mensal||5000),1)*100));
+  const pct     = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
   const cor     = pct>=100?'#10B981':pct>=70?'#6366F1':'#F59E0B';
   const com     = total*(fnState.configComissao.pct||5)/100;
   const bonus   = pct>=100?(fnState.configComissao.bonus_meta||200):0;
@@ -14894,7 +14914,7 @@ function fnVerPerfil(id) {
     </div>
 
     <div style="margin-bottom:16px">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Meta do mês — ${pct}% (${fnFmt(total)} de ${fnFmt(f.meta_mensal||5000)})</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Meta do mês — ${pct}% (${fnFmt(total)} de ${fnFmt(fnMetaMensal(f))})</div>
       <div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${cor};border-radius:5px"></div></div>
     </div>
 
