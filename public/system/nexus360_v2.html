@@ -13709,7 +13709,9 @@ async function mvrRegistrar() {
 .fn-bar-fill { height:100%; border-radius:4px; transition:width .6s; }
 .fn-bar-val { font-size:12px; color:var(--text2); width:92px; text-align:right; flex-shrink:0; white-space:nowrap; }
 .fn-bar-meta { font-size:11px; line-height:1.4; width:88px; text-align:right; flex-shrink:0; white-space:nowrap; }
-#fn-chart-vendas .fn-bar-row:last-child { margin-bottom:0; }
+/* Divisória discreta entre funcionários (web e mobile) */
+#fn-chart-vendas .fn-bar-row { flex:1 1 auto; margin-bottom:0; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+#fn-chart-vendas .fn-bar-row:last-child { border-bottom:none; }
 
 @media (max-width: 768px) {
   .fn-card { flex-wrap: wrap; }
