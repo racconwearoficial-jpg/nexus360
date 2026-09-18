@@ -14563,18 +14563,18 @@ function fnRenderRanking() {
 // ══════════════════════════════════════════════════════════════════════
 function fnRenderComissoes() {
   const cfg = fnState.configComissao;
-  if (document.getElementById('fn-com-pct')) document.getElementById('fn-com-pct').value = cfg.pct||5;
-  if (document.getElementById('fn-com-bonus')) document.getElementById('fn-com-bonus').value = cfg.bonus_meta||200;
-  if (document.getElementById('fn-com-bonus-rank')) document.getElementById('fn-com-bonus-rank').value = cfg.bonus_rank||500;
+  if (document.getElementById('fn-com-pct')) document.getElementById('fn-com-pct').value = cfg.pct??5;
+  if (document.getElementById('fn-com-bonus')) document.getElementById('fn-com-bonus').value = cfg.bonus_meta??200;
+  if (document.getElementById('fn-com-bonus-rank')) document.getElementById('fn-com-bonus-rank').value = cfg.bonus_rank??500;
 
   const fns = fnState.funcionarios.filter(f=>f.status==='ativo');
   const totalEquipe = fns.reduce((s,f)=>s+fnTotalVendido(f.id,f.nome),0);
-  const totalCom    = fns.reduce((s,f)=>s+fnTotalVendido(f.id,f.nome)*(cfg.pct||5)/100,0);
+  const totalCom    = fns.reduce((s,f)=>s+fnTotalVendido(f.id,f.nome)*(cfg.pct??5)/100,0);
 
   const totalBonus = fns.reduce((s,f)=>{
     const total = fnTotalVendido(f.id,f.nome);
     const pct = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
-    return s + (pct>=100?(cfg.bonus_meta||200):0);
+    return s + (pct>=100?(cfg.bonus_meta??200):0);
   },0);
   const totalGeral = totalCom + totalBonus;
   const metaBateram = fns.filter(f=>Math.round(fnTotalVendido(f.id,f.nome)/Math.max(fnMetaMensal(f),1)*100)>=100).length;
@@ -14589,7 +14589,7 @@ function fnRenderComissoes() {
       <div style="padding:14px;background:rgba(16,185,129,.06);border-radius:10px;border:1px solid rgba(16,185,129,.15)">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Total comissões</div>
         <div style="font-size:20px;font-weight:700;color:#10B981">${fnFmt(totalCom)}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Taxa ${cfg.pct||5}% s/ vendas</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Taxa ${cfg.pct??5}% s/ vendas</div>
       </div>
       <div style="padding:14px;background:rgba(245,158,11,.06);border-radius:10px;border:1px solid rgba(245,158,11,.15)">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Bônus por meta</div>
@@ -14603,16 +14603,16 @@ function fnRenderComissoes() {
       </div>
     </div>
     <div style="padding:10px 14px;background:rgba(255,255,255,.03);border-radius:8px;font-size:12px;color:var(--text3);line-height:1.6">
-      Taxa: <strong style="color:var(--text2)">${cfg.pct||5}%</strong> por venda &nbsp;·&nbsp;
-      Bônus meta: <strong style="color:var(--text2)">${fnFmt(cfg.bonus_meta||200)}</strong> &nbsp;·&nbsp;
-      Bônus ranking: <strong style="color:var(--text2)">${fnFmt(cfg.bonus_rank||500)}</strong>
+      Taxa: <strong style="color:var(--text2)">${cfg.pct??5}%</strong> por venda &nbsp;·&nbsp;
+      Bônus meta: <strong style="color:var(--text2)">${fnFmt(cfg.bonus_meta??200)}</strong> &nbsp;·&nbsp;
+      Bônus ranking: <strong style="color:var(--text2)">${fnFmt(cfg.bonus_rank??500)}</strong>
     </div>`;
 
   const ranked = fns.map(f => {
     const total = fnTotalVendido(f.id,f.nome);
-    const com   = total*(cfg.pct||5)/100;
+    const com   = total*(cfg.pct??5)/100;
     const pct   = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
-    const bonus = pct>=100?(cfg.bonus_meta||200):0;
+    const bonus = pct>=100?(cfg.bonus_meta??200):0;
     return {...f, total, com, bonus, pct};
   }).sort((a,b)=>b.com-a.com);
 
@@ -14630,13 +14630,22 @@ function fnRenderComissoes() {
 }
 
 async function fnSalvarConfigComissao() {
-  fnState.configComissao = {
-    pct:        parseFloat(document.getElementById('fn-com-pct')?.value||5),
-    bonus_meta: parseFloat(document.getElementById('fn-com-bonus')?.value||200),
-    bonus_rank: parseFloat(document.getElementById('fn-com-bonus-rank')?.value||500),
+  // Campo vazio vale 0; 0 é um valor legítimo (ex.: sem comissão)
+  const num = (id, max) => {
+    const v = parseFloat(document.getElementById(id)?.value);
+    return isNaN(v) ? 0 : Math.min(max, Math.max(0, v));
+  };
+  const nova = {
+    pct:        num('fn-com-pct', 100),
+    bonus_meta: num('fn-com-bonus', Infinity),
+    bonus_rank: num('fn-com-bonus-rank', Infinity),
   };
   try {
-    await db.from('configuracoes').update({ fn_comissao: JSON.stringify(fnState.configComissao) }).eq('company_id', state.companyId);
+    const { error } = await db.from('configuracoes').upsert(
+      { company_id: state.companyId, fn_comissao: JSON.stringify(nova) }, { onConflict: 'company_id' });
+    if (error) throw error;
+    fnState.configComissao = nova;
+    if (state.config) state.config.fn_comissao = JSON.stringify(nova);
     toast('Configuração salva!','success');
     fnRenderComissoes();
   } catch(e) { toast('Erro: '+e.message,'error'); }
@@ -14896,8 +14905,8 @@ function fnVerPerfil(id) {
   const atend   = fnClientesAtendidos(f.id,f.nome);
   const pct     = Math.min(100,Math.round(total/Math.max(fnMetaMensal(f),1)*100));
   const cor     = pct>=100?'#10B981':pct>=70?'#6366F1':'#F59E0B';
-  const com     = total*(fnState.configComissao.pct||5)/100;
-  const bonus   = pct>=100?(fnState.configComissao.bonus_meta||200):0;
+  const com     = total*(fnState.configComissao.pct??5)/100;
+  const bonus   = pct>=100?(fnState.configComissao.bonus_meta??200):0;
   const entrada = f.data_entrada?new Date(f.data_entrada+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
   // Gráfico últimos 7 dias
