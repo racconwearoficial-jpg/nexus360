@@ -1463,10 +1463,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <!-- Insights -->
         <div id="fn-insights" style="margin-bottom:20px"></div>
         <!-- Charts row -->
-        <div class="fn-charts-grid" style="margin-bottom:20px;align-items:start">
-          <div class="card">
+        <div class="fn-charts-grid" style="margin-bottom:20px;align-items:stretch">
+          <div class="card" style="display:flex;flex-direction:column">
             <div class="section-title mb16">Vendas por Funcionário</div>
-            <div id="fn-chart-vendas"></div>
+            <div id="fn-chart-vendas" style="flex:1;display:flex;flex-direction:column;justify-content:space-between"></div>
           </div>
           <div class="card" style="display:flex;flex-direction:column">
             <div class="section-title mb16">Desempenho Semanal</div>
@@ -13709,6 +13709,7 @@ async function mvrRegistrar() {
 .fn-bar-fill { height:100%; border-radius:4px; transition:width .6s; }
 .fn-bar-val { font-size:12px; color:var(--text2); width:92px; text-align:right; flex-shrink:0; white-space:nowrap; }
 .fn-bar-meta { font-size:11px; line-height:1.4; width:88px; text-align:right; flex-shrink:0; white-space:nowrap; }
+#fn-chart-vendas .fn-bar-row:last-child { margin-bottom:0; }
 
 @media (max-width: 768px) {
   .fn-card { flex-wrap: wrap; }
