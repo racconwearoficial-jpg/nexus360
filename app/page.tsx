@@ -426,7 +426,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-violet-600/30 transition-all text-center whitespace-nowrap"
                 >
-                  Conhecer o Nexus 360 por R$297/mês →
+                  Conhecer o Nexus 360 por R$197/mês →
                 </a>
               </div>
             </div>
@@ -915,7 +915,7 @@ export default function LandingPage() {
 
                 <div className="mt-5 flex items-baseline justify-center gap-2">
                   <span className="text-slate-400 text-xl font-medium">R$</span>
-                  <span className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight">297</span>
+                  <span className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight">197</span>
                   <span className="text-slate-400 text-sm font-normal">/mês</span>
                 </div>
 
