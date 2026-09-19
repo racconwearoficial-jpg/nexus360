@@ -9057,11 +9057,16 @@ function enviarCampanha(id) {
   // pub === 'todos' → mantém lista completa com telefone
 
   // ── Abre o painel de envio ───────────────────────────────────────────────
-  document.getElementById('envioCampanhaTitulo').textContent =
-    `📤 ${camp.nome}`;
+  document.getElementById('envioCampanhaTitulo').textContent = camp.nome;
+  // Campanha com envio automático já é disparada pelo sistema (rotina diária, com limite
+  // por dia): avisa que o envio manual pode repetir a mensagem para quem já recebeu.
+  const _dm = d => { const p = String(d || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : ''; };
+  const _periodo = (camp.periodo_inicio && camp.periodo_fim) ? ` de ${_dm(camp.periodo_inicio)} a ${_dm(camp.periodo_fim)}` : '';
   document.getElementById('envioCampanhaInfo').textContent =
     destinatarios.length
-      ? `${destinatarios.length} cliente(s) encontrado(s) para o público "${camp.publico}". Clique em "Enviar" para cada um.`
+      ? (camp.auto_envio
+          ? `${destinatarios.length} cliente(s) no público "${camp.publico}". Esta campanha é enviada automaticamente pelo sistema${_periodo}, com limite diário. Enviar manualmente pode repetir a mensagem para quem já a recebeu. Quem pediu para sair não aparece na lista.`
+          : `${destinatarios.length} cliente(s) no público "${camp.publico}". Clique em "Enviar" para cada um. Quem pediu para sair não aparece na lista.`)
       : `Nenhum cliente com telefone encontrado para o público "${camp.publico}".`;
 
   const lista = document.getElementById('envioCampanhaLista');
