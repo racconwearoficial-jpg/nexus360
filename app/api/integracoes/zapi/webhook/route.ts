@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { enviarTextoZapi } from "@/lib/zapi";
-import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA } from "@/lib/optout";
+import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA, JANELA_DIAS } from "@/lib/optout";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +89,7 @@ function chaveTelefone(numero: string) {
 // o rodapé "responda SAIR"). Fora disso a mensagem segue o fluxo normal, como qualquer outra.
 // Contam: campanha automática, lembrete de recompra e envio manual (registrados no log de
 // automações) e a reativação (clientes.reativacao_enviada_em).
-const JANELA_SAIR_DIAS = 7;
+const JANELA_SAIR_DIAS = JANELA_DIAS; // 3 dias (definido em lib/optout.js, também usado no texto da confirmação)
 
 async function recebeuPromocaoRecente(companyId: string, ids: number[]): Promise<boolean> {
   if (!ids.length) return false;
@@ -111,7 +111,7 @@ async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: 
   if (!chave) return false;
 
   const { data: todos, error: erroBusca } = await supabaseAdmin
-    .from("clientes").select("id, telefone, optout_marketing").eq("company_id", integracao.company_id);
+    .from("clientes").select("id, telefone, optout_marketing, optout_em").eq("company_id", integracao.company_id);
   if (erroBusca) { console.log("[zapi-webhook] opt-out indisponível (coluna ausente?):", erroBusca.message); return false; }
 
   // Todas as linhas com o mesmo telefone (inclui cadastros duplicados da mesma pessoa).
@@ -121,15 +121,27 @@ async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: 
   // segue o fluxo normal (cadastro automático etc.).
   if (!iguais.length) return false;
 
-  // SAIR só vale como resposta a uma promoção recebida há pouco (ver JANELA_SAIR_DIAS).
-  // VOLTAR não tem essa exigência: só religa quem estava fora.
-  if (saida && !(await recebeuPromocaoRecente(integracao.company_id, iguais.map((c: any) => c.id)))) {
-    console.log("[zapi-webhook] SAIR ignorado: cliente não recebeu promoção nos últimos", JANELA_SAIR_DIAS, "dias (mensagem espontânea)");
-    return false;
+  let pendentes: any[];
+  if (saida) {
+    // SAIR só vale como resposta a uma promoção recebida há pouco (ver JANELA_SAIR_DIAS).
+    if (!(await recebeuPromocaoRecente(integracao.company_id, iguais.map((c: any) => c.id)))) {
+      console.log("[zapi-webhook] SAIR ignorado: cliente não recebeu promoção nos últimos", JANELA_SAIR_DIAS, "dias (mensagem espontânea)");
+      return false;
+    }
+    pendentes = iguais.filter((c: any) => !c.optout_marketing);
+    if (!pendentes.length) return true;          // já estava fora: não responde de novo (evita ping-pong)
+  } else {
+    // VOLTAR só vale nos mesmos JANELA_SAIR_DIAS dias depois de o cliente ter saído (é o
+    // "desfazer" da confirmação). De quem nunca saiu, ou que saiu há mais tempo, é uma
+    // mensagem comum e segue o fluxo normal.
+    const desde = Date.now() - JANELA_SAIR_DIAS * 86400000;
+    const saiuHaPouco = iguais.some((c: any) => c.optout_marketing === true && c.optout_em && new Date(c.optout_em).getTime() >= desde);
+    if (!saiuHaPouco) {
+      console.log("[zapi-webhook] VOLTAR ignorado: cliente não saiu nos últimos", JANELA_SAIR_DIAS, "dias");
+      return false;
+    }
+    pendentes = iguais.filter((c: any) => c.optout_marketing === true);   // religa todos os cadastros da pessoa
   }
-
-  const pendentes = iguais.filter((c: any) => Boolean(c.optout_marketing) !== saida);
-  if (!pendentes.length) return true;            // já estava assim: não responde de novo (evita ping-pong)
   const { error: erroUpd } = await supabaseAdmin
     .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null })
     .in("id", pendentes.map((c: any) => c.id));
