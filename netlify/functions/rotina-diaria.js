@@ -16,6 +16,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-service-key"
 );
 
+const { escolher, RODAPE_OPTOUT } = require("../../lib/optout.js");
+
 const ZAPI_BASE = "https://api.z-api.io";
 
 function headersZapi(clientToken) {
@@ -160,6 +162,74 @@ async function contarEnviadosHoje(companyId) {
   return (log.count || 0) + (reat.count || 0);
 }
 
+// ── Proteção do número de WhatsApp ───────────────────────────────────────────
+// 1) Rampa de aquecimento: número recém-conectado à API não pode sair mandando
+//    o volume cheio (o WhatsApp desconfia de sessão nova enviando muito). O teto
+//    do dia começa em WARMUP_BASE e sobe WARMUP_POR_DIA a cada dia desde
+//    integracoes_zapi.connected_at, até LIMITE_DIARIO_TOTAL.
+// 2) Disjuntor: cada falha de envio é registrada (tipo "falha_envio"). Erro grave
+//    (banido/bloqueado/desconectado) ou FALHAS_MAX_POR_DIA falhas param os envios
+//    da empresa pelo resto do dia — melhor parar do que insistir num número em
+//    risco.
+// 3) Antes de cada rodada confere se o WhatsApp da instância está conectado.
+const WARMUP_BASE = 8;
+const WARMUP_POR_DIA = 2;
+const FALHAS_MAX_POR_DIA = 3;
+const ERRO_GRAVE = /(banned|\bban\b|bloquead|blocked|suspens|restrict|desconect|disconnect|not connected|n[aã]o conectad|unauthorized|invalid token|token inv)/i;
+
+function limiteDiarioDaInstancia(integ) {
+  if (!integ.connected_at) return LIMITE_DIARIO_TOTAL;
+  const dias = Math.max(0, Math.floor((Date.now() - new Date(integ.connected_at).getTime()) / 86400000));
+  return Math.max(0, Math.min(LIMITE_DIARIO_TOTAL, WARMUP_BASE + WARMUP_POR_DIA * dias));
+}
+
+function inicioDoDiaBrasilia() {
+  const { ano, mes, dia } = hojeBrasilia();
+  return new Date(Date.UTC(ano, mes - 1, dia, 3, 0, 0)).toISOString();
+}
+
+async function contarFalhasHoje(companyId) {
+  const { count } = await supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
+    .eq("company_id", companyId).eq("tipo", "falha_envio").gte("enviado_em", inicioDoDiaBrasilia());
+  return count || 0;
+}
+
+async function tratarFalha(integ, erro) {
+  gastarOrcamento(); // falha também conta no orçamento da rodada
+  try {
+    const msg = String((erro && erro.message) || erro || "");
+    const vezes = ERRO_GRAVE.test(msg) ? FALHAS_MAX_POR_DIA : 1; // erro grave desarma na hora
+    for (let i = 0; i < vezes; i++) await registrarEnvio({ companyId: integ.company_id, clienteId: null, tipo: "falha_envio", referenciaId: msg.slice(0, 120) });
+    if (vezes >= FALHAS_MAX_POR_DIA) {
+      orcamento = 0; // erro grave: nem tenta o próximo cliente desta rodada
+      console.error("[rotina-diaria] DISJUNTOR ACIONADO (erro grave), envios pausados hoje:", integ.company_id, msg);
+    }
+  } catch (e) { console.error("[rotina-diaria] não consegui registrar falha:", e.message); }
+}
+
+async function instanciaConectada(credZapi) {
+  try {
+    const r = await fetch(`${ZAPI_BASE}/instances/${credZapi.instanceId}/token/${credZapi.token}/status`, { method: "GET", headers: headersZapi(credZapi.clientToken) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return { ok: false, motivo: d.error || d.message || `status HTTP ${r.status}` };
+    if (d.connected !== true) return { ok: false, motivo: d.error || "WhatsApp da instância não está conectado" };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, motivo: e.message };
+  }
+}
+
+function domingoBrasilia() {
+  return new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", weekday: "short" }).format(new Date()) === "Sun";
+}
+
+// Cliente que pediu para sair (SAIR) não recebe nenhuma mensagem promocional.
+// A coluna pode ainda não existir (migração optout_marketing.sql): nesse caso a
+// propriedade é undefined e ninguém é excluído. O rodapé "responda SAIR" só é
+// usado quando a coluna existe, ou seja, quando o pedido de saída é cumprido de fato.
+const pediuSaida = (c) => c && c.optout_marketing === true;
+const rodapeOptout = (c) => (c && Object.prototype.hasOwnProperty.call(c, "optout_marketing") ? `\n\n${RODAPE_OPTOUT}` : "");
+
 function horaBrasilia() {
   const p = new Intl.DateTimeFormat("en-GB", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
   return { hora: Number(p.find((x) => x.type === "hour").value) % 24, minuto: Number(p.find((x) => x.type === "minute").value) };
@@ -183,10 +253,11 @@ function embaralhar(arr) {
 // então não dá pra afirmar "seu remédio X está acabando" sem inventar.
 async function rodarRecompra(integ, credZapi) {
   const { data: clientes } = await supabaseAdmin
-    .from("clientes").select("id, nome, telefone").eq("company_id", integ.company_id);
+    .from("clientes").select("*").eq("company_id", integ.company_id);
   let enviados = 0;
   for (const cliente of clientes || []) {
     if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
+    if (pediuSaida(cliente)) continue;
     try {
       const { data: vendas } = await supabaseAdmin
         .from("vendas").select("data").eq("company_id", integ.company_id).eq("cliente_id", cliente.id)
@@ -209,7 +280,11 @@ async function rodarRecompra(integ, credZapi) {
       if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "recompra", referenciaId: null, desde: diasAtras(20).toISOString() })) continue;
       if (!cliente.telefone) continue;
 
-      const mensagem = `Oi, ${cliente.nome}! Faz um tempinho desde sua última compra com a gente — se estiver precisando repor algo, é só chamar por aqui.`;
+      const mensagem = escolher([
+        `Oi, ${cliente.nome}! Faz um tempinho desde sua última compra com a gente — se estiver precisando repor algo, é só chamar por aqui.`,
+        `Olá, ${cliente.nome}! Passando para lembrar que estamos por aqui caso precise repor algo. É só responder esta mensagem.`,
+        `${cliente.nome}, tudo bem? Se estiver na hora de repor alguma coisa, é só chamar a gente por aqui.`,
+      ]) + rodapeOptout(cliente);
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "recompra", referenciaId: null });
       console.log("[rotina-diaria] recompra enviada:", cliente.id);
@@ -218,7 +293,7 @@ async function rodarRecompra(integ, credZapi) {
       if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro recompra cliente", cliente.id, e.message);
-      gastarOrcamento(); // falha também conta, pra não martelar o Z-API se estiver fora
+      await tratarFalha(integ, e);
     }
   }
 }
@@ -254,7 +329,7 @@ async function rodarFiado(integ, credZapi) {
       if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro fiado pendencia", p.id, e.message);
-      gastarOrcamento();
+      await tratarFalha(integ, e);
     }
   }
 }
@@ -274,7 +349,7 @@ async function rodarReativacao(integ, credZapi) {
   const [{ data: config }, { data: candidatos }] = await Promise.all([
     supabaseAdmin.from("configuracoes").select("dias_inativo, fidelidade_config").eq("company_id", integ.company_id).single(),
     supabaseAdmin.from("clientes")
-      .select("id, nome, telefone, ultima_compra, pontos, total_gasto, reativacao_enviada_em, created_at")
+      .select("*")
       .eq("company_id", integ.company_id)
       // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
       // volta a concorrer daqui 30 dias — assim uma base grande de inativos
@@ -292,6 +367,7 @@ async function rodarReativacao(integ, credZapi) {
   const agora = Date.now();
   const clientes = (candidatos || [])
     .filter((c) => {
+      if (pediuSaida(c)) return false;
       const pontos = parseInt(c.pontos || 0);
       const gasto = parseFloat(c.total_gasto || 0);
       if (pontos >= vipPts || gasto >= 500) return false; // VIP nunca é inativo
@@ -311,7 +387,11 @@ async function rodarReativacao(integ, credZapi) {
     try {
       if (!cliente.telefone) continue;
 
-      const mensagem = `Oi, ${cliente.nome}! Faz tempo que a gente não te vê por aqui — sentimos sua falta. Toda compra continua valendo pontos que dá pra trocar por desconto. Quando quiser, é só chamar.`;
+      const mensagem = escolher([
+        `Oi, ${cliente.nome}! Faz tempo que a gente não te vê por aqui — sentimos sua falta. Toda compra continua valendo pontos que dá pra trocar por desconto. Quando quiser, é só chamar.`,
+        `Olá, ${cliente.nome}! Sentimos sua falta por aqui. Suas compras continuam gerando pontos que viram desconto. Quando precisar, é só chamar.`,
+        `${cliente.nome}, tudo bem? Faz um tempo que você não passa por aqui. Seus pontos de fidelidade continuam valendo — é só chamar quando quiser.`,
+      ]) + rodapeOptout(cliente);
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await supabaseAdmin.from("clientes").update({ reativacao_enviada_em: new Date().toISOString() }).eq("id", cliente.id);
       console.log("[rotina-diaria] reativação enviada:", cliente.id);
@@ -319,7 +399,7 @@ async function rodarReativacao(integ, credZapi) {
       if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro reativação cliente", cliente.id, e.message);
-      gastarOrcamento();
+      await tratarFalha(integ, e);
     }
   }
 }
@@ -329,13 +409,14 @@ async function rodarReativacao(integ, credZapi) {
 async function rodarAniversario(integ, credZapi) {
   const hoje = hojeBrasilia();
   const { data: clientes } = await supabaseAdmin
-    .from("clientes").select("id, nome, telefone, aniversario").eq("company_id", integ.company_id);
+    .from("clientes").select("*").eq("company_id", integ.company_id);
   console.log("[rotina-diaria] aniversario: checando", { hoje, totalClientes: clientes?.length || 0 });
   let enviados = 0;
   for (const cliente of clientes || []) {
     if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
     try {
       if (!cliente.aniversario) continue;
+      if (pediuSaida(cliente)) continue;
       // aniversario é sempre "AAAA-MM-DD" (string) — compara texto direto,
       // sem passar por Date/timezone.
       const [, mesAniv, diaAniv] = cliente.aniversario.split("-").map(Number);
@@ -358,7 +439,7 @@ async function rodarAniversario(integ, credZapi) {
       if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro aniversário cliente", cliente.id, e.message);
-      gastarOrcamento();
+      await tratarFalha(integ, e);
     }
   }
 }
@@ -388,14 +469,14 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
   const [{ data: config }, { data: clientes }] = await Promise.all([
     supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo").eq("company_id", integ.company_id).single(),
-    supabaseAdmin.from("clientes").select("id, nome, telefone, status, ultima_compra, aniversario, created_at, pontos").eq("company_id", integ.company_id),
+    supabaseAdmin.from("clientes").select("*").eq("company_id", integ.company_id),
   ]);
   const neg = config?.nome_negocio || "nossa loja";
   const diasInativoLimite = parseInt(config?.dias_inativo || 30);
 
   for (const camp of campanhas) {
     const pub = (camp.publico || "Todos").toLowerCase().trim();
-    let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim());
+    let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim() && !pediuSaida(c));
 
     if (pub === "ativos") {
       destinatarios = destinatarios.filter((c) => c.status === "ativo");
@@ -433,7 +514,8 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
           .replace(/\{pontos\}/g, String(pontosCliente))
           .replace(/\{faltam\}/g, prox ? String(prox.faltam) : "0")
           .replace(/\{beneficio\}/g, prox ? prox.label : maxBeneficio)
-          .replace(/\{status_pontos\}/g, fraseBeneficio(pontosCliente));
+          .replace(/\{status_pontos\}/g, fraseBeneficio(pontosCliente))
+          + rodapeOptout(cliente);
 
         if (camp.imagem_url) {
           await enviarImagemZapi({ ...credZapi, telefone: cliente.telefone, imagemUrl: camp.imagem_url, legenda: mensagem });
@@ -447,7 +529,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
       if (temOrcamento()) await pausaAleatoria();
       } catch (e) {
         console.error("[rotina-diaria] erro campanha automática", camp.id, cliente.id, e.message);
-        gastarOrcamento();
+        await tratarFalha(integ, e);
       }
     }
   }
@@ -455,7 +537,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
 exports.handler = async function () {
   const { data: integracoes, error } = await supabaseAdmin
-    .from("integracoes_zapi").select("company_id, instance_id, token, client_token");
+    .from("integracoes_zapi").select("company_id, instance_id, token, client_token, connected_at");
   if (error) {
     console.error("[rotina-diaria] falha ao buscar integrações:", error.message);
     return { statusCode: 200, body: "ok" };
@@ -465,23 +547,48 @@ exports.handler = async function () {
     const credZapi = { instanceId: integ.instance_id, token: integ.token, clientToken: integ.client_token };
     console.log("[rotina-diaria] processando empresa:", integ.company_id);
 
-    // Orçamento desta rodada = o menor entre o limite por execução e o que
-    // ainda cabe no teto do dia. Zerou o teto → não faz nem as consultas.
-    const jaHoje = await contarEnviadosHoje(integ.company_id);
-    orcamento = Math.max(0, Math.min(LIMITE_POR_EXECUCAO, LIMITE_DIARIO_TOTAL - jaHoje));
-    console.log("[rotina-diaria] enviados hoje:", jaHoje, "| orçamento da rodada:", orcamento);
-    if (!temOrcamento()) continue;
+    // Cada empresa é isolada: um erro numa não impede as outras.
+    try {
+      // 1) Disjuntor: falhas demais hoje → não envia mais nada até amanhã.
+      const falhasHoje = await contarFalhasHoje(integ.company_id);
+      if (falhasHoje >= FALHAS_MAX_POR_DIA) {
+        console.warn("[rotina-diaria] envios pausados hoje (disjuntor):", integ.company_id, "falhas:", falhasHoje);
+        continue;
+      }
+
+      // 2) Só envia se o WhatsApp da instância está conectado agora.
+      const conexao = await instanciaConectada(credZapi);
+      if (!conexao.ok) {
+        console.warn("[rotina-diaria] instância não conectada, pulando rodada:", integ.company_id, conexao.motivo);
+        continue;
+      }
+
+      // 3) Orçamento desta rodada = o menor entre o limite por execução e o que
+      //    ainda cabe no teto do dia (com rampa de aquecimento para número novo).
+      const limiteDia = limiteDiarioDaInstancia(integ);
+      const jaHoje = await contarEnviadosHoje(integ.company_id);
+      orcamento = Math.max(0, Math.min(LIMITE_POR_EXECUCAO, limiteDia - jaHoje));
+      console.log("[rotina-diaria] enviados hoje:", jaHoje, "| teto do dia:", limiteDia, "| orçamento da rodada:", orcamento);
+      if (!temOrcamento()) continue;
 
     // Ordem = prioridade (o orçamento é compartilhado): o que tem data marcada
     // vem primeiro; campanhas antes de reativação. Recompra faz uma consulta por
     // cliente (pesado), então só na primeira rodada da manhã — o dedupe de 20
     // dias impede repetir nas demais.
-    const { hora, minuto } = horaBrasilia();
-    await rodarAniversario(integ, credZapi);
-    await rodarFiado(integ, credZapi);
-    if (hora === 8 && minuto < 20) await rodarRecompra(integ, credZapi);
-    await rodarCampanhasAutomaticas(integ, credZapi);
-    await rodarReativacao(integ, credZapi);
+      // Domingo: sem mensagem promocional (recompra, campanha, reativação);
+      // aniversário e cobrança de fiado seguem normalmente.
+      const { hora, minuto } = horaBrasilia();
+      const domingo = domingoBrasilia();
+      await rodarAniversario(integ, credZapi);
+      await rodarFiado(integ, credZapi);
+      if (!domingo) {
+        if (hora === 8 && minuto < 20) await rodarRecompra(integ, credZapi);
+        await rodarCampanhasAutomaticas(integ, credZapi);
+        await rodarReativacao(integ, credZapi);
+      }
+    } catch (e) {
+      console.error("[rotina-diaria] erro ao processar empresa", integ.company_id, e.message);
+    }
   }
 
   return { statusCode: 200, body: "ok" };
