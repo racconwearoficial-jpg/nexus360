@@ -9056,17 +9056,26 @@ function enviarCampanha(id) {
   }
   // pub === 'todos' → mantém lista completa com telefone
 
+  // ── Conta PESSOAS, não cadastros (mesmo critério da rotina automática) ──────
+  // A mesma pessoa cadastrada 2x (mesmo telefone) aparece uma vez só, e se qualquer
+  // cadastro dela pediu para sair, ela fica de fora. Sem isso o número da frase
+  // ("N cliente(s)") ficava maior que o de pessoas realmente alcançadas.
+  const _chaveTel = c => { const d = String(c.telefone || '').replace(/\D/g, ''); return d.length >= 8 ? d.slice(-8) : ''; };
+  const _telsSaida = new Set(state.clientes.filter(clienteOptOut).map(_chaveTel).filter(Boolean));
+  const _telsVistos = new Set();
+  destinatarios = destinatarios.filter(c => {
+    const k = _chaveTel(c);
+    if (!k) return true;
+    if (_telsSaida.has(k) || _telsVistos.has(k)) return false;
+    _telsVistos.add(k);
+    return true;
+  });
+
   // ── Abre o painel de envio ───────────────────────────────────────────────
   document.getElementById('envioCampanhaTitulo').textContent = camp.nome;
-  // Campanha com envio automático já é disparada pelo sistema (rotina diária, com limite
-  // por dia): avisa que o envio manual pode repetir a mensagem para quem já recebeu.
-  const _dm = d => { const p = String(d || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : ''; };
-  const _periodo = (camp.periodo_inicio && camp.periodo_fim) ? ` de ${_dm(camp.periodo_inicio)} a ${_dm(camp.periodo_fim)}` : '';
   document.getElementById('envioCampanhaInfo').textContent =
     destinatarios.length
-      ? (camp.auto_envio
-          ? `${destinatarios.length} cliente(s) no público "${camp.publico}". Esta campanha é enviada automaticamente pelo sistema${_periodo}, com limite diário. Enviar manualmente pode repetir a mensagem para quem já a recebeu. Quem pediu para sair não aparece na lista.`
-          : `${destinatarios.length} cliente(s) no público "${camp.publico}". Clique em "Enviar" para cada um. Quem pediu para sair não aparece na lista.`)
+      ? `${destinatarios.length} cliente(s) encontrado(s) para o público "${camp.publico}". Clique em "Enviar" para cada um.`
       : `Nenhum cliente com telefone encontrado para o público "${camp.publico}".`;
 
   const lista = document.getElementById('envioCampanhaLista');
