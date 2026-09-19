@@ -9016,7 +9016,8 @@ function enviarCampanha(id) {
   let destinatarios = state.clientes.filter(c => c.telefone && c.telefone.trim());
 
   if (pub === 'ativos') {
-    destinatarios = destinatarios.filter(c => c.status === 'ativo');
+    // VIP é, por definição, cliente ativo (mesmo critério da rotina automática)
+    destinatarios = destinatarios.filter(c => c.status === 'ativo' || c.status === 'vip');
   } else if (pub === 'inativos') {
     destinatarios = destinatarios.filter(c => c.status === 'inativo');
   } else if (pub === 'vip') {
