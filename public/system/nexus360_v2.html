@@ -656,9 +656,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <button class="btn btn-primary" onclick="recuperarInativos()" style="white-space:nowrap;flex-shrink:0">
           Recuperar inativos
         </button>
-        <button class="btn btn-primary" onclick="enviarCampanhaPontos()" style="white-space:nowrap;flex-shrink:0">
-          Campanha de pontos
-        </button>
       </div>
       <div class="card" id="clientTableWrap">
         <div class="table-wrap">
@@ -4474,7 +4471,7 @@ function renderUpsell() {
   const limiteInativo = new Date();
   limiteInativo.setDate(hoje.getDate() - diasInativo());
   const inativos = state.clientes.filter(c =>
-    c.status === 'inativo' && c.telefone && c.telefone.trim()
+    c.status === 'inativo' && c.telefone && c.telefone.trim() && !clienteOptOut(c)
   );
 
   // 2. Aniversariantes hoje
@@ -4492,7 +4489,7 @@ function renderUpsell() {
   const linhaInativo = c => {
     const tel  = c.telefone.replace(/\D/g, '');
     const num  = tel.startsWith('55') ? tel : '55' + tel;
-    const msg  = buildWppMsg('reativacao', c.nome);
+    const msg  = buildWppMsg('reativacao', c.nome) + rodapeSaidaManual(c);
     const dias = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const msgEsc = msg.replace(/"/g,'&quot;');
     return `<div class="suggestion" style="padding:8px 12px">
@@ -4638,10 +4635,16 @@ function renderClients(list) {
   }).join('');
 }
 
+// Envio MANUAL de mensagem promocional: quem respondeu SAIR (clientes.optout_marketing)
+// fica fora da lista e a mensagem leva o rodapé de saída — mesmo comportamento da
+// rotina automática. O rodapé só entra quando a coluna existe (já criada no Supabase).
+const clienteOptOut = c => Boolean(c) && c.optout_marketing === true;
+const rodapeSaidaManual = c => (c && Object.prototype.hasOwnProperty.call(c, 'optout_marketing')) ? '\n\nPara não receber mais mensagens, responda SAIR.' : '';
+
 function recuperarInativos() {
-  // Filtra inativos com telefone cadastrado
+  // Filtra inativos com telefone cadastrado (e que não pediram para sair)
   const inativos = state.clientes.filter(c =>
-    c.status === 'inativo' && c.telefone && c.telefone.trim()
+    c.status === 'inativo' && c.telefone && c.telefone.trim() && !clienteOptOut(c)
   );
 
   // Aplica filtro visual na tabela
@@ -4665,7 +4668,7 @@ function recuperarInativos() {
   document.getElementById('envioCampanhaLista').innerHTML = inativos.map((c, idx) => {
     const tel    = c.telefone.replace(/\D/g, '');
     const num    = tel.startsWith('55') ? tel : '55' + tel;
-    const msg    = msgPadrao.replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg);
+    const msg    = msgPadrao.replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg) + rodapeSaidaManual(c);
     window._campMsgs[idx] = { num, msg };
     const dias   = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const diasTxt = dias !== null ? `${dias} dias sem comprar` : 'Nunca comprou';
@@ -4692,50 +4695,6 @@ function fidFraseBeneficio(pontos) {
   if (prox) return `Faltam ${prox.pontos - pts} pontos pra você resgatar ${prox.label}.`;
   const max = FID_RECOMPENSAS[FID_RECOMPENSAS.length - 1];
   return `Você já pode trocar seus pontos pelo benefício de ${max.label}!`;
-}
-
-// Campanha de pontos — mensagem individual por cliente (pontos e "faltam X"
-// são diferentes pra cada um, por isso reaproveita o fluxo de envio manual
-// clique-a-clique do recuperarInativos, não o de campanha em massa com texto
-// único pra todo mundo). Público: todo cliente ativo que já tem pontos.
-function enviarCampanhaPontos() {
-  const elegiveis = state.clientes.filter(c => {
-    if (!c.telefone || !c.telefone.trim()) return false;
-    if ((c.status || 'ativo') !== 'ativo') return false;
-    return (parseInt(c.pontos) || 0) > 0;
-  });
-
-  if (!elegiveis.length) {
-    toast('Nenhum cliente ativo com pontos encontrado.', 'info');
-    return;
-  }
-
-  const neg = state.config.nome_negocio || 'nossa loja';
-
-  document.getElementById('envioCampanhaTitulo').textContent = 'Campanha de pontos';
-  document.getElementById('envioCampanhaInfo').textContent =
-    `${elegiveis.length} cliente(s) ativo(s) com pontos. Edite a mensagem e clique em "Enviar" para cada um.`;
-
-  window._campMsgs = {};
-  document.getElementById('envioCampanhaLista').innerHTML = elegiveis.map((c, idx) => {
-    const tel    = c.telefone.replace(/\D/g, '');
-    const num    = tel.startsWith('55') ? tel : '55' + tel;
-    const pontos = parseInt(c.pontos) || 0;
-    const prox   = fidProximoBeneficio(pontos);
-    const msg = `Oi, ${c.nome}! Você já tem ${pontos} pontos na ${neg}. ${fidFraseBeneficio(pontos)} Você também está participando do nosso ranking de clientes e concorrendo a prêmios exclusivos.`;
-    window._campMsgs[idx] = { num, msg };
-    const statusTxt = prox ? `faltam ${prox.pontos - pontos} para ${prox.label}` : 'maior nível já alcançado';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
-      <div style="min-width:0">
-        <div style="font-size:13px;font-weight:500;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${pontos} pontos · ${statusTxt} · ${c.telefone}</div>
-      </div>
-      <button class="btn-wpp" style="font-size:11px;padding:5px 12px;flex-shrink:0"
-        onclick="enviarCampMsg(${idx})">Enviar</button>
-    </div>`;
-  }).join('');
-
-  openModal('modalEnvioCampanha');
 }
 
 function filterClients() {
@@ -9006,14 +8965,15 @@ function enviarCampanha(id) {
       .replace(/{pontos}/g, String(pontos))
       .replace(/{faltam}/g, prox ? String(prox.pontos - pontos) : '0')
       .replace(/{beneficio}/g, prox ? prox.label : maxBeneficio)
-      .replace(/{status_pontos}/g, fidFraseBeneficio(pontos));
+      .replace(/{status_pontos}/g, fidFraseBeneficio(pontos))
+      + rodapeSaidaManual(cliente);
   }
 
   // ── Filtra pelo público da campanha (case-insensitive) ───────────────────
   // Nota: c.status já é calculado dinamicamente por calcularStatus() ao carregar
   const pub = (camp.publico || 'Todos').toLowerCase().trim();
 
-  let destinatarios = state.clientes.filter(c => c.telefone && c.telefone.trim());
+  let destinatarios = state.clientes.filter(c => c.telefone && c.telefone.trim() && !clienteOptOut(c));
 
   if (pub === 'ativos') {
     // VIP é, por definição, cliente ativo (mesmo critério da rotina automática)
@@ -11253,6 +11213,12 @@ window.onload = async function() {
   .cal-agenda-wrap { margin-top: 12px; }
   .cal-agenda-actions { flex-wrap: wrap !important; gap: 5px !important; }
   .cal-action-btn { font-size: 11px !important; padding: 5px 9px !important; }
+
+  /* ─ Clientes: barra de busca/filtros não estoura a tela ─ */
+  .search-bar { flex-wrap: wrap !important; }
+  .search-bar input { flex: 1 1 100% !important; }
+  .search-bar select { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; }
+  .search-bar .btn { flex: 1 1 0 !important; min-width: 0 !important; }
 
   /* ─ Relatórios ─ */
   .rel-kpis-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
