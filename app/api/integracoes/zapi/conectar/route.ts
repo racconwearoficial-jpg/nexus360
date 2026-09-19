@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { testarInstanciaZapi } from "@/lib/zapi";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,9 @@ export async function POST(req: NextRequest) {
   if (!company_id || !instance_id || !token) {
     return NextResponse.json({ error: "company_id, instance_id e token são obrigatórios" }, { status: 400 });
   }
+
+  const negado = await exigirEmpresa(req, company_id);
+  if (negado) return negado;
 
   try {
     await testarInstanciaZapi({ instanceId: instance_id, token, clientToken: client_token }); // valida antes de salvar

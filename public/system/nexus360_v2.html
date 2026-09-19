@@ -2826,6 +2826,18 @@ function nav(id, el) {
 // ══════════════════════════════════════════════════════════════════════════════
 // CONNECTION CHECK
 // ══════════════════════════════════════════════════════════════════════════════
+// Cabeçalhos das chamadas às rotas /api protegidas: enviam o token da sessão do
+// Supabase, que o servidor confere (lib/authEmpresa.ts). Sem sessão, a rota
+// responde 401 e o envio de WhatsApp cai no link wa.me como sempre.
+async function apiAuthHeaders(extra) {
+  const h = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (session && session.access_token) h['Authorization'] = 'Bearer ' + session.access_token;
+  } catch (e) {}
+  return h;
+}
+
 // Carrega o company_id do usuário logado
 async function loadCompanyId() {
   try {
@@ -3040,7 +3052,7 @@ async function loadIntegracaoZapi() {
   if (!badge) return;
 
   try {
-    const r = await fetch(`/api/integracoes/zapi/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetch(`/api/integracoes/zapi/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store', headers: await apiAuthHeaders() });
     const d = await r.json();
     _zapiConectado = Boolean(d.conectado && d.whatsappConectado !== false);
 
@@ -3085,7 +3097,7 @@ async function alternarAtendimentoZapi(ativo) {
   zapiAtualizarVisualToggle(ativo);
   try {
     const r = await fetch('/api/integracoes/zapi/atendimento', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, ativo }),
     });
     if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao salvar'); }
@@ -3107,7 +3119,7 @@ async function conectarZapi() {
   btn.disabled = true; btn.textContent = 'Validando...';
   try {
     const r = await fetch('/api/integracoes/zapi/conectar', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, instance_id, token, client_token: client_token || null }),
     });
     const d = await r.json();
@@ -3128,7 +3140,7 @@ async function desconectarZapi() {
   if (!confirm('Desconectar o WhatsApp (Z-API)? Os botões de WhatsApp voltam a usar o link (wa.me) até você conectar de novo.')) return;
   try {
     const r = await fetch('/api/integracoes/zapi/desconectar', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId }),
     });
     if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao desconectar'); }
@@ -6326,7 +6338,7 @@ function abrirModalWppVenda(vendaId) {
       btnEl.disabled = true; btnEl.textContent = 'Enviando...';
       try {
         const r = await fetch('/api/integracoes/zapi/enviar', {
-          method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+          method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
           body: JSON.stringify({ company_id: state.companyId, telefone: num, mensagem: msg }),
         });
         const d = await r.json();
@@ -9206,7 +9218,7 @@ async function confirmarWpp() {
     btn.disabled = true; btn.textContent = 'Enviando...';
     try {
       const r = await fetch('/api/integracoes/zapi/enviar', {
-        method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+        method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
         body: JSON.stringify({ company_id: state.companyId, telefone: _wppNum, mensagem: msg, imagem_url: _wppImagemDataUri || undefined }),
       });
       const d = await r.json();
@@ -10151,10 +10163,11 @@ function rsvToggleProdNome() {
 // Webhook, que está indisponível nesse projeto por um problema de
 // provisionamento do lado da Supabase — schema supabase_functions ausente).
 // Fire-and-forget: nunca trava nem quebra a tela que chamou.
-function dispararAutomacao(caminho, payload) {
+async function dispararAutomacao(caminho, payload) {
   try {
     console.log('[dispararAutomacao] chamando', caminho, payload);
-    fetch(caminho, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    const headers = await apiAuthHeaders();
+    fetch(caminho, { method: 'POST', headers, body: JSON.stringify(payload) })
       .then(r => console.log('[dispararAutomacao] resposta', caminho, r.status))
       .catch(e => console.error('[dispararAutomacao] falhou', caminho, e));
   } catch(e) { console.error('[dispararAutomacao] erro síncrono', caminho, e); }

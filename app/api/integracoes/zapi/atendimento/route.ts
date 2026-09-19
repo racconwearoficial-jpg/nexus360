@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export async function POST(req: NextRequest) {
   if (!company_id || typeof ativo !== "boolean") {
     return NextResponse.json({ error: "company_id e ativo (boolean) são obrigatórios" }, { status: 400 });
   }
+  const negado = await exigirEmpresa(req, company_id);
+  if (negado) return negado;
   const { error } = await supabaseAdmin
     .from("integracoes_zapi")
     .update({ atendimento_auto: ativo })

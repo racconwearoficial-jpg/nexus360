@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { exigirEmpresaDoRegistro } from "@/lib/authEmpresa";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getCredenciaisZapi, enviarTextoZapi } from "@/lib/zapi";
 import { jaEnviado, registrarEnvio } from "@/lib/automacoesLog";
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
     console.error("[automacao-estoque-zerado] body inválido:", e.message);
     return NextResponse.json({ ok: true });
   }
+
+  // Só um usuário logado da própria empresa pode disparar (senão qualquer um forjava o
+  // payload e mandava mensagem pelo número de WhatsApp da empresa).
+  const negado = await exigirEmpresaDoRegistro(req, payload);
+  if (negado) return negado;
 
   console.log("[automacao-estoque-zerado] chamado:", JSON.stringify({ type: payload.type, record: payload.record, old_record: payload.old_record }));
 
