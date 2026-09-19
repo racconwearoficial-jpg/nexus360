@@ -468,18 +468,31 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
   if (!campanhas || !campanhas.length) return;
 
   const [{ data: config }, { data: clientes }] = await Promise.all([
-    supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo").eq("company_id", integ.company_id).single(),
+    supabaseAdmin.from("configuracoes").select("nome_negocio, dias_inativo, fidelidade_config").eq("company_id", integ.company_id).single(),
     supabaseAdmin.from("clientes").select("*").eq("company_id", integ.company_id),
   ]);
   const neg = config?.nome_negocio || "nossa loja";
   const diasInativoLimite = parseInt(config?.dias_inativo || 30);
+  let vipPts = 1000;
+  try { if (config?.fidelidade_config) vipPts = JSON.parse(config.fidelidade_config).vipPts || 1000; } catch {}
+
+  // A coluna clientes.status NÃO é mantida no banco (quase todo mundo fica "ativo",
+  // inclusive quem nunca comprou): a tela calcula na hora (calcularStatus() no
+  // nexus360_v2.html). Usar a coluna mandava "Ativos" para a base inteira, com
+  // contatos frios — o que mais gera denúncia. Aqui replica o cálculo da tela.
+  const statusReal = (c) => {
+    if ((parseInt(c.pontos) || 0) >= vipPts) return "vip";
+    if (!c.ultima_compra) return "inativo";
+    const dias = Math.floor((Date.now() - new Date(c.ultima_compra).getTime()) / 86400000);
+    return dias > diasInativoLimite ? "inativo" : "ativo";
+  };
 
   for (const camp of campanhas) {
     const pub = (camp.publico || "Todos").toLowerCase().trim();
     let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim() && !pediuSaida(c));
 
     if (pub === "ativos") {
-      destinatarios = destinatarios.filter((c) => c.status === "ativo");
+      destinatarios = destinatarios.filter((c) => statusReal(c) === "ativo");
     } else if (pub === "inativos") {
       destinatarios = destinatarios.filter((c) => {
         // Mesma correção do rodarReativacao: sem compra usa o cadastro como
@@ -490,7 +503,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         return dias > diasInativoLimite;
       });
     } else if (pub === "vip") {
-      destinatarios = destinatarios.filter((c) => c.status === "vip");
+      destinatarios = destinatarios.filter((c) => statusReal(c) === "vip");
     } else if (pub === "aniversariantes") {
       destinatarios = destinatarios.filter((c) => {
         if (!c.aniversario) return false;
