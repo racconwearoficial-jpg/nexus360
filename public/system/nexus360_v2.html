@@ -8888,11 +8888,16 @@ function renderRelatorios() {
 
   // ── Heatmap: vendas por dia da semana no período ──────────────────────────────
   const diasHeat = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  const heatData = Array(7).fill(0);
+  // Média por ocorrência do dia da semana (total ÷ nº de segundas, terças...). Conta só até hoje,
+  // para os dias que ainda não aconteceram não puxarem a média para baixo.
+  const heatTotal = Array(7).fill(0), heatOcc = Array(7).fill(0);
   vendasP.forEach(v => {
     const dv = new Date((v.data||'').slice(0,10)+'T12:00:00');
-    if (!isNaN(dv)) heatData[dv.getDay()] += parseFloat(v.valor||0);
+    if (!isNaN(dv)) heatTotal[dv.getDay()] += parseFloat(v.valor||0);
   });
+  const fimHeat = new Date(P.cmpFim+'T12:00:00');
+  for (const d = new Date(P.ini+'T12:00:00'); d <= fimHeat; d.setDate(d.getDate()+1)) heatOcc[d.getDay()]++;
+  const heatData = heatTotal.map((t,i) => heatOcc[i] ? t/heatOcc[i] : 0);
   const maxHeat = Math.max(...heatData,1);
   const diaTop = heatData.some(x=>x>0) ? heatData.indexOf(Math.max(...heatData)) : -1;
   document.getElementById('rel-heatmap').innerHTML =
@@ -8902,14 +8907,14 @@ function renderRelatorios() {
       const h = Math.max(8,Math.round(int*84));
       const isTop = i===diaTop;
       const cor = int>.7?'#6366F1':int>.4?'rgba(99,102,241,.65)':int>.1?'rgba(99,102,241,.3)':'rgba(99,102,241,.08)';
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end">
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end" title="${diasHeat[i]}: média ${fmtR(val)} · total ${fmtR(heatTotal[i])} em ${heatOcc[i]} dia${heatOcc[i]===1?'':'s'}">
         ${val>0?`<div style="font-size:9px;color:var(--text3);white-space:nowrap">${fmtR(val).replace('R$ ','')}</div>`:''}
         <div style="width:100%;height:${h}px;background:${isTop?'linear-gradient(to top,#6366F1,#818CF8)':cor};border-radius:6px 6px 0 0;transition:height .4s;box-shadow:${isTop?'0 0 12px rgba(99,102,241,.3)':'none'}"></div>
         <div style="font-size:11px;color:${isTop?'#818CF8':'var(--text2)'};font-weight:${isTop?700:400}">${diasHeat[i]}</div>
       </div>`;
     }).join('') + '</div>' +
     `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--text3)">${P.label} · total de cada dia da semana no período</span>
+      <span style="font-size:11px;color:var(--text3)">${P.label} · média por dia da semana (total ÷ nº de ocorrências)</span>
       ${['Baixa','Média','Alta'].map((l,i)=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3)"><span style="width:12px;height:12px;border-radius:3px;background:rgba(99,102,241,${['.15','.5','.9'][i]});display:inline-block"></span>${l}</span>`).join('')}
       <span style="margin-left:auto;font-size:11px;color:#818CF8">${diaTop>=0?'Melhor dia: '+diasHeat[diaTop]:'Sem vendas no período'}</span>
     </div>`;
