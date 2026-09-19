@@ -228,6 +228,17 @@ function domingoBrasilia() {
 // propriedade é undefined e ninguém é excluído. O rodapé "responda SAIR" só é
 // usado quando a coluna existe, ou seja, quando o pedido de saída é cumprido de fato.
 const pediuSaida = (c) => c && c.optout_marketing === true;
+
+// Últimos 8 dígitos do telefone = identifica a MESMA pessoa mesmo cadastrada duas
+// vezes. Hoje há dezenas de duplicatas (o cadastro automático não achava o cliente
+// porque telefone_normalizado está errado/vazio em ~30% da base e criava outro),
+// e cada duplicata recebia a campanha: a pessoa levava a mesma mensagem 2x.
+const chaveTel = (c) => {
+  const d = String((c && c.telefone) || "").replace(/\D/g, "");
+  return d.length >= 8 ? d.slice(-8) : "";
+};
+// Se qualquer cadastro daquele telefone pediu para sair, todos ficam de fora.
+const telefonesQueSairam = (clientes) => new Set((clientes || []).filter(pediuSaida).map(chaveTel).filter(Boolean));
 const rodapeOptout = (c) => (c && Object.prototype.hasOwnProperty.call(c, "optout_marketing") ? `\n\n${RODAPE_OPTOUT}` : "");
 
 function horaBrasilia() {
@@ -354,9 +365,16 @@ async function rodarReativacao(integ, credZapi) {
       // nullsFirst: quem nunca recebeu tem prioridade; depois de enviado, só
       // volta a concorrer daqui 30 dias — assim uma base grande de inativos
       // vai sendo coberta aos poucos (LIMITE_ENVIOS_POR_TIPO por dia).
-      .or(`reativacao_enviada_em.is.null,reativacao_enviada_em.lt.${corteCooldown}`)
+      // Traz a base toda (não só quem está fora do cooldown) para decidir por
+      // TELEFONE: se um cadastro do número já recebeu, os duplicados não recebem.
       .order("reativacao_enviada_em", { ascending: true, nullsFirst: true }),
   ]);
+  const todosClientes = candidatos || [];
+  const telsSaida = telefonesQueSairam(todosClientes);
+  const telsComCooldown = new Set(todosClientes
+    .filter((c) => c.reativacao_enviada_em && new Date(c.reativacao_enviada_em).toISOString() >= corteCooldown)
+    .map(chaveTel).filter(Boolean));
+  const telsVistos = new Set();
 
   const diasInativoLimite = parseInt(config?.dias_inativo || 30);
   let vipPts = 1000;
@@ -365,9 +383,13 @@ async function rodarReativacao(integ, credZapi) {
   } catch {}
 
   const agora = Date.now();
-  const clientes = (candidatos || [])
+  const clientes = todosClientes
     .filter((c) => {
       if (pediuSaida(c)) return false;
+      // Cooldown do próprio cadastro (antes feito na consulta) e do número inteiro.
+      if (c.reativacao_enviada_em && new Date(c.reativacao_enviada_em).toISOString() >= corteCooldown) return false;
+      const chave = chaveTel(c);
+      if (chave && (telsSaida.has(chave) || telsComCooldown.has(chave))) return false;
       const pontos = parseInt(c.pontos || 0);
       const gasto = parseFloat(c.total_gasto || 0);
       if (pontos >= vipPts || gasto >= 500) return false; // VIP nunca é inativo
@@ -378,7 +400,10 @@ async function rodarReativacao(integ, credZapi) {
       const referencia = c.ultima_compra || c.created_at;
       if (!referencia) return false;
       const dias = Math.floor((agora - new Date(referencia).getTime()) / 86400000);
-      return dias > diasInativoLimite;
+      if (dias <= diasInativoLimite) return false;
+      // Uma mensagem por telefone nesta rodada (a mesma pessoa cadastrada 2x).
+      if (chave) { if (telsVistos.has(chave)) return false; telsVistos.add(chave); }
+      return true;
     })
     .slice(0, LIMITE_ENVIOS_POR_TIPO);
 
@@ -490,9 +515,11 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
     return dias > diasInativoLimite ? "inativo" : "ativo";
   };
 
+  const telsSaida = telefonesQueSairam(clientes);
+
   for (const camp of campanhas) {
     const pub = (camp.publico || "Todos").toLowerCase().trim();
-    let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim() && !pediuSaida(c));
+    let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim() && !pediuSaida(c) && !telsSaida.has(chaveTel(c)));
 
     if (pub === "ativos") {
       // VIP é, por definição, um cliente ativo: "Ativos" = ativo + VIP (como no dashboard).
@@ -515,6 +542,21 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         return mesAniv === hoje.mes && diaAniv === hoje.dia;
       });
     }
+
+    // Uma mensagem por TELEFONE nesta campanha: tira quem repete dentro da lista e
+    // quem já recebeu por outro cadastro do mesmo número (registro no log).
+    const { data: jaRecebeu } = await supabaseAdmin.from("automacoes_whatsapp_log").select("cliente_id")
+      .eq("company_id", integ.company_id).eq("tipo", "campanha_auto").eq("referencia_id", String(camp.id));
+    const idsQueRecebeu = new Set((jaRecebeu || []).map((r) => r.cliente_id));
+    const telsQueRecebeu = new Set((clientes || []).filter((c) => idsQueRecebeu.has(c.id)).map(chaveTel).filter(Boolean));
+    const telsVistos = new Set();
+    destinatarios = destinatarios.filter((c) => {
+      const k = chaveTel(c);
+      if (!k) return true;
+      if (telsQueRecebeu.has(k) || telsVistos.has(k)) return false;
+      telsVistos.add(k);
+      return true;
+    });
 
     let enviados = 0;
     for (const cliente of embaralhar(destinatarios)) {

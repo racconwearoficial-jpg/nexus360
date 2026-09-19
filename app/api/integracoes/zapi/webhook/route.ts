@@ -74,23 +74,48 @@ function normalizarTelefone(numero: string) {
 // Devolve true se tratou (cliente conhecido e coluna existe); false deixa o fluxo
 // normal seguir — por exemplo, se a migração optout_marketing.sql ainda não foi
 // rodada, para não confirmar ao cliente algo que o sistema não guardou.
-async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: string): Promise<boolean> {
+// Últimos 8 dígitos do telefone: chave tolerante a DDD, "55" e 9º dígito mal gravados.
+// Necessário porque ~30% dos clientes têm telefone_normalizado errado ou vazio (o campo
+// que o cadastro automático usa), o que já gerou cadastros duplicados; o telefone cru
+// (clientes.telefone) está correto.
+function chaveTelefone(numero: string) {
+  const d = (numero || "").replace(/\D/g, "");
+  return d.length >= 8 ? d.slice(-8) : "";
+}
+
+async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: string, nomeWhatsapp: string): Promise<boolean> {
   const saida = ehPedidoDeSaida(mensagem);
-  const telNormalizado = normalizarTelefone(telefoneCliente);
-  if (!telNormalizado) return false;
+  const chave = chaveTelefone(telefoneCliente);
+  if (!chave) return false;
 
-  const { data: cli, error: erroBusca } = await supabaseAdmin
-    .from("clientes").select("id, optout_marketing")
-    .eq("company_id", integracao.company_id).eq("telefone_normalizado", telNormalizado).maybeSingle();
+  const { data: todos, error: erroBusca } = await supabaseAdmin
+    .from("clientes").select("id, telefone, optout_marketing").eq("company_id", integracao.company_id);
   if (erroBusca) { console.log("[zapi-webhook] opt-out indisponível (coluna ausente?):", erroBusca.message); return false; }
-  if (!cli) return false;                       // número desconhecido: segue o fluxo normal
-  if (Boolean(cli.optout_marketing) === saida) return true; // já estava assim: não responde de novo (evita ping-pong)
 
-  const { error: erroUpd } = await supabaseAdmin
-    .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null }).eq("id", cli.id);
-  if (erroUpd) { console.error("[zapi-webhook] falha ao gravar opt-out:", erroUpd.message); return false; }
+  // Todas as linhas com o mesmo telefone (inclui cadastros duplicados da mesma pessoa).
+  const iguais = (todos || []).filter((c: any) => chaveTelefone(c.telefone) === chave);
 
-  console.log("[zapi-webhook] opt-out registrado:", { clienteId: cli.id, saida });
+  if (!iguais.length) {
+    if (!saida) return false;                    // VOLTAR de número desconhecido: segue o fluxo normal
+    // Número desconhecido pediu para sair: já cadastra COM a saída registrada, para o
+    // cadastro automático (lead) nunca virar destinatário de promoção depois.
+    const { error: erroNovo } = await supabaseAdmin.from("clientes").upsert(
+      { company_id: integracao.company_id, nome: nomeWhatsapp, telefone: telefoneCliente,
+        telefone_normalizado: normalizarTelefone(telefoneCliente) || null, status: "ativo", pontos: 0,
+        optout_marketing: true, optout_em: new Date().toISOString() },
+      { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
+    );
+    if (erroNovo) { console.error("[zapi-webhook] falha ao registrar saída de número novo:", erroNovo.message); return false; }
+  } else {
+    const pendentes = iguais.filter((c: any) => Boolean(c.optout_marketing) !== saida);
+    if (!pendentes.length) return true;          // já estava assim: não responde de novo (evita ping-pong)
+    const { error: erroUpd } = await supabaseAdmin
+      .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null })
+      .in("id", pendentes.map((c: any) => c.id));
+    if (erroUpd) { console.error("[zapi-webhook] falha ao gravar opt-out:", erroUpd.message); return false; }
+  }
+
+  console.log("[zapi-webhook] opt-out registrado:", { saida, cadastros: iguais.length });
   try {
     await enviarTextoZapi({
       instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token,
@@ -150,7 +175,8 @@ export async function POST(req: NextRequest) {
     // Pedido de saída/volta vem antes de qualquer outra coisa (inclusive antes da
     // checagem de chatbot ligado/desligado).
     if (integracao && (ehPedidoDeSaida(mensagemRecebida) || ehPedidoDeVolta(mensagemRecebida))) {
-      if (await tratarOptout(integracao, telefoneCliente, mensagemRecebida)) return NextResponse.json({ ok: true });
+      const nomeWpp = String(payload.senderName || payload.chatName || "").trim().slice(0, 80) || "Cliente WhatsApp";
+      if (await tratarOptout(integracao, telefoneCliente, mensagemRecebida, nomeWpp)) return NextResponse.json({ ok: true });
     }
 
     // Sem integração cadastrada, ou os dois modos desligados (são opt-in
