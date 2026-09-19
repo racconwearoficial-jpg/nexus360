@@ -9767,6 +9767,10 @@ function _chatContexto() {
   const blingStatus    = document.getElementById('intBlingBadge')?.textContent || 'não verificado ainda';
   const asaasStatus    = _asaasConectado ? 'Conectado' : 'Não conectado';
   const zapiStatus     = _zapiConectado ? 'Conectado (mensagens saindo pela API)' : 'Não conectado (usando link wa.me)';
+  const pediramSaida   = state.clientes.filter(c => c.optout_marketing === true).length;
+  const _dmAss = d => { const p = String(d || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : '?'; };
+  const campanhasAuto  = (state.campanhas || []).filter(c => c.auto_envio && c.ativa)
+    .map(c => c.nome + ' (público ' + (c.publico || 'Todos') + ', de ' + _dmAss(c.periodo_inicio) + ' a ' + _dmAss(c.periodo_fim) + ')').join('; ') || 'nenhuma';
   const totalPlanos    = (typeof _asnPlanos !== 'undefined' ? _asnPlanos : []).length;
   const assinantesAtivos = (typeof _asnAssinaturas !== 'undefined' ? _asnAssinaturas : []).filter(a => a.status === 'ativa').length;
 
@@ -9775,11 +9779,12 @@ function _chatContexto() {
 QUEM ESTÁ USANDO: ${modo === 'admin' ? 'Administrador' : 'Funcionário'} | Negócio: ${neg} (${segmento}) | Página atual: ${paginaAtual}
 
 DADOS REAIS DO SISTEMA AGORA:
-- Clientes: ${totalClientes} total (${ativos} ativos, ${vips} VIP, ${inativos} inativos há +${diasInativo} dias)
+- Clientes: ${totalClientes} total (${ativos} ativos, ${vips} VIP, ${inativos} inativos há +${diasInativo} dias). VIP também conta como cliente ativo nas campanhas
+- Clientes que pediram para sair das promoções por WhatsApp: ${pediramSaida}
 - Aniversariantes hoje: ${aniversariantes}
 - Vendas registradas: ${totalVendas} | Receita total: R$ ${receitaTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 - Produtos/Serviços: ${totalProdutos} cadastrados (${semEstoque} produtos sem estoque — serviços não têm estoque)
-- Campanhas: ${state.campanhas?.length||0} cadastradas
+- Campanhas: ${state.campanhas?.length||0} cadastradas | Com envio automático ativo: ${campanhasAuto}
 - Integração Bling: ${blingStatus} | Integração Asaas: ${asaasStatus} | WhatsApp API (Z-API): ${zapiStatus}
 - Assinaturas: ${totalPlanos} plano(s) criado(s), ${assinantesAtivos} assinante(s) com pagamento ativo
 
@@ -9809,10 +9814,25 @@ ${modo === 'admin'
 MÓDULOS PRINCIPAIS:
 
 CLIENTES: cadastrar, editar, ver histórico de compras. Filtros: Todos, Ativos, Inativos, VIP, Aniversariantes, Bronze, Silver, Gold, Diamond. Botão "Ver" abre drawer com métricas do cliente.
+Ficha do cliente (botão Editar): tem o bloco "Promoções por WhatsApp", que mostra se o cliente recebe promoções e traz o botão Desativar (para de enviar) ou Ativar (volta a enviar). Age na hora, sem precisar salvar, e vale para todos os cadastros do mesmo telefone (a mesma pessoa cadastrada duas vezes). Serve para quem pede para sair pessoalmente ou quer voltar depois do prazo do VOLTAR.
+Botão "Recuperar inativos": lista os clientes inativos com telefone para mandar mensagem manualmente, um clique por cliente. Quem pediu para sair não aparece, e a mensagem leva o rodapé de saída. Não existe mais o botão "Campanha de pontos" em Clientes: as campanhas de fidelidade já cumprem esse papel.
 
 VENDAS: + Nova Venda. Modo rápido ou detalhado com produtos/serviços. Pode vincular campanha, selecionar funcionário responsável e criar entrega automática. Pontos adicionados automaticamente.
 
-CAMPANHAS: criar campanhas de WhatsApp por segmento (Todos, Ativos, Inativos, VIP, Aniversariantes, Bronze, Silver, Gold, Diamond). Tipos: Promoção, Reativação, Aniversário, Fidelidade. Pode vincular funcionário responsável.
+CAMPANHAS: criar campanhas de WhatsApp por público (Todos, Ativos, Inativos, VIP, Aniversariantes). Tipos: Promoção, Reativação, Aniversário, Fidelidade. Pode vincular funcionário responsável. Variáveis no texto: {nome}, {negocio}, {pontos}, {faltam}, {beneficio} e {status_pontos} (frase pronta sobre os pontos do cliente).
+- Público "Ativos" = clientes que compraram dentro do prazo de dias configurado mais os VIP (mesmo critério do dashboard). Quem nunca comprou é inativo.
+- Envio manual: botão "Enviar Campanha" abre a lista de clientes e o envio é um clique por cliente. A lista conta pessoas, não cadastros: a mesma pessoa cadastrada duas vezes aparece uma vez, e quem pediu para sair fica de fora. A mensagem leva o rodapé de saída.
+- Envio automático: a campanha marcada com envio automático e com data de início e fim é enviada sozinha pelo sistema, sem ninguém clicar. As datas de início e fim são inclusivas, então duas campanhas que terminam e começam no mesmo dia rodam juntas nesse dia e dividem o limite; para evitar, comece a nova no dia seguinte ao fim da anterior.
+- Como o envio automático funciona, para proteger o número de WhatsApp do negócio: roda a cada 30 minutos, das 08:00 às 17:30 (horário de Brasília), com no máximo 2 mensagens por rodada e pausa aleatória entre elas. O teto é de 30 mensagens por dia somando todas as automações, e não há envio promocional aos domingos. Cada cliente recebe a mesma campanha uma vez só, e a mesma pessoa (mesmo telefone) recebe uma mensagem só. O que não couber no dia continua no dia seguinte enquanto a campanha estiver dentro do período. Um número recém-conectado começa com teto de 8 mensagens no dia da conexão e sobe 2 por dia até 30.
+- Quando o teto do dia é dividido entre automações, a ordem de prioridade é: aniversário, cobrança de fiado, lembrete de recompra, campanhas e por último a reativação (que usa só o que sobrar).
+- Proteções: antes de cada rodada o sistema confere se o WhatsApp da instância está conectado; se não estiver, pula aquela rodada e volta a enviar quando reconectar. Falhas de envio são contadas, e uma falha grave (como número bloqueado) ou três falhas no dia pausam os envios até o dia seguinte.
+- Não é preciso escrever o pedido de saída no texto da campanha: o sistema acrescenta sozinho, ao fim de cada mensagem promocional automática, a frase "Para não receber mais mensagens, responda SAIR."
+
+PEDIDO DE SAÍDA (SAIR e VOLTAR) das promoções por WhatsApp:
+- O cliente que responde SAIR (também vale "sair", "parar", "pare", "stop", "não quero receber", em maiúscula ou minúscula) deixa de receber promoções: campanhas, reativação, recompra e aniversário automático, além das listas de envio manual.
+- Só vale se o cliente recebeu uma mensagem promocional nas últimas 24 horas. Se ele escrever "sair" sem ter recebido promoção recente, a mensagem é tratada como uma conversa comum, porque é uma palavra fácil de dizer sem querer sair.
+- O sistema responde com uma confirmação e avisa que ele pode desfazer respondendo VOLTAR nas próximas 24 horas. Depois desse prazo, o VOLTAR não vale mais e é preciso usar o botão Ativar na ficha do cliente.
+- Quem saiu continua cadastrado, mantém pontos e histórico e continua recebendo os avisos de pedido, reserva, entrega e cobrança; só as promoções param. O pedido é tratado mesmo com o atendimento automático desligado.
 
 FIDELIDADE: ranking de clientes por pontos, ranking mensal, registrar compra, resgatar benefícios.
 
@@ -9828,14 +9848,17 @@ COBRANÇAS (Fiado Digital): registrar pendências de clientes, controlar pagamen
 
 CALENDÁRIO OPERACIONAL: agenda visual em modo mês/semana/dia. Criar eventos por categoria: Atendimento, Serviço, Entrega, Renovação, VIP, Financeiro, Operacional.
 
-RELATÓRIOS: vendas por mês, ROI de campanhas, funil CRM, atividade de clientes.
+RELATÓRIOS: vendas por mês, ROI de campanhas, funil CRM, atividade de clientes. O gráfico Receita Mensal mostra os últimos 12 meses; no celular os valores aparecem abreviados (por exemplo 20,9k).
 
 FUNCIONÁRIOS (só admin): módulo completo de gestão de equipe com 6 abas:
 - Dashboard: KPIs da equipe (total vendido, ativos hoje, melhor score, ticket médio, meta geral, clientes recuperados, follow-ups), alertas automáticos, gráfico de vendas por funcionário, gráfico semanal, top performers com score inteligente.
+  Gráfico Vendas por Funcionário: a barra de cada pessoa é proporcional à meta dela (não ao maior vendedor), fica verde só ao chegar a 100% e mostra o percentual da meta e o nível de atendimento.
+  Desempenho Semanal: barras dos últimos 7 dias e seis cartões: Total 7 dias, Melhor dia, Dias com venda, Média por dia (dividida só pelos dias com venda), Funcionário da semana (quem mais vendeu nos últimos 7 dias) e Vs. semana anterior (variação percentual contra os 7 dias anteriores).
 - Equipe: lista de funcionários com avatar, cargo, vendas do mês, ticket médio, score de atendimento, progresso da meta. Ações: Ver perfil, Editar, Follow-up, WhatsApp.
-- Metas: cadastrar metas individuais ou por equipe (valor vendido, qtd vendas, novos clientes, ticket médio). Período: mensal, semanal, diário. Barra de progresso com % e valor faltante.
+- Metas: cadastrar metas individuais ou por equipe (valor vendido, qtd vendas, novos clientes, ticket médio). Período: mensal, semanal, diário. Barra de progresso com % e valor faltante. Uma meta "Toda a equipe" mostra o total vendido pela equipe inteira.
+  A meta mensal de cada funcionário em todo o módulo (Dashboard, Equipe, Ranking, Comissões, Perfil) vem desta aba: vale a meta individual de valor vendido mensal; se não houver, vale a meta mensal de valor vendido cadastrada para a equipe, aplicada a cada funcionário (por exemplo R$ 10.000 por vendedor); se também não houver, usa o campo Meta mensal do cadastro do funcionário, e por último R$ 5.000.
 - Ranking: posições 1°/2°/3° com score inteligente (considera vendas + meta + atendimento + clientes recuperados + follow-ups). Demais posições abaixo.
-- Comissões: configurar % por venda, bônus por meta e bônus por ranking. Tabela com comissão + bônus por funcionário.
+- Comissões: configurar % por venda, bônus por meta e bônus por ranking (os valores podem ser zero). Tabela com comissão + bônus por funcionário. O bônus de ranking aparece na configuração, mas não entra no cálculo do total a pagar.
 - Histórico: timeline de vendas e follow-ups por funcionário, com filtro por funcionário e período.
 Score de atendimento: calculado automaticamente por recorrência de clientes, recuperação, follow-ups e meta. Níveis: Elite, Excelente, Bom, Em evolução.
 Follow-up: registrar contatos (ligação, WhatsApp, e-mail, visita) vinculados a clientes.
@@ -9855,6 +9878,7 @@ INTEGRAÇÕES (só admin) — conecta o Nexus360 com sistemas externos que a emp
 - Asaas: conecta a conta Asaas da própria empresa via chave de API (gerada em Configurações → Integrações → Chave de API dentro do próprio Asaas). Tem opção de ambiente Sandbox (testes) antes de ativar de verdade. É pré-requisito pro módulo de Assinaturas funcionar — sem conectar, não dá pra cobrar recorrência.
 - WhatsApp API (Z-API): conecta a própria instância Z-API da empresa (Instance ID + Token gerados no painel Z-API) pra enviar mensagens automaticamente, sem depender de abrir o WhatsApp manualmente — e permite mandar imagem, coisa que o link comum (wa.me) não faz. Sem conectar, os botões de WhatsApp do sistema continuam funcionando normalmente por link. É a funcionalidade que diferencia o plano Crescimento (R$597).
 - Atendimento automático (chatbot): opcional, desligado por padrão mesmo com Z-API conectado. Quando ativado (toggle em Integrações), o sistema responde automaticamente mensagens que o cliente final manda pro WhatsApp do negócio, usando os dados dele (pontos, status). Regras fixas: nunca responde pergunta de saúde/medicamento (encaminha pra humano) e nunca inventa preço ou desconto. Exige configurar o webhook no painel Z-API (Webhooks → Ao receber → colar a URL do sistema).
+- Segurança do WhatsApp: o botão manual de enviar mensagem pela API exige usuário logado da empresa e tem limite de cadência (1 envio a cada 2,5 segundos e 40 por hora); as respostas de clientes (SAIR e VOLTAR) são tratadas sempre, com o atendimento automático ligado ou não.
 - As três integrações são por empresa: cada negócio conecta a própria conta Bling/Asaas/Z-API, não é uma conta compartilhada do Nexus360.
 
 CONFIGURAÇÕES (só admin): nome do negócio, WhatsApp, segmento, dias inativo, mensagens padrão, regras de fidelidade, níveis Bronze/Silver/Gold/Diamond, pontos de indicação.
