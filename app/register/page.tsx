@@ -122,7 +122,7 @@ export default function RegisterPage() {
 
         {/* Features */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 24, flexWrap: 'wrap' }}>
-          {['⭐ Fidelidade', '🎯 CRM', '💬 WhatsApp', '📊 Dashboard'].map(f => (
+          {['Fidelidade', 'CRM', 'WhatsApp', 'Dashboard'].map(f => (
             <span key={f} style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>{f}</span>
           ))}
         </div>

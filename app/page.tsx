@@ -654,7 +654,7 @@ export default function LandingPage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-violet-900/60 via-purple-900/50 to-indigo-900/40 border border-violet-500/40 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-violet-600/30 text-violet-300 flex items-center justify-center font-bold text-sm">
-                        ⚡
+                        1
                       </div>
                       <div>
                         <div className="text-sm sm:text-base font-bold text-white">258 clientes inativos</div>
@@ -676,7 +676,7 @@ export default function LandingPage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#090D1A] border border-white/[0.08] flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">
-                        🎯
+                        2
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm font-bold text-white">Oportunidade identificada</div>
@@ -696,7 +696,7 @@ export default function LandingPage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#090D1A] border border-white/[0.08] flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-sm">
-                        📣
+                        3
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm font-bold text-white">Criar campanha</div>

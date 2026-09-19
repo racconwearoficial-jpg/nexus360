@@ -530,7 +530,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="page-header-sub">Gerencie relacionamentos e aumente a retenção</div>
       </div>
       <div class="flex-between mb16">
-        <div class="phrase" style="margin:0;flex:1;margin-right:12px">👥 Gerencie seus clientes e recupere inativos</div>
+        <div class="phrase" style="margin:0;flex:1;margin-right:12px">Gerencie seus clientes e recupere inativos</div>
         <button class="btn btn-primary" data-admin-only onclick="openModalNewCliente()">+ Novo Cliente</button>
       </div>
       <div class="search-bar">
@@ -563,7 +563,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="page-header-sub">Alcance seus clientes no WhatsApp com mensagens personalizadas</div>
       </div>
       <div class="flex-between mb16">
-        <div class="phrase" style="margin:0;flex:1;margin-right:12px">📣 Crie e dispare campanhas via WhatsApp</div>
+        <div class="phrase" style="margin:0;flex:1;margin-right:12px">Crie e dispare campanhas via WhatsApp</div>
         <button class="btn btn-primary" onclick="openModalNewCampanha()">+ Nova Campanha</button>
       </div>
       <div class="grid4 mb20" id="campMetrics">
@@ -1185,7 +1185,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="page-header-title">Relatórios</div>
         <div class="page-header-sub">Analise desempenho e tome decisões baseadas em dados</div>
       </div>
-      <div class="phrase">📊 Relatórios gerados em tempo real com seus dados</div>
+      <div class="phrase">Relatórios gerados em tempo real com seus dados</div>
       <div class="grid2 mb20">
         <div class="card" id="relVendas">
           <div class="section-title mb12">Vendas por Mês</div>
@@ -2175,7 +2175,7 @@ function renderDashboard() {
   if (inativos.length > 0) {
     phrase.textContent = `Atenção — ${inativos.length} clientes inativos prontos para comprar`;
   } else if (clientes.length === 0) {
-    phrase.textContent = '👋 Bem-vindo ao Nexus360! Comece cadastrando seus clientes.';
+    phrase.textContent = 'Bem-vindo ao Nexus360! Comece cadastrando seus clientes.';
   } else {
     phrase.textContent = 'Todos seus clientes estão ativos.';
   }
@@ -2864,7 +2864,7 @@ function renderActivity() {
           <div class="activity-time">${v.itens||''}${dt?' · '+dt+(v.created_at?' '+new Date(v.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''):''}</div>
         </div>
       </div>
-      ${tel ? `<button class="btn-wpp" style="flex-shrink:0;font-size:10px;padding:4px 8px" onclick="wppAbrir('${tel.replace(/'/g,"\\'")}','Olá ${nome.replace(/'/g,"\\'")}! Passando para saber se está precisando de algo 😊')">WhatsApp</button>` : ''}
+      ${tel ? `<button class="btn-wpp" style="flex-shrink:0;font-size:10px;padding:4px 8px" onclick="wppAbrir('${tel.replace(/'/g,"\\'")}','Olá ${nome.replace(/'/g,"\\'")}! Passando para saber se está precisando de algo')">WhatsApp</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -2897,7 +2897,7 @@ function renderUpsell() {
   const linhaInativo = c => {
     const tel  = c.telefone.replace(/\D/g, '');
     const num  = tel.startsWith('55') ? tel : '55' + tel;
-    const msg  = (state.config.msg_reativacao || `Olá ${c.nome}! Sentimos sua falta em ${neg}, temos novidades esperando por você 😊`)
+    const msg  = (state.config.msg_reativacao || `Olá ${c.nome}! Sentimos sua falta em ${neg}, temos novidades esperando por você`)
       .replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg);
     const dias = c.ultima_compra ? Math.floor((new Date()-new Date(c.ultima_compra))/86400000) : null;
     const msgEsc = msg.replace(/'/g, "\\'");
@@ -2915,14 +2915,14 @@ function renderUpsell() {
   const linhaAniv = c => {
     const tel = c.telefone.replace(/\D/g, '');
     const num = tel.startsWith('55') ? tel : '55' + tel;
-    const msg = (state.config.msg_aniversario || `Parabéns pelo seu dia, ${c.nome}! 🎉 A ${neg} tem uma oferta especial para você hoje!`)
+    const msg = (state.config.msg_aniversario || `Parabéns pelo seu dia, ${c.nome}! A ${neg} tem uma oferta especial para você hoje!`)
       .replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg);
     const msgEsc = msg.replace(/'/g, "\\'");
     return `<div class="suggestion" style="padding:8px 12px">
       <div class="suggestion-icon" style="background:rgba(245,158,11,.10);width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" fill="none" stroke="var(--amber)" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg></div>
       <div class="suggestion-text">
         <div class="suggestion-title" style="font-size:13px">${c.nome}</div>
-        <div class="suggestion-desc">Aniversariante hoje 🎉</div>
+        <div class="suggestion-desc">Aniversariante hoje</div>
       </div>
       <button class="btn-wpp" style="font-size:11px;padding:5px 12px;border-radius:6px;flex-shrink:0"
         onclick="wppAbrir('${num}','${msgEsc}')">WhatsApp</button>
@@ -2941,7 +2941,7 @@ function renderClients(list) {
   const tb = document.getElementById('clientTable');
   if (!tb) return;
   if (!list.length) {
-    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">Nenhum cliente cadastrado. Clique em "+ Novo Cliente" para começar.</div></div></td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-text">Nenhum cliente cadastrado. Clique em "+ Novo Cliente" para começar.</div></div></td></tr>`;
     return;
   }
 
@@ -3015,7 +3015,7 @@ function recuperarInativos() {
   }
 
   const neg      = state.config.nome_negocio || 'nossa loja';
-  const msgPadrao = `Olá {nome}, sentimos sua falta em ${neg}! Temos uma oferta especial para você. Volte e ganhe um desconto exclusivo! 😊`;
+  const msgPadrao = `Olá {nome}, sentimos sua falta em ${neg}! Temos uma oferta especial para você. Volte e ganhe um desconto exclusivo!`;
 
   // Abre modal de envio em massa reutilizando o painel de campanhas
   document.getElementById('envioCampanhaTitulo').textContent = `Recuperar inativos`;
@@ -3697,7 +3697,7 @@ function renderCampanhas() {
   document.getElementById('cm-receita').textContent  = 'R$ ' + rec.toLocaleString('pt-BR',{minimumFractionDigits:2});
 
   if (!camp.length) {
-    el.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-state-icon">📣</div><div class="empty-state-text">Nenhuma campanha criada. Clique em "+ Nova Campanha".</div></div></div>`;
+    el.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-state-text">Nenhuma campanha criada. Clique em "+ Nova Campanha".</div></div></div>`;
     return;
   }
   const tipoCor = {promoção:'tag-blue',reativação:'tag-amber',aniversário:'tag-green',fidelidade:'tag-purple'};
@@ -3724,7 +3724,7 @@ function renderCampanhas() {
       </div>
       ${c.enviados ? `<div class="progress-wrap" style="margin-bottom:10px"><div class="progress-fill progress-green" style="width:${conv}%"></div></div>` : ''}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="enviarCampanha(${c.id})">📤 Enviar Campanha</button>
+        <button class="btn btn-primary" onclick="enviarCampanha(${c.id})">Enviar Campanha</button>
         <button class="btn btn-ghost" onclick="editCampanha(${c.id})">Editar</button>
         <button class="btn btn-red" style="padding:6px 10px" onclick="deleteCampanha(${c.id},'${(c.nome||'').replace(/'/g,"\\'")}')">Excluir</button>
       </div>
@@ -3959,7 +3959,7 @@ function renderVendas() {
   document.getElementById('vd-maior').textContent   = 'R$ ' + maior.toLocaleString('pt-BR',{minimumFractionDigits:2});
 
   if (!vds.length) {
-    tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">💰</div><div class="empty-state-text">Nenhuma venda no período selecionado.</div></div></td></tr>`;
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">Nenhuma venda no período selecionado.</div></div></td></tr>`;
     return;
   }
   tb.innerHTML = vds.map(v => {
@@ -4543,7 +4543,7 @@ function renderItens() {
 
   // ── Tabela ────────────────────────────────────────────────────────────────
   if (!state.itens.length) {
-    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">Nenhum produto ou serviço cadastrado.</div></div></td></tr>`;
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-text">Nenhum produto ou serviço cadastrado.</div></div></td></tr>`;
     return;
   }
 
@@ -4555,7 +4555,7 @@ function renderItens() {
     const giro    = isProd ? classificarGiro(i.id) : null;
     const estTxt  = !isProd ? (i.duracao_min ? i.duracao_min+' min' : '—')
                   : est === null ? '—'
-                  : `<span style="color:${semEst?'#fca5a5':baixo?'var(--amber)':'var(--text2)'}">${est} un${semEst?' ⚠️':baixo?' ↓':''}</span>`;
+                  : `<span style="color:${semEst?'#fca5a5':baixo?'var(--amber)':'var(--text2)'}">${est} un${semEst?' (esgotado)':baixo?' ↓':''}</span>`;
     const giroHtml = giro
       ? `<span style="background:${giro.cor};color:${giro.txt};font-size:10px;padding:2px 7px;border-radius:10px">${giro.label}${giroMap[i.id]?' ('+giroMap[i.id]+'x)':''}</span>`
       : '—';
@@ -5136,7 +5136,7 @@ function renderRankingMensal() {
     tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">Nenhuma venda registrada este mês ainda.</div></div></td></tr>';
     rmCarregarConfig(); return;
   }
-  const medalhasIco = ['🥇','🥈','🥉'];
+  const medalhasIco = ['1º','2º','3º'];
   tb.innerHTML = ranking.map((r, i) => {
     const cli     = state.clientes.find(c => c.id === r.id);
     if (!cli) return '';
@@ -5248,7 +5248,7 @@ function rmVerHistorico() {
     el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,.3);padding:12px 0">Nenhum ciclo encerrado ainda.</div>';
     return;
   }
-  const medals = ['🥇','🥈','🥉'];
+  const medals = ['1º','2º','3º'];
   el.innerHTML = hist.map(h => {
     const data = h.dataEncerramento || h.data || '—';
     const dtFmt = data !== '—' ? new Date(data).toLocaleDateString('pt-BR') : '—';
@@ -5904,7 +5904,7 @@ function renderFidFuncIndLista() {
     return '<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
       + '<div style="display:flex;justify-content:space-between;align-items:center">'
       + '<div>'
-      + '<div style="font-size:12px;color:#fff">' + ind.quemNome + ' → ' + ind.amigoNome + (aniv ? ' <span style="color:rgba(255,255,255,.3);font-size:10px">🎂 ' + aniv + '</span>' : '') + '</div>'
+      + '<div style="font-size:12px;color:#fff">' + ind.quemNome + ' → ' + ind.amigoNome + (aniv ? ' <span style="color:rgba(255,255,255,.3);font-size:10px">Aniv. ' + aniv + '</span>' : '') + '</div>'
       + '<div style="font-size:11px;color:rgba(255,255,255,.3)">' + dt + '</div>'
       + '</div>'
       + '<span class="tag ' + (ind.status==='validada'?'tag-green':'tag-amber') + '" style="font-size:10px">' + (ind.status==='validada'?'Validada':'Pendente') + '</span>'
@@ -6187,10 +6187,10 @@ function renderCRM() {
           </div>
           ${c.valor ? `<div class="kanban-card-val">R$ ${parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>` : ''}
           <div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap">
-            ${c.origem ? `<span style="font-size:10px;color:rgba(255,255,255,.3)">📍 ${c.origem}</span>` : ''}
-            <span style="font-size:10px;color:${criado>7?'var(--amber)':'rgba(255,255,255,.25)'}">⏱ há ${criado}d</span>
+            ${c.origem ? `<span style="font-size:10px;color:rgba(255,255,255,.3)">Origem: ${c.origem}</span>` : ''}
+            <span style="font-size:10px;color:${criado>7?'var(--amber)':'rgba(255,255,255,.25)'}">há ${criado}d</span>
           </div>
-          ${c.lembrete ? `<div style="font-size:10px;color:${lembreteAtrasado?'#ef4444':lembreteHoje?'#f59e0b':'rgba(255,255,255,.3)'};margin-top:3px">🔔 ${new Date(c.lembrete+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</div>` : ''}
+          ${c.lembrete ? `<div style="font-size:10px;color:${lembreteAtrasado?'#ef4444':lembreteHoje?'#f59e0b':'rgba(255,255,255,.3)'};margin-top:3px">Lembrete: ${new Date(c.lembrete+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</div>` : ''}
           ${c.observacao ? `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">"${c.observacao}"</div>` : ''}
           <div style="display:flex;gap:4px;margin-top:8px" ondragstart="event.preventDefault()">
             ${telNum ? `<a href="https://wa.me/${telNum}" target="_blank" class="btn-wpp" style="font-size:10px;padding:3px 8px;text-decoration:none;border-radius:5px;flex-shrink:0">WA</a>` : ''}
@@ -6479,7 +6479,7 @@ function enviarCampanha(id) {
 
   // ── Abre o painel de envio ───────────────────────────────────────────────
   document.getElementById('envioCampanhaTitulo').textContent =
-    `📤 ${camp.nome}`;
+    camp.nome;
   document.getElementById('envioCampanhaInfo').textContent =
     destinatarios.length
       ? `${destinatarios.length} cliente(s) encontrado(s) para o público "${camp.publico}". Clique em "Enviar" para cada um.`
@@ -6627,7 +6627,7 @@ function confirmarWpp() {
 function buildWppMsg(tipo, nome='') {
   const msgs = {
     reativacao:  state.config.msg_reativacao  || `Olá ${nome}! Sentimos sua falta. Temos uma oferta especial: 15% de desconto na próxima compra!`,
-    aniversario: state.config.msg_aniversario || `Feliz aniversário, ${nome}! 🎂 Seu presente: 20% de desconto com o cupom ANIVER20!`,
+    aniversario: state.config.msg_aniversario || `Feliz aniversário, ${nome}! Seu presente: 20% de desconto com o cupom ANIVER20!`,
     pontos:      `Olá ${nome}! Você tem pontos acumulados. Resgate e aproveite benefícios exclusivos!`,
     VIP:         state.config.msg_vip         || `Olá ${nome}, cliente VIP! Preparamos uma oferta exclusiva só para você. Entre em contato!`,
   };
@@ -6687,7 +6687,7 @@ function renderEntregas() {
 
   if (!tb) return;
   if (!ents.length) {
-    tb.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon" style="font-size:22px;opacity:.3">↗</div><div class="empty-state-text">Nenhuma entrega cadastrada.</div></div></td></tr>`;
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-text">Nenhuma entrega cadastrada.</div></div></td></tr>`;
     return;
   }
   tb.innerHTML = ents.map(e => {

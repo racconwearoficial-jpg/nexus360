@@ -83,7 +83,9 @@ async function gerarMensagemIA(prompt, fallback) {
       body: JSON.stringify({ prompt }),
     });
     const d = await r.json();
-    return d?.mensagem || fallback;
+    // Sem emoji, mesmo que a IA coloque (padrão visual do produto).
+    const limpa = String(d?.mensagem || "").replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/[ \t]{2,}/g, " ").replace(/ +\n/g, "\n").trim();
+    return limpa || fallback;
   } catch {
     return fallback;
   }
@@ -451,7 +453,7 @@ async function rodarAniversario(integ, credZapi) {
       const referenciaAno = String(hoje.ano);
       if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "aniversario", referenciaId: referenciaAno })) continue;
 
-      const prompt = "Crie uma mensagem curta e calorosa de felicitacao de aniversario para WhatsApp de um estabelecimento para um cliente. Use {nome} para o nome do cliente. Maximo 2 linhas. Sem markdown. Sem emojis excessivos.";
+      const prompt = "Crie uma mensagem curta e calorosa de felicitacao de aniversario para WhatsApp de um estabelecimento para um cliente. Use {nome} para o nome do cliente. Maximo 2 linhas. Sem markdown. Sem emojis.";
       const fallback = `Feliz aniversário, {nome}! Desejamos um dia incrível, com muita saúde e alegria.`;
       const template = await gerarMensagemIA(prompt, fallback);
       const mensagem = template.replace(/\{nome\}/g, cliente.nome).replace(/\*\*/g, "");
