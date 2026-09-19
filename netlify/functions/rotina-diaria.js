@@ -480,10 +480,13 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
   // inclusive quem nunca comprou): a tela calcula na hora (calcularStatus() no
   // nexus360_v2.html). Usar a coluna mandava "Ativos" para a base inteira, com
   // contatos frios — o que mais gera denúncia. Aqui replica o cálculo da tela.
+  // Data da última compra ao meio-dia de Brasília (15:00 UTC), igual a
+  // _dataUltimaCompra() da tela, para o corte de dias bater com o dashboard.
   const statusReal = (c) => {
     if ((parseInt(c.pontos) || 0) >= vipPts) return "vip";
     if (!c.ultima_compra) return "inativo";
-    const dias = Math.floor((Date.now() - new Date(c.ultima_compra).getTime()) / 86400000);
+    const [a, m, d] = String(c.ultima_compra).split("T")[0].split("-").map(Number);
+    const dias = Math.floor((Date.now() - Date.UTC(a, m - 1, d, 15, 0, 0)) / 86400000);
     return dias > diasInativoLimite ? "inativo" : "ativo";
   };
 
@@ -492,7 +495,8 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
     let destinatarios = (clientes || []).filter((c) => c.telefone && c.telefone.trim() && !pediuSaida(c));
 
     if (pub === "ativos") {
-      destinatarios = destinatarios.filter((c) => statusReal(c) === "ativo");
+      // VIP é, por definição, um cliente ativo: "Ativos" = ativo + VIP (como no dashboard).
+      destinatarios = destinatarios.filter((c) => statusReal(c) !== "inativo");
     } else if (pub === "inativos") {
       destinatarios = destinatarios.filter((c) => {
         // Mesma correção do rodarReativacao: sem compra usa o cadastro como
