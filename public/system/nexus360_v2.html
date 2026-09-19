@@ -2158,6 +2158,16 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="form-group" style="margin:0"><label>Total Gasto (R$)</label><input type="number" id="nc-gasto" placeholder="0" min="0" step="0.01"></div>
       <div class="form-group" style="margin:0"><label>Pontos de Fidelidade</label><input type="number" id="nc-pontos" placeholder="0" min="0"></div>
     </div>
+    <!-- Promoções por WhatsApp: só aparece ao editar um cliente existente. Age na hora (não depende do "Salvar"). -->
+    <div class="form-row" id="ncPromoRow" style="display:none">
+      <div class="form-group" style="margin:0;width:100%">
+        <label>Promoções por WhatsApp</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+          <span id="ncPromoStatus" style="font-size:12px"></span>
+          <button type="button" class="btn btn-ghost" id="ncPromoBtn" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="alternarPromocoesCliente()"></button>
+        </div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalCliente')">Cancelar</button>
       <button class="btn btn-primary" id="btnSaveCliente" onclick="saveCliente()">Salvar Cliente</button>
@@ -5316,6 +5326,7 @@ function openModalNewCliente() {
   document.getElementById('nc-status').value= 'ativo';
   document.getElementById('nc-gasto').value = '';
   document.getElementById('nc-pontos').value= '';
+  atualizarPromoCliente(null);
   openModal('modalCliente');
 }
 
@@ -5331,7 +5342,47 @@ function editCliente(id) {
   document.getElementById('nc-status').value = c.status || 'ativo';
   document.getElementById('nc-gasto').value  = c.total_gasto || '';
   document.getElementById('nc-pontos').value = c.pontos || '';
+  atualizarPromoCliente(c);
   openModal('modalCliente');
+}
+
+// ── Promoções por WhatsApp (opt-out) na ficha do cliente ─────────────────────────────
+// Mostra se o cliente recebe promoções e permite parar/religar na hora. Serve para
+// quem quer voltar depois do prazo do "VOLTAR" por WhatsApp e para o cliente que pede
+// para sair pessoalmente no balcão. Só aparece se a coluna optout_marketing existe.
+function atualizarPromoCliente(c) {
+  const row = document.getElementById('ncPromoRow');
+  if (!row) return;
+  if (!c || !Object.prototype.hasOwnProperty.call(c, 'optout_marketing')) { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const saiu = c.optout_marketing === true;
+  const desde = saiu && c.optout_em ? ' · desde ' + new Date(c.optout_em).toLocaleDateString('pt-BR') : '';
+  document.getElementById('ncPromoStatus').innerHTML = saiu
+    ? '<span style="color:#F87171;font-weight:600">Não recebe promoções</span>' + desde
+    : '<span style="color:#10B981;font-weight:600">Recebe promoções</span>';
+  document.getElementById('ncPromoBtn').textContent = saiu ? 'Voltar a receber' : 'Parar de enviar';
+}
+
+async function alternarPromocoesCliente() {
+  const id = parseInt(document.getElementById('nc-id').value);
+  const c = state.clientes.find(x => x.id === id);
+  if (!c) return;
+  const parar = c.optout_marketing !== true;
+  const pergunta = parar
+    ? 'Parar de enviar promoções para ' + c.nome + '?'
+    : 'Voltar a enviar promoções para ' + c.nome + '? Confirme que o cliente pediu para receber.';
+  if (!confirm(pergunta)) return;
+
+  // Vale para todos os cadastros do mesmo telefone (a mesma pessoa cadastrada 2x).
+  const chave = t => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 8 ? d.slice(-8) : ''; };
+  const k = chave(c.telefone);
+  const ids = state.clientes.filter(x => k ? chave(x.telefone) === k : x.id === c.id).map(x => x.id);
+  const upd = { optout_marketing: parar, optout_em: parar ? new Date().toISOString() : null };
+  const { error } = await db.from('clientes').update(upd).in('id', ids);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.clientes.forEach(x => { if (ids.includes(x.id)) Object.assign(x, upd); });
+  atualizarPromoCliente(c);
+  toast(parar ? 'Promoções desativadas para este cliente' : 'Promoções reativadas para este cliente', 'success');
 }
 
 async function saveCliente() {
