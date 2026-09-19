@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { enviarTextoZapi } from "@/lib/zapi";
-import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA, JANELA_DIAS } from "@/lib/optout";
+import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA, JANELA_HORAS } from "@/lib/optout";
 
 export const dynamic = "force-dynamic";
 
@@ -85,15 +85,15 @@ function chaveTelefone(numero: string) {
 
 // "sair" é uma palavra comum demais para valer sozinha, a qualquer hora: um cliente
 // pode digitá-la sem querer sair da lista. Por isso o pedido de SAIR só é aceito de
-// quem RECEBEU uma mensagem promocional nos últimos JANELA_SAIR_DIAS dias (a que traz
+// quem RECEBEU uma mensagem promocional nas últimas JANELA_SAIR_HORAS horas (a que traz
 // o rodapé "responda SAIR"). Fora disso a mensagem segue o fluxo normal, como qualquer outra.
 // Contam: campanha automática, lembrete de recompra e envio manual (registrados no log de
 // automações) e a reativação (clientes.reativacao_enviada_em).
-const JANELA_SAIR_DIAS = JANELA_DIAS; // 3 dias (definido em lib/optout.js, também usado no texto da confirmação)
+const JANELA_SAIR_HORAS = JANELA_HORAS; // 24 h (definido em lib/optout.js, também usado no texto da confirmação)
 
 async function recebeuPromocaoRecente(companyId: string, ids: number[]): Promise<boolean> {
   if (!ids.length) return false;
-  const desde = new Date(Date.now() - JANELA_SAIR_DIAS * 86400000).toISOString();
+  const desde = new Date(Date.now() - JANELA_SAIR_HORAS * 3600000).toISOString();
   const { count: nLog } = await supabaseAdmin
     .from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
     .eq("company_id", companyId).in("cliente_id", ids)
@@ -123,21 +123,21 @@ async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: 
 
   let pendentes: any[];
   if (saida) {
-    // SAIR só vale como resposta a uma promoção recebida há pouco (ver JANELA_SAIR_DIAS).
+    // SAIR só vale como resposta a uma promoção recebida há pouco (ver JANELA_SAIR_HORAS).
     if (!(await recebeuPromocaoRecente(integracao.company_id, iguais.map((c: any) => c.id)))) {
-      console.log("[zapi-webhook] SAIR ignorado: cliente não recebeu promoção nos últimos", JANELA_SAIR_DIAS, "dias (mensagem espontânea)");
+      console.log("[zapi-webhook] SAIR ignorado: cliente não recebeu promoção nas últimas", JANELA_SAIR_HORAS, "horas (mensagem espontânea)");
       return false;
     }
     pendentes = iguais.filter((c: any) => !c.optout_marketing);
     if (!pendentes.length) return true;          // já estava fora: não responde de novo (evita ping-pong)
   } else {
-    // VOLTAR só vale nos mesmos JANELA_SAIR_DIAS dias depois de o cliente ter saído (é o
+    // VOLTAR só vale nas mesmas JANELA_SAIR_HORAS horas depois de o cliente ter saído (é o
     // "desfazer" da confirmação). De quem nunca saiu, ou que saiu há mais tempo, é uma
     // mensagem comum e segue o fluxo normal.
-    const desde = Date.now() - JANELA_SAIR_DIAS * 86400000;
+    const desde = Date.now() - JANELA_SAIR_HORAS * 3600000;
     const saiuHaPouco = iguais.some((c: any) => c.optout_marketing === true && c.optout_em && new Date(c.optout_em).getTime() >= desde);
     if (!saiuHaPouco) {
-      console.log("[zapi-webhook] VOLTAR ignorado: cliente não saiu nos últimos", JANELA_SAIR_DIAS, "dias");
+      console.log("[zapi-webhook] VOLTAR ignorado: cliente não saiu nas últimas", JANELA_SAIR_HORAS, "horas");
       return false;
     }
     pendentes = iguais.filter((c: any) => c.optout_marketing === true);   // religa todos os cadastros da pessoa
