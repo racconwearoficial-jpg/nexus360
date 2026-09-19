@@ -1,6 +1,8 @@
 const { createClient } = require("@supabase/supabase-js");
 
-// Roda 1x por dia (agendado via netlify.toml, seção [functions."rotina-diaria"]).
+// Roda a cada 30 min no horário comercial (agendado via netlify.toml, seção
+// [functions."rotina-diaria"]) e manda poucas mensagens por rodada — ver
+// LIMITE_DIARIO_TOTAL / LIMITE_POR_EXECUCAO abaixo.
 // Cobre as 4 automações que dependem de data/tempo, não de um evento
 // pontual: recompra, cobrança de fiado, reativação de inativo e aniversário.
 // Mesma lógica de dedupe do resto (automacoes_whatsapp_log) pra nunca mandar
@@ -126,7 +128,42 @@ function hojeBrasilia() {
 // excedente simplesmente fica pra próxima execução (rotativo, ninguém fica
 // de fora, só espalhado ao longo dos dias).
 const LIMITE_ENVIOS_POR_TIPO = 20;
+
+// Espalhar os envios ao longo do dia (padrão de rajada é o que mais chama a
+// atenção do WhatsApp): a function roda a cada 30 min (netlify.toml), manda
+// poucas mensagens por execução com pausa ALEATÓRIA entre elas, e para de vez
+// quando atinge o teto do dia. Como cada tipo tem dedupe próprio, rodar várias
+// vezes por dia não repete envio. Ajuste os 4 números abaixo se precisar.
+const LIMITE_DIARIO_TOTAL = 30;  // todas as automações somadas, por empresa/dia
+const LIMITE_POR_EXECUCAO = 2;   // por rodada (a cada 30 min)
+const PAUSA_MIN_MS = 4000;
+const PAUSA_MAX_MS = 9000;
 const pausar = (ms) => new Promise((r) => setTimeout(r, ms));
+const pausaAleatoria = () => pausar(PAUSA_MIN_MS + Math.random() * (PAUSA_MAX_MS - PAUSA_MIN_MS));
+
+// Orçamento de envios da rodada atual, compartilhado entre todas as automações.
+let orcamento = 0;
+const temOrcamento = () => orcamento > 0;
+const gastarOrcamento = () => { orcamento--; };
+
+// Quantos envios de rotina já saíram hoje (fuso de Brasília = UTC-3, sem horário
+// de verão). Reativação não grava no log, só em clientes.reativacao_enviada_em.
+async function contarEnviadosHoje(companyId) {
+  const { ano, mes, dia } = hojeBrasilia();
+  const inicio = new Date(Date.UTC(ano, mes - 1, dia, 3, 0, 0)).toISOString();
+  const [log, reat] = await Promise.all([
+    supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).in("tipo", ["recompra", "fiado_lembrete", "aniversario", "campanha_auto"]).gte("enviado_em", inicio),
+    supabaseAdmin.from("clientes").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).gte("reativacao_enviada_em", inicio),
+  ]);
+  return (log.count || 0) + (reat.count || 0);
+}
+
+function horaBrasilia() {
+  const p = new Intl.DateTimeFormat("en-GB", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+  return { hora: Number(p.find((x) => x.type === "hour").value) % 24, minuto: Number(p.find((x) => x.type === "minute").value) };
+}
 
 // Fisher-Yates — usado só nas campanhas automáticas, pra cada execução
 // pegar uma amostra aleatória de quem ainda não recebeu (em vez de sempre
@@ -149,7 +186,7 @@ async function rodarRecompra(integ, credZapi) {
     .from("clientes").select("id, nome, telefone").eq("company_id", integ.company_id);
   let enviados = 0;
   for (const cliente of clientes || []) {
-    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
     try {
       const { data: vendas } = await supabaseAdmin
         .from("vendas").select("data").eq("company_id", integ.company_id).eq("cliente_id", cliente.id)
@@ -177,9 +214,11 @@ async function rodarRecompra(integ, credZapi) {
       await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "recompra", referenciaId: null });
       console.log("[rotina-diaria] recompra enviada:", cliente.id);
       enviados++;
-      await pausar(1500);
+      gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro recompra cliente", cliente.id, e.message);
+      gastarOrcamento(); // falha também conta, pra não martelar o Z-API se estiver fora
     }
   }
 }
@@ -195,7 +234,7 @@ async function rodarFiado(integ, credZapi) {
     .eq("company_id", integ.company_id).eq("status", "pendente").lte("vencimento", amanha.toISOString().slice(0, 10));
   let enviados = 0;
   for (const p of pendencias || []) {
-    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
     try {
       if (!p.cliente_id) continue;
       if (await jaEnviado({ companyId: integ.company_id, clienteId: p.cliente_id, tipo: "fiado_lembrete", referenciaId: p.id, desde: inicioDeHoje() })) continue;
@@ -211,9 +250,11 @@ async function rodarFiado(integ, credZapi) {
       await registrarEnvio({ companyId: integ.company_id, clienteId: p.cliente_id, tipo: "fiado_lembrete", referenciaId: p.id });
       console.log("[rotina-diaria] lembrete de fiado enviado:", p.id);
       enviados++;
-      await pausar(1500);
+      gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro fiado pendencia", p.id, e.message);
+      gastarOrcamento();
     }
   }
 }
@@ -222,6 +263,7 @@ async function rodarFiado(integ, credZapi) {
 // reativação" configurado no sistema hoje) — só convite de volta, citando a
 // fidelidade real que já existe. Cooldown de 60 dias por cliente.
 async function rodarReativacao(integ, credZapi) {
+  if (!temOrcamento()) return;
   const corteCooldown = diasAtras(30).toISOString();
 
   // O sistema NUNCA grava status='inativo' no banco — calcularStatus() no
@@ -265,6 +307,7 @@ async function rodarReativacao(integ, credZapi) {
     .slice(0, LIMITE_ENVIOS_POR_TIPO);
 
   for (const cliente of clientes) {
+    if (!temOrcamento()) break;
     try {
       if (!cliente.telefone) continue;
 
@@ -272,9 +315,11 @@ async function rodarReativacao(integ, credZapi) {
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
       await supabaseAdmin.from("clientes").update({ reativacao_enviada_em: new Date().toISOString() }).eq("id", cliente.id);
       console.log("[rotina-diaria] reativação enviada:", cliente.id);
-      await pausar(1500);
+      gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro reativação cliente", cliente.id, e.message);
+      gastarOrcamento();
     }
   }
 }
@@ -288,7 +333,7 @@ async function rodarAniversario(integ, credZapi) {
   console.log("[rotina-diaria] aniversario: checando", { hoje, totalClientes: clientes?.length || 0 });
   let enviados = 0;
   for (const cliente of clientes || []) {
-    if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
+    if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
     try {
       if (!cliente.aniversario) continue;
       // aniversario é sempre "AAAA-MM-DD" (string) — compara texto direto,
@@ -309,9 +354,11 @@ async function rodarAniversario(integ, credZapi) {
       await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "aniversario", referenciaId: referenciaAno });
       console.log("[rotina-diaria] aniversário enviado:", cliente.id);
       enviados++;
-      await pausar(1500);
+      gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
       console.error("[rotina-diaria] erro aniversário cliente", cliente.id, e.message);
+      gastarOrcamento();
     }
   }
 }
@@ -325,6 +372,7 @@ async function rodarAniversario(integ, credZapi) {
 // sem "desde"): cada cliente recebe UMA vez por campanha, não repete todo dia
 // enquanto o período estiver aberto.
 async function rodarCampanhasAutomaticas(integ, credZapi) {
+  if (!temOrcamento()) return;
   const hoje = hojeBrasilia();
   const hojeISO = `${hoje.ano}-${String(hoje.mes).padStart(2, "0")}-${String(hoje.dia).padStart(2, "0")}`;
 
@@ -372,7 +420,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
     let enviados = 0;
     for (const cliente of embaralhar(destinatarios)) {
-      if (enviados >= LIMITE_ENVIOS_POR_TIPO) break;
+      if (enviados >= LIMITE_ENVIOS_POR_TIPO || !temOrcamento()) break;
       try {
         if (await jaEnviado({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id })) continue;
 
@@ -395,9 +443,11 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id });
         console.log("[rotina-diaria] campanha automática enviada:", camp.id, cliente.id);
         enviados++;
-        await pausar(1500);
+        gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
       } catch (e) {
         console.error("[rotina-diaria] erro campanha automática", camp.id, cliente.id, e.message);
+        gastarOrcamento();
       }
     }
   }
@@ -414,11 +464,24 @@ exports.handler = async function () {
   for (const integ of integracoes || []) {
     const credZapi = { instanceId: integ.instance_id, token: integ.token, clientToken: integ.client_token };
     console.log("[rotina-diaria] processando empresa:", integ.company_id);
-    await rodarRecompra(integ, credZapi);
-    await rodarFiado(integ, credZapi);
-    await rodarReativacao(integ, credZapi);
+
+    // Orçamento desta rodada = o menor entre o limite por execução e o que
+    // ainda cabe no teto do dia. Zerou o teto → não faz nem as consultas.
+    const jaHoje = await contarEnviadosHoje(integ.company_id);
+    orcamento = Math.max(0, Math.min(LIMITE_POR_EXECUCAO, LIMITE_DIARIO_TOTAL - jaHoje));
+    console.log("[rotina-diaria] enviados hoje:", jaHoje, "| orçamento da rodada:", orcamento);
+    if (!temOrcamento()) continue;
+
+    // Ordem = prioridade (o orçamento é compartilhado): o que tem data marcada
+    // vem primeiro; campanhas antes de reativação. Recompra faz uma consulta por
+    // cliente (pesado), então só na primeira rodada da manhã — o dedupe de 20
+    // dias impede repetir nas demais.
+    const { hora, minuto } = horaBrasilia();
     await rodarAniversario(integ, credZapi);
+    await rodarFiado(integ, credZapi);
+    if (hora === 8 && minuto < 20) await rodarRecompra(integ, credZapi);
     await rodarCampanhasAutomaticas(integ, credZapi);
+    await rodarReativacao(integ, credZapi);
   }
 
   return { statusCode: 200, body: "ok" };
