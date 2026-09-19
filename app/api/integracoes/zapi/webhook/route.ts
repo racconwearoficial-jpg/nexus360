@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { enviarTextoZapi } from "@/lib/zapi";
+import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA } from "@/lib/optout";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,38 @@ function normalizarTelefone(numero: string) {
   return limpo;
 }
 
+// Pedido de saída ("SAIR") / volta ("VOLTAR") de mensagens promocionais. Honrado
+// SEMPRE, mesmo com o chatbot desligado: é a válvula que evita denúncia (principal
+// causa de banimento do número) e atende o direito de oposição da LGPD.
+// Devolve true se tratou (cliente conhecido e coluna existe); false deixa o fluxo
+// normal seguir — por exemplo, se a migração optout_marketing.sql ainda não foi
+// rodada, para não confirmar ao cliente algo que o sistema não guardou.
+async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: string): Promise<boolean> {
+  const saida = ehPedidoDeSaida(mensagem);
+  const telNormalizado = normalizarTelefone(telefoneCliente);
+  if (!telNormalizado) return false;
+
+  const { data: cli, error: erroBusca } = await supabaseAdmin
+    .from("clientes").select("id, optout_marketing")
+    .eq("company_id", integracao.company_id).eq("telefone_normalizado", telNormalizado).maybeSingle();
+  if (erroBusca) { console.log("[zapi-webhook] opt-out indisponível (coluna ausente?):", erroBusca.message); return false; }
+  if (!cli) return false;                       // número desconhecido: segue o fluxo normal
+  if (Boolean(cli.optout_marketing) === saida) return true; // já estava assim: não responde de novo (evita ping-pong)
+
+  const { error: erroUpd } = await supabaseAdmin
+    .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null }).eq("id", cli.id);
+  if (erroUpd) { console.error("[zapi-webhook] falha ao gravar opt-out:", erroUpd.message); return false; }
+
+  console.log("[zapi-webhook] opt-out registrado:", { clienteId: cli.id, saida });
+  try {
+    await enviarTextoZapi({
+      instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token,
+      telefone: telefoneCliente, mensagem: saida ? MSG_SAIDA_CONFIRMADA : MSG_VOLTA_CONFIRMADA,
+    });
+  } catch (e: any) { console.error("[zapi-webhook] falha ao confirmar opt-out:", e.message); }
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   let payload: any;
   try {
@@ -113,6 +146,12 @@ export async function POST(req: NextRequest) {
       .select("company_id, instance_id, token, client_token, atendimento_auto, cadastro_fidelidade_auto")
       .eq("instance_id", instanceId)
       .single();
+
+    // Pedido de saída/volta vem antes de qualquer outra coisa (inclusive antes da
+    // checagem de chatbot ligado/desligado).
+    if (integracao && (ehPedidoDeSaida(mensagemRecebida) || ehPedidoDeVolta(mensagemRecebida))) {
+      if (await tratarOptout(integracao, telefoneCliente, mensagemRecebida)) return NextResponse.json({ ok: true });
+    }
 
     // Sem integração cadastrada, ou os dois modos desligados (são opt-in
     // independentes) — não responde nada, deixa o dono responder manualmente.
