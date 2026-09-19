@@ -2835,6 +2835,20 @@ async function apiAuthHeaders(extra) {
   return h;
 }
 
+// Registra no servidor que uma promoção foi enviada À MÃO a este cliente. O "SAIR" do
+// cliente só é aceito como resposta a uma promoção recebida há pouco (o webhook confere),
+// e as mensagens enviadas pelos botões do sistema não passam pelo servidor — sem este
+// registro o SAIR de quem recebeu uma delas seria ignorado.
+function registrarPromoManual(clienteId) {
+  if (!clienteId || !state.companyId) return;
+  apiAuthHeaders()
+    .then(h => fetch('/api/integracoes/zapi/registrar-promo', {
+      method: 'POST', cache: 'no-store', headers: h,
+      body: JSON.stringify({ company_id: state.companyId, cliente_id: clienteId }),
+    }))
+    .catch(() => {});
+}
+
 // Carrega o company_id do usuário logado
 async function loadCompanyId() {
   try {
@@ -4499,7 +4513,7 @@ function renderUpsell() {
         <div class="suggestion-desc">Inativo${dias!==null?' · '+dias+'d sem compra':''}</div>
       </div>
       <button class="btn-wpp" style="font-size:11px;padding:5px 12px;border-radius:6px;flex-shrink:0"
-        data-num="${num}" data-msg="${msg.replace(/"/g,'&quot;')}" onclick="wppAbrir(this.dataset.num,this.dataset.msg)">WhatsApp</button>
+        data-num="${num}" data-msg="${msg.replace(/"/g,'&quot;')}" onclick="wppAbrir(this.dataset.num,this.dataset.msg);registrarPromoManual(${c.id})">WhatsApp</button>
     </div>`;
   };
 
@@ -4669,7 +4683,7 @@ function recuperarInativos() {
     const tel    = c.telefone.replace(/\D/g, '');
     const num    = tel.startsWith('55') ? tel : '55' + tel;
     const msg    = msgPadrao.replace(/{nome}/g, c.nome).replace(/{negocio}/g, neg) + rodapeSaidaManual(c);
-    window._campMsgs[idx] = { num, msg };
+    window._campMsgs[idx] = { num, msg, clienteId: c.id };
     const dias   = c.ultima_compra ? Math.floor((new Date()-_dataUltimaCompra(c.ultima_compra))/86400000) : null;
     const diasTxt = dias !== null ? `${dias} dias sem comprar` : 'Nunca comprou';
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
@@ -9017,7 +9031,7 @@ function enviarCampanha(id) {
     const tel = cl.telefone.replace(/\D/g, '');
     const num = tel.startsWith('55') ? tel : '55' + tel;
     const msg = montarMsg(cl);
-    window._campMsgs[idx] = { num, msg, campId: camp.id };
+    window._campMsgs[idx] = { num, msg, campId: camp.id, clienteId: cl.id };
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
       <div style="min-width:0">
         <div style="font-size:13px;font-weight:500;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cl.nome}</div>
@@ -9038,6 +9052,7 @@ function enviarCampMsg(idx) {
   if (!d) return;
   // Incrementa enviados imediatamente ao clicar em Enviar
   if (d.campId) incrementarEnviado(d.campId);
+  registrarPromoManual(d.clienteId);
   // Abre WhatsApp diretamente sem modal
   const url = 'https://wa.me/' + d.num + '?text=' + encodeURIComponent(d.msg);
   window.open(url, '_blank');

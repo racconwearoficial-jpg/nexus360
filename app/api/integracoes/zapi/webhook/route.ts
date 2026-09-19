@@ -83,6 +83,28 @@ function chaveTelefone(numero: string) {
   return d.length >= 8 ? d.slice(-8) : "";
 }
 
+// "sair" é uma palavra comum demais para valer sozinha, a qualquer hora: um cliente
+// pode digitá-la sem querer sair da lista. Por isso o pedido de SAIR só é aceito de
+// quem RECEBEU uma mensagem promocional nos últimos JANELA_SAIR_DIAS dias (a que traz
+// o rodapé "responda SAIR"). Fora disso a mensagem segue o fluxo normal, como qualquer outra.
+// Contam: campanha automática, lembrete de recompra e envio manual (registrados no log de
+// automações) e a reativação (clientes.reativacao_enviada_em).
+const JANELA_SAIR_DIAS = 7;
+
+async function recebeuPromocaoRecente(companyId: string, ids: number[]): Promise<boolean> {
+  if (!ids.length) return false;
+  const desde = new Date(Date.now() - JANELA_SAIR_DIAS * 86400000).toISOString();
+  const { count: nLog } = await supabaseAdmin
+    .from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
+    .eq("company_id", companyId).in("cliente_id", ids)
+    .in("tipo", ["campanha_auto", "recompra", "promo_manual"]).gte("enviado_em", desde);
+  if ((nLog || 0) > 0) return true;
+  const { count: nReat } = await supabaseAdmin
+    .from("clientes").select("id", { count: "exact", head: true })
+    .eq("company_id", companyId).in("id", ids).gte("reativacao_enviada_em", desde);
+  return (nReat || 0) > 0;
+}
+
 async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: string, nomeWhatsapp: string): Promise<boolean> {
   const saida = ehPedidoDeSaida(mensagem);
   const chave = chaveTelefone(telefoneCliente);
@@ -95,25 +117,23 @@ async function tratarOptout(integracao: any, telefoneCliente: string, mensagem: 
   // Todas as linhas com o mesmo telefone (inclui cadastros duplicados da mesma pessoa).
   const iguais = (todos || []).filter((c: any) => chaveTelefone(c.telefone) === chave);
 
-  if (!iguais.length) {
-    if (!saida) return false;                    // VOLTAR de número desconhecido: segue o fluxo normal
-    // Número desconhecido pediu para sair: já cadastra COM a saída registrada, para o
-    // cadastro automático (lead) nunca virar destinatário de promoção depois.
-    const { error: erroNovo } = await supabaseAdmin.from("clientes").upsert(
-      { company_id: integracao.company_id, nome: nomeWhatsapp, telefone: telefoneCliente,
-        telefone_normalizado: normalizarTelefone(telefoneCliente) || null, status: "ativo", pontos: 0,
-        optout_marketing: true, optout_em: new Date().toISOString() },
-      { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
-    );
-    if (erroNovo) { console.error("[zapi-webhook] falha ao registrar saída de número novo:", erroNovo.message); return false; }
-  } else {
-    const pendentes = iguais.filter((c: any) => Boolean(c.optout_marketing) !== saida);
-    if (!pendentes.length) return true;          // já estava assim: não responde de novo (evita ping-pong)
-    const { error: erroUpd } = await supabaseAdmin
-      .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null })
-      .in("id", pendentes.map((c: any) => c.id));
-    if (erroUpd) { console.error("[zapi-webhook] falha ao gravar opt-out:", erroUpd.message); return false; }
+  // Número desconhecido nunca recebeu promoção nossa: não há o que cancelar, e a mensagem
+  // segue o fluxo normal (cadastro automático etc.).
+  if (!iguais.length) return false;
+
+  // SAIR só vale como resposta a uma promoção recebida há pouco (ver JANELA_SAIR_DIAS).
+  // VOLTAR não tem essa exigência: só religa quem estava fora.
+  if (saida && !(await recebeuPromocaoRecente(integracao.company_id, iguais.map((c: any) => c.id)))) {
+    console.log("[zapi-webhook] SAIR ignorado: cliente não recebeu promoção nos últimos", JANELA_SAIR_DIAS, "dias (mensagem espontânea)");
+    return false;
   }
+
+  const pendentes = iguais.filter((c: any) => Boolean(c.optout_marketing) !== saida);
+  if (!pendentes.length) return true;            // já estava assim: não responde de novo (evita ping-pong)
+  const { error: erroUpd } = await supabaseAdmin
+    .from("clientes").update({ optout_marketing: saida, optout_em: saida ? new Date().toISOString() : null })
+    .in("id", pendentes.map((c: any) => c.id));
+  if (erroUpd) { console.error("[zapi-webhook] falha ao gravar opt-out:", erroUpd.message); return false; }
 
   console.log("[zapi-webhook] opt-out registrado:", { saida, cadastros: iguais.length });
   try {
