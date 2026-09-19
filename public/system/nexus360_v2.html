@@ -1340,6 +1340,8 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="rel-actions">
           <select id="rel-periodo" onchange="renderRelatorios()" class="rel-select">
             <option value="1">Último mês</option>
+            <option value="1">Este mês</option>
+            <option value="ant">Mês passado</option>
             <option value="3">Últimos 3 meses</option>
             <option value="6" selected>Últimos 6 meses</option>
             <option value="12">Últimos 12 meses</option>
@@ -8507,48 +8509,142 @@ async function deleteCrmCard(id) {
 // ══════════════════════════════════════════════════════════════════════════════
 // RELATÓRIOS
 // ══════════════════════════════════════════════════════════════════════════════
-function renderRelatorios() {
-  const mesesQtd = parseInt(document.getElementById('rel-periodo')?.value || 6);
+function _relYMD(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// Data de um timestamp (created_at) no fuso local, como YYYY-MM-DD
+function _relDiaLocal(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return isNaN(d) ? '' : _relYMD(d);
+}
+
+// Desloca n meses preservando "último dia do mês" (31/03 -1m → 28/02)
+function _relShiftMes(d, n) {
+  const ehUltimo = d.getDate() === new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  const alvoDim  = new Date(d.getFullYear(), d.getMonth()+n+1, 0).getDate();
+  return new Date(d.getFullYear(), d.getMonth()+n, ehUltimo ? alvoDim : Math.min(d.getDate(), alvoDim));
+}
+
+// Período escolhido no seletor da aba Relatórios, com o período anterior equivalente
+// (mesmo tamanho; se o período inclui hoje, compara só até o mesmo dia do mês).
+function relPeriodo() {
+  const val  = document.getElementById('rel-periodo')?.value || '6';
   const hoje = new Date();
+  const y = hoje.getFullYear(), m = hoje.getMonth();
+  const hojeStr = _relYMD(hoje);
+  let meses, iniD, fimD;
+  if (val === 'ant') { meses = 1; iniD = new Date(y, m-1, 1); fimD = new Date(y, m, 0); }
+  else { meses = parseInt(val) || 6; iniD = new Date(y, m-meses+1, 1); fimD = new Date(y, m+1, 0); }
+  const ini = _relYMD(iniD), fim = _relYMD(fimD);
+  const cmpFimD = fim > hojeStr ? hoje : fimD;
+  const mesAno = d => d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')+'/'+d.getFullYear();
+  const label = meses === 1
+    ? iniD.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+    : mesAno(iniD)+' a '+mesAno(fimD);
+  return {
+    val, meses, ini, fim, iniD, fimD, label,
+    prevIni: _relYMD(_relShiftMes(iniD, -meses)),
+    prevFim: _relYMD(_relShiftMes(cmpFimD, -meses)),
+    cmpFim:  _relYMD(cmpFimD),
+    incluiHoje: hojeStr >= ini && hojeStr <= fim,
+  };
+}
 
-  // ── Dados base ──────────────────────────────────────────────────────────────
-  const meses = [];
-  for (let i = mesesQtd-1; i >= 0; i--) {
-    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
-    // Usar data local (não UTC) para evitar bug de fuso horário
-    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const label = d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
-    const labelFull = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-    const total = state.vendas.filter(v=>(v.data||'').startsWith(key)).reduce((s,v)=>s+parseFloat(v.valor||0),0);
-    const qtd   = state.vendas.filter(v=>(v.data||'').startsWith(key)).length;
-    meses.push({label, labelFull, key, total, qtd});
-  }
-
-  const receitaTotal  = meses.reduce((s,m)=>s+m.total,0);
-  const mesAtual      = meses[meses.length-1];
-  const mesAnterior   = meses[meses.length-2];
-  const crescimento = mesAnterior?.total > 0
-    ? Math.round((mesAtual.total - mesAnterior.total) / mesAnterior.total * 100)
-    : mesAtual?.total > 0 ? 100 : 0;
-  const totalVendas   = state.vendas.length;
-  const ticketMedio   = totalVendas>0 ? receitaTotal/totalVendas : 0;
-  const crmTotal      = (state.crmCards||[]).length;
-  const crmFechados   = (state.crmCards||[]).filter(c=>c.etapa==='Fechado').length;
-  const convCRM       = crmTotal>0 ? Math.round(crmFechados/crmTotal*100) : 0;
-  const totalVIP      = state.clientes.filter(c=>c.status==='vip').length;
-  const roiTotal      = (state.campanhas||[]).reduce((s,c)=>s+parseFloat(c.receita||0),0);
+function renderRelatorios() {
+  const P = relPeriodo();
+  const noPeriodo = d => !!d && d >= P.ini && d <= P.fim;
 
   const fmtR = v => 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtPct = v => (v>=0?'+':'')+v+'%';
+  const soma = (arr, f) => arr.reduce((s,x)=>s+parseFloat(f(x)||0),0);
+
+  // ── Vendas do período ───────────────────────────────────────────────────────
+  const vendasP = (state.vendas||[]).filter(v=>noPeriodo((v.data||'').slice(0,10)));
+  const receitaTotal = soma(vendasP, v=>v.valor);
+  const totalVendas  = vendasP.length;
+  const ticketMedio  = totalVendas>0 ? receitaTotal/totalVendas : 0;
+
+  // Crescimento: período atual vs período anterior equivalente
+  const receitaCmp  = soma(vendasP.filter(v=>(v.data||'').slice(0,10) <= P.cmpFim), v=>v.valor);
+  const receitaPrev = soma((state.vendas||[]).filter(v=>{
+    const d = (v.data||'').slice(0,10); return d >= P.prevIni && d <= P.prevFim;
+  }), v=>v.valor);
+  const crescimento = receitaPrev > 0 ? Math.round((receitaCmp - receitaPrev) / receitaPrev * 100) : null;
+  const crescCor = crescimento === null ? '#94A3B8' : crescimento >= 0 ? '#10B981' : '#EF4444';
+  const crescBg  = crescimento === null ? 'rgba(148,163,184,.1)' : crescimento >= 0 ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)';
+
+  // ── Série do gráfico: dias (1 mês) ou meses ─────────────────────────────────
+  const porDia = P.meses === 1;
+  const serie = [];
+  if (porDia) {
+    const dim = P.fimD.getDate();
+    for (let d = 1; d <= dim; d++) {
+      const key = P.ini.slice(0,8)+String(d).padStart(2,'0');
+      serie.push({ key, label:String(d), labelFull:d+'/'+String(P.iniD.getMonth()+1).padStart(2,'0'), total:0, qtd:0 });
+    }
+  } else {
+    for (let i = 0; i < P.meses; i++) {
+      const d = new Date(P.iniD.getFullYear(), P.iniD.getMonth()+i, 1);
+      serie.push({
+        key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),
+        label: d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),
+        labelFull: d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}),
+        total:0, qtd:0,
+      });
+    }
+  }
+  const serieIdx = {};
+  serie.forEach((s,i)=>{ serieIdx[s.key] = i; });
+  vendasP.forEach(v=>{
+    const d = (v.data||'').slice(0,10);
+    const s = serie[serieIdx[porDia ? d : d.slice(0,7)]];
+    if (s) { s.total += parseFloat(v.valor||0); s.qtd++; }
+  });
+  const melhorIdx = serie.reduce((b,s,i)=>s.total > serie[b].total ? i : b, 0);
+
+  // ── Clientes do período ─────────────────────────────────────────────────────
+  const clientes = state.clientes || [];
+  const clienteById = {};
+  clientes.forEach(c=>{ clienteById[String(c.id)] = c; });
+  const compras = {}; // cliente_id -> {qtd, total}
+  vendasP.forEach(v=>{
+    if (!v.cliente_id) return;
+    const k = String(v.cliente_id);
+    if (!clienteById[k]) return;
+    const e = compras[k] || (compras[k] = { qtd:0, total:0 });
+    e.qtd++; e.total += parseFloat(v.valor||0);
+  });
+  const compradoresIds = Object.keys(compras);
+  const nCompradores   = compradoresIds.length;
+  const vipsPeriodo    = compradoresIds.filter(k=>clienteById[k].status==='vip').length;
+  const ativosPeriodo  = nCompradores - vipsPeriodo;
+  const semCompra      = clientes.length - nCompradores;
+  const recorrentes    = compradoresIds.filter(k=>compras[k].qtd >= 2).length;
+  const novosPeriodo   = clientes.filter(c=>noPeriodo(_relDiaLocal(c.created_at))).length;
+
+  // ── CRM do período (leads criados no intervalo) ─────────────────────────────
+  const crm = (state.crmCards||[]).filter(c=>noPeriodo(_relDiaLocal(c.created_at)));
+  const crmTotal    = crm.length;
+  const crmFechados = crm.filter(c=>c.etapa==='Fechado').length;
+  const convCRM     = crmTotal>0 ? Math.round(crmFechados/crmTotal*100) : 0;
+
+  // ── Campanhas: receita atribuída pelas vendas do período ────────────────────
+  const campsP = (state.campanhas||[]).map(c=>{
+    const vs = vendasP.filter(v=>v.campanha_id!=null && v.campanha_id==c.id);
+    return { ...c, recP: soma(vs, v=>v.valor), vdsP: vs.length };
+  }).filter(c=>c.vdsP>0).sort((a,b)=>b.recP-a.recP);
+  const roiTotal = soma(campsP, c=>c.recP);
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
   const kpis = [
-    { icon:'$',  lbl:'Receita Total',      val: fmtR(receitaTotal),       sub: mesesQtd+'m acumulado',     cor:'#6366F1', bg:'rgba(99,102,241,.1)' },
-    { icon:'↑',  lbl:'Crescimento Mensal', val: fmtPct(crescimento),      sub: 'vs mês anterior',          cor: crescimento>=0?'#10B981':'#EF4444', bg: crescimento>=0?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)' },
-    { icon:'≈',  lbl:'Ticket Médio',       val: fmtR(ticketMedio),        sub: totalVendas+' vendas',      cor:'#8B5CF6', bg:'rgba(139,92,246,.1)' },
-    { icon:'%',  lbl:'Conversão CRM',      val: convCRM+'%',              sub: crmFechados+'/'+crmTotal+' leads', cor:'#F59E0B', bg:'rgba(245,158,11,.1)' },
-    { icon:'★',  lbl:'Clientes VIP',       val: totalVIP,                 sub: state.clientes.length+' total', cor:'#A78BFA', bg:'rgba(167,139,250,.1)' },
-    { icon:'⟳',  lbl:'ROI Campanhas',      val: fmtR(roiTotal),           sub: (state.campanhas||[]).length+' campanhas', cor:'#10B981', bg:'rgba(16,185,129,.1)' },
+    { icon:'$',  lbl:'Receita Total',        val: fmtR(receitaTotal),  sub: P.label,                              cor:'#6366F1', bg:'rgba(99,102,241,.1)' },
+    { icon:'↑',  lbl:'Crescimento',          val: crescimento===null ? '—' : fmtPct(crescimento), sub: crescimento===null ? 'sem período anterior p/ comparar' : P.meses===1?'vs mês anterior':'vs '+P.meses+' meses anteriores', cor:crescCor, bg:crescBg },
+    { icon:'≈',  lbl:'Ticket Médio',         val: fmtR(ticketMedio),   sub: totalVendas+' venda'+(totalVendas===1?'':'s')+' no período', cor:'#8B5CF6', bg:'rgba(139,92,246,.1)' },
+    { icon:'%',  lbl:'Conversão CRM',        val: convCRM+'%',         sub: crmFechados+'/'+crmTotal+' leads no período', cor:'#F59E0B', bg:'rgba(245,158,11,.1)' },
+    { icon:'★',  lbl:'Clientes no Período',  val: nCompradores,        sub: vipsPeriodo+' VIP · '+novosPeriodo+' novo'+(novosPeriodo===1?'':'s'), cor:'#A78BFA', bg:'rgba(167,139,250,.1)' },
+    { icon:'⟳',  lbl:'ROI Campanhas',        val: fmtR(roiTotal),      sub: campsP.length+' campanha'+(campsP.length===1?'':'s')+' com vendas', cor:'#10B981', bg:'rgba(16,185,129,.1)' },
   ];
 
   document.getElementById('rel-kpis').innerHTML = kpis.map(k=>`
@@ -8561,19 +8657,18 @@ function renderRelatorios() {
 
   // Badge receita
   const badge = document.getElementById('rel-receita-total-badge');
-  if (badge) badge.textContent = crescimento>=0?'+'+crescimento+'% este mês':crescimento+'% este mês';
+  if (badge) badge.textContent = crescimento===null ? P.label : fmtPct(crescimento)+' vs período anterior';
 
   // ── Insights IA ─────────────────────────────────────────────────────────────
   const insights = [];
-  if (crescimento > 20) insights.push({ cor:'#10B981', titulo:'Crescimento forte', txt:`Receita subiu ${crescimento}% em relação ao mês anterior.` });
-  else if (crescimento < -10) insights.push({ cor:'#EF4444', titulo:'Queda de receita', txt:`Receita caiu ${Math.abs(crescimento)}% vs mês anterior. Acione campanhas de reativação.` });
-  const inativos = state.clientes.filter(c=>c.status==='inativo').length;
-  if (inativos > 0) insights.push({ cor:'#F59E0B', titulo:'Clientes inativos', txt:`${inativos} cliente(s) precisam de reativação. Potencial de recuperação significativo.` });
-  if (totalVIP > 0) insights.push({ cor:'#8B5CF6', titulo:'Base VIP', txt:`${totalVIP} cliente(s) VIP representam seu segmento mais valioso. Priorize-os.` });
-  const melhorCamp = [...(state.campanhas||[])].sort((a,b)=>parseFloat(b.receita||0)-parseFloat(a.receita||0))[0];
-  if (melhorCamp?.receita>0) insights.push({ cor:'#6366F1', titulo:'Campanha destaque', txt:`"${melhorCamp.nome}" gerou ${fmtR(melhorCamp.receita)} — replique essa estratégia.` });
-  if (convCRM >= 50) insights.push({ cor:'#10B981', titulo:'CRM eficiente', txt:`Taxa de conversão de ${convCRM}% no funil — acima da média do setor.` });
-  else if (crmTotal > 0) insights.push({ cor:'#F59E0B', titulo:'Oportunidade CRM', txt:`${crmTotal - crmFechados} leads ainda em aberto. Foque em fechar negociações.` });
+  if (crescimento !== null && crescimento > 20) insights.push({ cor:'#10B981', titulo:'Crescimento forte', txt:`Receita subiu ${crescimento}% em relação ao período anterior.` });
+  else if (crescimento !== null && crescimento < -10) insights.push({ cor:'#EF4444', titulo:'Queda de receita', txt:`Receita caiu ${Math.abs(crescimento)}% vs período anterior. Acione campanhas de reativação.` });
+  if (semCompra > 0 && clientes.length) insights.push({ cor:'#F59E0B', titulo:'Clientes sem compra', txt:`${semCompra} cliente(s) não compraram em ${P.label}. Potencial de recuperação significativo.` });
+  if (vipsPeriodo > 0) insights.push({ cor:'#8B5CF6', titulo:'Base VIP', txt:`${vipsPeriodo} cliente(s) VIP compraram no período. Priorize-os.` });
+  const melhorCamp = campsP[0];
+  if (melhorCamp) insights.push({ cor:'#6366F1', titulo:'Campanha destaque', txt:`"${melhorCamp.nome}" gerou ${fmtR(melhorCamp.recP)} no período — replique essa estratégia.` });
+  if (crmTotal > 0 && convCRM >= 50) insights.push({ cor:'#10B981', titulo:'CRM eficiente', txt:`Taxa de conversão de ${convCRM}% no funil — acima da média do setor.` });
+  else if (crmTotal > 0) insights.push({ cor:'#F59E0B', titulo:'Oportunidade CRM', txt:`${crmTotal - crmFechados} leads do período ainda em aberto. Foque em fechar negociações.` });
   if (!insights.length) insights.push({ cor:'#94A3B8', titulo:'Monitorando', txt:'Continue registrando vendas e campanhas para gerar insights personalizados.' });
 
   document.getElementById('rel-insights').innerHTML = insights.slice(0,4).map(i=>`
@@ -8582,41 +8677,39 @@ function renderRelatorios() {
       <div class="rel-insight-txt">${i.txt}</div>
     </div>`).join('');
 
-  // ── Gráfico Receita (barras animadas) ────────────────────────────────────────
-  const maxMes = Math.max(...meses.map(m=>m.total),1);
+  // ── Gráfico Receita (barras) ────────────────────────────────────────────────
+  const maxMes = Math.max(...serie.map(m=>m.total),1);
+  const melhor = serie[melhorIdx];
+  const gap = porDia ? 2 : 8;
   document.getElementById('rel-chart-receita').innerHTML =
-    `<div class="rel-bars" style="display:flex;align-items:flex-end;gap:8px;height:160px;padding:0 4px">` +
-    meses.map((m,i) => {
+    `<div class="rel-bars" style="display:flex;align-items:flex-end;gap:${gap}px;height:160px;padding:0 4px">` +
+    serie.map((m,i) => {
       const h = Math.max(4, Math.round(m.total/maxMes*100));
-      const isMesAtual = i === meses.length-1;
-      // Valor compacto (20,9k) para o celular; o completo aparece no desktop (troca via CSS)
+      const destaque = m.total > 0 && i === melhorIdx;
+      const mostraLabel = !porDia || i === 0 || (i+1) % 5 === 0;
       const compacto = m.total >= 1000 ? (m.total/1000).toFixed(1).replace('.',',')+'k' : String(Math.round(m.total));
-      return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end" title="${m.labelFull}: ${fmtR(m.total)}">
-        <div style="font-size:9px;color:var(--text3);white-space:nowrap">${m.total>0?`<span class="rel-val-full">${fmtR(m.total).replace('R$ ','')}</span><span class="rel-val-compact" style="display:none">${compacto}</span>`:''}</div>
-        <div style="width:100%;height:${h}%;background:${isMesAtual?'linear-gradient(to top,#6366F1,#818CF8)':'linear-gradient(to top,rgba(99,102,241,.4),rgba(129,140,248,.3))'};border-radius:6px 6px 0 0;min-height:4px;transition:height .4s ease"></div>
-        <div style="font-size:10px;color:${isMesAtual?'#818CF8':'var(--text3)'};font-weight:${isMesAtual?700:400};text-transform:capitalize">${m.label}</div>
+      return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end" title="${m.labelFull}: ${fmtR(m.total)} (${m.qtd} venda${m.qtd===1?'':'s'})">
+        ${porDia ? '' : `<div style="font-size:9px;color:var(--text3);white-space:nowrap">${m.total>0?`<span class="rel-val-full">${fmtR(m.total).replace('R$ ','')}</span><span class="rel-val-compact" style="display:none">${compacto}</span>`:''}</div>`}
+        <div style="width:100%;height:${h}%;background:${destaque?'linear-gradient(to top,#6366F1,#818CF8)':'linear-gradient(to top,rgba(99,102,241,.4),rgba(129,140,248,.3))'};border-radius:${porDia?'3px 3px 0 0':'6px 6px 0 0'};min-height:4px;transition:height .4s ease"></div>
+        <div style="font-size:10px;height:12px;color:${destaque?'#818CF8':'var(--text3)'};font-weight:${destaque?700:400};${porDia?'':'text-transform:capitalize'}">${mostraLabel?m.label:''}</div>
       </div>`;
     }).join('') + '</div>' +
     `<div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">
       <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Total período</div><div style="font-size:16px;font-weight:700;color:var(--text1)">${fmtR(receitaTotal)}</div></div>
-      <div style="text-align:right"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Mês atual</div><div style="font-size:16px;font-weight:700;color:#6366F1">${fmtR(mesAtual.total)}</div></div>
+      <div style="text-align:right"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">${porDia?'Melhor dia':'Melhor mês'}${melhor.total>0?' · '+melhor.labelFull:''}</div><div style="font-size:16px;font-weight:700;color:#6366F1">${fmtR(melhor.total)}</div></div>
     </div>`;
 
-  // ── Donut Clientes ────────────────────────────────────────────────────────────
-  const ativos   = state.clientes.filter(c=>c.status==='ativo').length;
-  const inativos2 = state.clientes.filter(c=>c.status==='inativo').length;
-  const vips     = state.clientes.filter(c=>c.status==='vip').length;
-  const total    = state.clientes.length || 1;
+  // ── Donut Clientes (compradores do período vs base) ─────────────────────────
+  const total = clientes.length || 1;
   const segs = [
-    {lbl:'VIP',     val:vips,    cor:'#8B5CF6', pct:Math.round(vips/total*100)},
-    {lbl:'Ativos',  val:ativos,  cor:'#10B981', pct:Math.round(ativos/total*100)},
-    {lbl:'Inativos',val:inativos2,cor:'#EF4444',pct:Math.round(inativos2/total*100)},
-  ];
-  // SVG donut simples
+    {lbl:'VIP (compraram)',    val:vipsPeriodo,   cor:'#8B5CF6'},
+    {lbl:'Ativos (compraram)', val:ativosPeriodo, cor:'#10B981'},
+    {lbl:'Sem compra',         val:semCompra,     cor:'#64748B'},
+  ].map(s=>({ ...s, pct:Math.round(s.val/total*100) }));
   let offset = 0;
   const r = 50, cx = 60, cy = 60, circ = 2*Math.PI*r;
   const paths = segs.map(s => {
-    const dash = (s.pct/100)*circ;
+    const dash = (s.val/total)*circ;
     const path = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.cor}" stroke-width="14" stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${-offset}" stroke-linecap="butt" transform="rotate(-90 ${cx} ${cy})"/>`;
     offset += dash;
     return path;
@@ -8627,8 +8720,8 @@ function renderRelatorios() {
       <svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">
         <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="14"/>
         ${paths}
-        <text x="60" y="56" text-anchor="middle" fill="white" font-size="14" font-weight="800">${total}</text>
-        <text x="60" y="70" text-anchor="middle" fill="#64748B" font-size="9">clientes</text>
+        <text x="60" y="56" text-anchor="middle" fill="white" font-size="14" font-weight="800">${nCompradores}</text>
+        <text x="60" y="70" text-anchor="middle" fill="#64748B" font-size="9">compraram</text>
       </svg>
       <div style="flex:1;display:flex;flex-direction:column;gap:10px">
         ${segs.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -8642,68 +8735,49 @@ function renderRelatorios() {
           </div>
         </div>`).join('')}
         <div style="margin-top:4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
-          <span>Total cadastrados</span><span style="font-weight:700;color:var(--text1)">${total}</span>
+          <span>Base cadastrada</span><span style="font-weight:700;color:var(--text1)">${clientes.length}</span>
         </div>
       </div>
     </div>`;
 
-  // Métricas de clientes abaixo do donut
-  const aniversariantesHoje = (state.clientes||[]).filter(c=>{
-    if(!c.aniversario) return false;
-    const d = new Date(c.aniversario+'T12:00:00');
-    const hoje2 = new Date();
-    return d.getDate()===hoje2.getDate() && d.getMonth()===hoje2.getMonth();
-  }).length;
-  const novosNoMes = (state.clientes||[]).filter(c=>{
-    if(!c.created_at) return false;
-    const d = new Date(c.created_at);
-    const h = new Date();
-    return d.getMonth()===h.getMonth() && d.getFullYear()===h.getFullYear();
-  }).length;
-  const ticketMedioCli = ativos>0 ? receitaTotal/Math.max(totalVendas,1) : 0;
-  const pctVip = total>0 ? Math.round(vips/total*100) : 0;
-
+  const pctVip = nCompradores>0 ? Math.round(vipsPeriodo/nCompradores*100) : 0;
   const metCliEl = document.getElementById('rel-metricas-clientes');
   if (metCliEl) metCliEl.innerHTML = [
-    { lbl:'Novos no mês',      val: novosNoMes,          cor:'#6366F1' },
-    { lbl:'Aniversariantes',   val: aniversariantesHoje, cor:'#F59E0B' },
+    { lbl:'Novos no período',  val: novosPeriodo,        cor:'#6366F1' },
+    { lbl:'Recorrentes',       val: recorrentes,         cor:'#F59E0B' },
     { lbl:'Taxa VIP',          val: pctVip+'%',          cor:'#8B5CF6' },
-    { lbl:'Ticket médio',      val: fmtR(ticketMedioCli),cor:'#10B981' },
+    { lbl:'Ticket médio',      val: fmtR(ticketMedio),   cor:'#10B981' },
   ].map(k=>`<div style="padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px">
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">${k.lbl}</div>
     <div style="font-size:18px;font-weight:800;color:${k.cor}">${k.val}</div>
   </div>`).join('');
 
-  // ── Campanhas ROI ─────────────────────────────────────────────────────────────
-  const camps = [...(state.campanhas||[])].sort((a,b)=>parseFloat(b.receita||0)-parseFloat(a.receita||0)).slice(0,6);
-  const maxCampROI = Math.max(...camps.map(c=>parseFloat(c.receita||0)),1);
+  // ── Campanhas ROI (receita das vendas do período) ───────────────────────────
+  const camps = campsP.slice(0,6);
+  const maxCampROI = Math.max(...camps.map(c=>c.recP),1);
   if (!camps.length) {
-    document.getElementById('rel-chart-campanhas').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma campanha cadastrada</div>';
+    document.getElementById('rel-chart-campanhas').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma venda de campanha no período</div>';
   } else {
     document.getElementById('rel-chart-campanhas').innerHTML = camps.map(c=>{
-      const rec = parseFloat(c.receita||0);
-      const env = c.enviados||0;
-      const vds = c.vendas||0;
-      const conv = env>0?Math.round(vds/env*100):0;
-      const w = Math.round(rec/maxCampROI*100);
+      const w = Math.round(c.recP/maxCampROI*100);
+      const pctRec = receitaTotal>0 ? Math.round(c.recP/receitaTotal*100) : 0;
       return `<div style="margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
           <span style="font-size:12px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%">${c.nome}</span>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <span style="font-size:11px;color:#10B981;font-weight:600">${fmtR(rec)}</span>
-            <span style="font-size:10px;color:var(--text3);padding:1px 7px;background:rgba(255,255,255,.05);border-radius:10px">${conv}%</span>
+            <span style="font-size:11px;color:#10B981;font-weight:600">${fmtR(c.recP)}</span>
+            <span style="font-size:10px;color:var(--text3);padding:1px 7px;background:rgba(255,255,255,.05);border-radius:10px" title="Parcela da receita do período">${pctRec}%</span>
           </div>
         </div>
         <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
           <div style="height:100%;width:${w}%;background:linear-gradient(90deg,#6366F1,#8B5CF6);border-radius:3px;transition:width .5s ease"></div>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:3px">${env} enviados · ${vds} conversões</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${c.vdsP} venda${c.vdsP===1?'':'s'} no período</div>
       </div>`;
     }).join('');
   }
 
   // ── Funil CRM moderno ─────────────────────────────────────────────────────────
-  const crm = state.crmCards || [];
   const stageOrder = ['Lead','Contato','Proposta','Negociação','Fechado'];
   const stageCors  = { Lead:'#6366F1', Contato:'#6366F1', Proposta:'#8B5CF6', Negociação:'#A855F7', Fechado:'#10B981', Perdido:'#EF4444' };
   const stagesFound = [...new Set(crm.map(c=>c.etapa).filter(Boolean))];
@@ -8711,8 +8785,10 @@ function renderRelatorios() {
   const counts = stages.map(s=>crm.filter(c=>c.etapa===s).length);
   const maxCount = Math.max(...counts,1);
 
+  const metCrmEl = document.getElementById('rel-metricas-crm');
   if (!stages.length) {
-    document.getElementById('rel-chart-funil').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhum lead no CRM</div>';
+    document.getElementById('rel-chart-funil').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhum lead no CRM neste período</div>';
+    if (metCrmEl) metCrmEl.innerHTML = '';
   } else {
     document.getElementById('rel-chart-funil').innerHTML = stages.map((s,i)=>{
       const w = Math.max(15, Math.round(counts[i]/maxCount*100));
@@ -8734,11 +8810,9 @@ function renderRelatorios() {
       <span>Conversão: <strong style="color:#10B981">${convCRM}%</strong></span>
     </div>`;
 
-    // Métricas CRM abaixo do funil
-    const crmAbertos    = (state.crmCards||[]).filter(c=>c.etapa!=='Fechado').length;
-    const crmNegociacao = (state.crmCards||[]).filter(c=>c.etapa==='Negociação').length;
-    const crmProposta   = (state.crmCards||[]).filter(c=>c.etapa==='Proposta').length;
-    const metCrmEl = document.getElementById('rel-metricas-crm');
+    const crmAbertos    = crm.filter(c=>c.etapa!=='Fechado').length;
+    const crmNegociacao = crm.filter(c=>c.etapa==='Negociação').length;
+    const crmProposta   = crm.filter(c=>c.etapa==='Proposta').length;
     if (metCrmEl) metCrmEl.innerHTML = [
       { lbl:'Em aberto',   val: crmAbertos,    cor:'#6366F1' },
       { lbl:'Fechados',    val: crmFechados,   cor:'#10B981' },
@@ -8750,164 +8824,161 @@ function renderRelatorios() {
     </div>`).join('');
   }
 
-  // ── Top Clientes ──────────────────────────────────────────────────────────────
-  const topCli = [...state.clientes].sort((a,b)=>parseFloat(b.total_gasto||0)-parseFloat(a.total_gasto||0)).slice(0,6);
-  document.getElementById('rel-top-clientes').innerHTML = topCli.length ? topCli.map((c,i)=>{
-    const g = parseFloat(c.total_gasto||0);
+  // ── Top Clientes (gasto no período) ───────────────────────────────────────────
+  const topCli = compradoresIds.map(k=>({ c:clienteById[k], ...compras[k] })).sort((a,b)=>b.total-a.total).slice(0,6);
+  document.getElementById('rel-top-clientes').innerHTML = topCli.length ? topCli.map(({c,qtd,total:g},i)=>{
     const statusCor = {vip:'#8B5CF6',ativo:'#10B981',inativo:'#EF4444'}[c.status]||'#94A3B8';
     return `<div class="rel-rank-item">
-      <div class="rel-rank-pos">${i===0?'#1':i===1?'#2':i===2?'#3':'#'+(i+1)}</div>
-      <div class="rel-rank-avatar">${c.nome.charAt(0)}</div>
+      <div class="rel-rank-pos">#${i+1}</div>
+      <div class="rel-rank-avatar">${(c.nome||'?').charAt(0)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
         <div style="font-size:10px;color:${statusCor};text-transform:uppercase;font-weight:600;letter-spacing:.3px">${c.status}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:13px;font-weight:700;color:#10B981">${fmtR(g)}</div>
-        <div style="font-size:10px;color:var(--text3)">${c.pontos||0} pts</div>
+        <div style="font-size:10px;color:var(--text3)">${qtd} compra${qtd===1?'':'s'}</div>
       </div>
     </div>`;
-  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhum cliente ainda</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma compra de cliente no período</div>';
 
   // ── Top Campanhas ─────────────────────────────────────────────────────────────
-  const topCamps = [...(state.campanhas||[])].sort((a,b)=>parseFloat(b.receita||0)-parseFloat(a.receita||0)).slice(0,6);
-  document.getElementById('rel-top-campanhas').innerHTML = topCamps.length ? topCamps.map((c,i)=>{
-    const rec = parseFloat(c.receita||0);
-    const env = c.enviados||0;
-    const conv = env>0?Math.round((c.vendas||0)/env*100):0;
-    return `<div class="rel-rank-item">
+  document.getElementById('rel-top-campanhas').innerHTML = camps.length ? camps.map((c,i)=>`<div class="rel-rank-item">
       <div class="rel-rank-pos">#${i+1}</div>
       <div style="width:32px;height:32px;border-radius:9px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</div>
-        <div style="font-size:10px;color:var(--text3)">${env} enviados · ${conv}% conv.</div>
+        <div style="font-size:10px;color:var(--text3)">${c.vdsP} venda${c.vdsP===1?'':'s'} no período</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:13px;font-weight:700;color:#6366F1">${fmtR(rec)}</div>
+        <div style="font-size:13px;font-weight:700;color:#6366F1">${fmtR(c.recP)}</div>
         <div style="font-size:10px;color:${c.ativa?'#10B981':'#94A3B8'}">${c.ativa?'Ativa':'Inativa'}</div>
       </div>
-    </div>`;
-  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma campanha ainda</div>';
+    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma venda de campanha no período</div>';
 
-  // ── Funcionários Destaque ─────────────────────────────────────────────────────
-  const topFns = (fnState.funcionarios||[]).filter(f=>f.status==='ativo')
-    .map(f => ({ ...f, total: fnTotalVendido?fnTotalVendido(f.id,f.nome):0, score: fnScoreRanking?fnScoreRanking(f.id,f.nome):0 }))
-    .sort((a,b)=>b.score-a.score).slice(0,6);
+  // ── Funcionários Destaque (mesmas métricas da aba Funcionários, no período) ───
+  let topFns = [];
+  _fnRangeOverride = { ini:P.ini, fim:P.fim, meses:P.meses };
+  try {
+    topFns = (fnState.funcionarios||[]).filter(f=>f.status==='ativo')
+      .map(f => ({
+        ...f,
+        total: fnTotalVendido(f.id,f.nome),
+        qtd:   fnVendasDoMes(f.id,f.nome).length,
+        score: fnScoreRanking(f.id,f.nome),
+        nivel: fnNivelAtendimento(fnScoreAtendimento(f.id,f.nome)),
+      }))
+      .filter(f=>f.qtd>0)
+      .sort((a,b)=>b.score-a.score).slice(0,6);
+  } finally { _fnRangeOverride = null; }
   const relFnEl = document.getElementById('rel-top-funcionarios');
-  if (relFnEl) relFnEl.innerHTML = topFns.length ? topFns.map((f,i)=>{
-    const nivel = fnNivelAtendimento ? fnNivelAtendimento(fnScoreAtendimento?fnScoreAtendimento(f.id,f.nome):0) : {label:'—',cor:'#94A3B8'};
-    return `<div class="rel-rank-item">
+  if (relFnEl) relFnEl.innerHTML = topFns.length ? topFns.map((f,i)=>`<div class="rel-rank-item">
       <div class="rel-rank-pos">#${i+1}</div>
-      <div class="rel-rank-avatar">${f.nome.charAt(0)}</div>
+      <div class="rel-rank-avatar">${(f.nome||'?').charAt(0)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.nome}</div>
-        <div style="font-size:10px;color:${nivel.cor}">${nivel.label} · ${f.cargo}</div>
+        <div style="font-size:10px;color:${f.nivel.cor}">${f.nivel.label} · ${f.cargo} · ${f.qtd} venda${f.qtd===1?'':'s'}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:13px;font-weight:700;color:#8B5CF6">${fmtR(f.total)}</div>
         <div style="font-size:10px;color:var(--text3)">score ${f.score}</div>
       </div>
-    </div>`;
-  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhum funcionário ainda</div>';
+    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center">Nenhuma venda de funcionário no período</div>';
 
-  // ── Heatmap dias da semana (semana atual apenas) ──────────────────────────────
+  // ── Heatmap: vendas por dia da semana no período ──────────────────────────────
   const diasHeat = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const heatData = Array(7).fill(0);
-  const hojeDate = new Date();
-  const diaAtual = hojeDate.getDay();
-  // Calcular início da semana atual (domingo)
-  const inicioSemana = new Date(hojeDate);
-  inicioSemana.setDate(hojeDate.getDate() - diaAtual);
-  inicioSemana.setHours(0,0,0,0);
-  const fimSemana = new Date(inicioSemana);
-  fimSemana.setDate(inicioSemana.getDate() + 6);
-  fimSemana.setHours(23,59,59,999);
-
-  state.vendas.forEach(v => {
-    if (!v.data) return;
-    const dv = new Date(v.data+'T12:00:00');
-    if (dv < inicioSemana || dv > fimSemana) return; // só semana atual
-    heatData[dv.getDay()] += parseFloat(v.valor||0);
+  vendasP.forEach(v => {
+    const dv = new Date((v.data||'').slice(0,10)+'T12:00:00');
+    if (!isNaN(dv)) heatData[dv.getDay()] += parseFloat(v.valor||0);
   });
   const maxHeat = Math.max(...heatData,1);
+  const diaTop = heatData.some(x=>x>0) ? heatData.indexOf(Math.max(...heatData)) : -1;
   document.getElementById('rel-heatmap').innerHTML =
     `<div style="display:flex;gap:10px;align-items:flex-end;height:100px">` +
     heatData.map((val,i)=>{
       const int = val/maxHeat;
       const h = Math.max(8,Math.round(int*84));
-      const isHoje = i===diaAtual;
-      const isFuturo = i > diaAtual;
-      const cor = isFuturo ? 'rgba(99,102,241,.05)' : int>.7?'#6366F1':int>.4?'rgba(99,102,241,.65)':int>.1?'rgba(99,102,241,.3)':'rgba(99,102,241,.08)';
+      const isTop = i===diaTop;
+      const cor = int>.7?'#6366F1':int>.4?'rgba(99,102,241,.65)':int>.1?'rgba(99,102,241,.3)':'rgba(99,102,241,.08)';
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end">
         ${val>0?`<div style="font-size:9px;color:var(--text3);white-space:nowrap">${fmtR(val).replace('R$ ','')}</div>`:''}
-        <div style="width:100%;height:${isFuturo?8:h}px;background:${isHoje?'linear-gradient(to top,#6366F1,#818CF8)':cor};border-radius:6px 6px 0 0;transition:height .4s;box-shadow:${isHoje?'0 0 12px rgba(99,102,241,.3)':'none'};opacity:${isFuturo?.3:1}"></div>
-        <div style="font-size:11px;color:${isHoje?'#818CF8':isFuturo?'rgba(255,255,255,.2)':'var(--text2)'};font-weight:${isHoje?700:400}">${diasHeat[i]}</div>
+        <div style="width:100%;height:${h}px;background:${isTop?'linear-gradient(to top,#6366F1,#818CF8)':cor};border-radius:6px 6px 0 0;transition:height .4s;box-shadow:${isTop?'0 0 12px rgba(99,102,241,.3)':'none'}"></div>
+        <div style="font-size:11px;color:${isTop?'#818CF8':'var(--text2)'};font-weight:${isTop?700:400}">${diasHeat[i]}</div>
       </div>`;
     }).join('') + '</div>' +
     `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--text3)">Semana atual · dias futuros acinzentados</span>
+      <span style="font-size:11px;color:var(--text3)">${P.label} · soma por dia da semana</span>
       ${['Baixa','Média','Alta'].map((l,i)=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3)"><span style="width:12px;height:12px;border-radius:3px;background:rgba(99,102,241,${['.15','.5','.9'][i]});display:inline-block"></span>${l}</span>`).join('')}
-      <span style="margin-left:auto;font-size:11px;color:#818CF8">Hoje destacado em azul</span>
+      <span style="margin-left:auto;font-size:11px;color:#818CF8">${diaTop>=0?'Melhor dia: '+diasHeat[diaTop]:'Sem vendas no período'}</span>
     </div>`;
 }
 
 function relExportar(tipo) {
   if (tipo === 'pdf') {
     // Abre janela de impressão do navegador — salva como PDF
-    const titulo = document.getElementById('rel-titulo-print') || null;
     window.print();
     return;
   }
 
-  // Excel — gera CSV com todos os dados
-  const mesesQtd = parseInt(document.getElementById('rel-periodo')?.value || 6);
+  // Excel — gera CSV com os dados do período selecionado
+  const P = relPeriodo();
   const hoje = new Date();
   const linhas = [];
+  const vendasP = (state.vendas||[]).filter(v=>{ const d=(v.data||'').slice(0,10); return d>=P.ini && d<=P.fim; });
 
-  // Cabeçalho
   linhas.push(['NEXUS360 — RELATÓRIO EXPORTADO', '', '', '']);
   linhas.push(['Gerado em:', hoje.toLocaleString('pt-BR'), '', '']);
-  linhas.push(['Período:', mesesQtd + ' meses', '', '']);
+  linhas.push(['Período:', P.label + ' (' + P.ini + ' a ' + P.fim + ')', '', '']);
   linhas.push(['', '', '', '']);
 
   // Vendas por mês
   linhas.push(['MÊS', 'TOTAL VENDIDO', 'QTD VENDAS', 'TICKET MÉDIO']);
-  for (let i = mesesQtd-1; i >= 0; i--) {
-    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
-    const key = d.toISOString().slice(0,7);
+  for (let i = 0; i < P.meses; i++) {
+    const d = new Date(P.iniD.getFullYear(), P.iniD.getMonth()+i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-    const vs = state.vendas.filter(v=>(v.data||'').startsWith(key));
+    const vs = vendasP.filter(v=>(v.data||'').startsWith(key));
     const total = vs.reduce((s,v)=>s+parseFloat(v.valor||0),0);
-    const ticket = vs.length > 0 ? total/vs.length : 0;
-    linhas.push([label, total.toFixed(2), vs.length, ticket.toFixed(2)]);
+    linhas.push([label, total.toFixed(2), vs.length, (vs.length ? total/vs.length : 0).toFixed(2)]);
   }
   linhas.push(['', '', '', '']);
 
-  // Top Clientes
-  linhas.push(['TOP CLIENTES', 'STATUS', 'TOTAL GASTO', 'PONTOS']);
-  [...state.clientes]
-    .sort((a,b)=>parseFloat(b.total_gasto||0)-parseFloat(a.total_gasto||0))
-    .slice(0,10)
-    .forEach(c => linhas.push([c.nome, c.status, parseFloat(c.total_gasto||0).toFixed(2), c.pontos||0]));
+  // Top Clientes (compras no período)
+  const porCli = {};
+  vendasP.forEach(v=>{
+    if (!v.cliente_id) return;
+    const e = porCli[v.cliente_id] || (porCli[v.cliente_id] = { qtd:0, total:0 });
+    e.qtd++; e.total += parseFloat(v.valor||0);
+  });
+  linhas.push(['TOP CLIENTES', 'STATUS', 'GASTO NO PERÍODO', 'COMPRAS']);
+  Object.entries(porCli)
+    .map(([id,e])=>({ c:state.clientes.find(c=>c.id==id), ...e }))
+    .filter(x=>x.c)
+    .sort((a,b)=>b.total-a.total).slice(0,10)
+    .forEach(x => linhas.push([x.c.nome, x.c.status, x.total.toFixed(2), x.qtd]));
   linhas.push(['', '', '', '']);
 
-  // Campanhas
-  linhas.push(['CAMPANHA', 'RECEITA', 'ENVIADOS', 'CONVERSÃO %']);
+  // Campanhas (vendas do período)
+  linhas.push(['CAMPANHA', 'RECEITA NO PERÍODO', 'VENDAS NO PERÍODO', 'ENVIADOS (TOTAL)']);
   (state.campanhas||[]).forEach(c => {
-    const env = c.enviados||0;
-    const conv = env>0?Math.round((c.vendas||0)/env*100):0;
-    linhas.push([c.nome, parseFloat(c.receita||0).toFixed(2), env, conv+'%']);
+    const vs = vendasP.filter(v=>v.campanha_id!=null && v.campanha_id==c.id);
+    if (!vs.length) return;
+    linhas.push([c.nome, vs.reduce((s,v)=>s+parseFloat(v.valor||0),0).toFixed(2), vs.length, c.enviados||0]);
   });
   linhas.push(['', '', '', '']);
 
-  // Funcionários
+  // Funcionários (métricas do período)
   if ((fnState.funcionarios||[]).length) {
     linhas.push(['FUNCIONÁRIO', 'CARGO', 'TOTAL VENDIDO', 'SCORE']);
-    fnState.funcionarios.filter(f=>f.status==='ativo').forEach(f => {
-      linhas.push([f.nome, f.cargo, fnTotalVendido(f.id,f.nome).toFixed(2), fnScoreRanking(f.id,f.nome)]);
-    });
+    _fnRangeOverride = { ini:P.ini, fim:P.fim, meses:P.meses };
+    try {
+      fnState.funcionarios.filter(f=>f.status==='ativo').forEach(f => {
+        linhas.push([f.nome, f.cargo, fnTotalVendido(f.id,f.nome).toFixed(2), fnScoreRanking(f.id,f.nome)]);
+      });
+    } finally { _fnRangeOverride = null; }
   }
 
   // Montar CSV
@@ -8916,11 +8987,11 @@ function relExportar(tipo) {
   ).join('\n');
 
   // BOM para Excel reconhecer UTF-8
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = 'nexus360_relatorio_' + hoje.toISOString().slice(0,10) + '.csv';
+  a.download = 'nexus360_relatorio_' + _relYMD(hoje) + '.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -14145,12 +14216,24 @@ function fnPopularSelectMes() {
   sel.innerHTML = opts.join('');
 }
 
+// Intervalo temporário {ini, fim, meses} (strings YYYY-MM-DD) usado pela aba Relatórios
+// para reaproveitar as métricas de funcionário num período diferente do filtro mensal.
+let _fnRangeOverride = null;
+
+function fnDataNoPeriodo(dataStr) {
+  return !!dataStr && dataStr >= _fnRangeOverride.ini && dataStr <= _fnRangeOverride.fim;
+}
+
 function fnVendasDoMes(fnId, fnNome) {
   const { mes, ano } = fnGetPeriodoSelecionado();
   return (state.vendas || []).filter(v => {
     if (!v.data) return false;
-    const d = new Date(v.data + 'T12:00:00');
-    if (d.getMonth() !== mes || d.getFullYear() !== ano) return false;
+    if (_fnRangeOverride) {
+      if (!fnDataNoPeriodo(v.data)) return false;
+    } else {
+      const d = new Date(v.data + 'T12:00:00');
+      if (d.getMonth() !== mes || d.getFullYear() !== ano) return false;
+    }
     if (fnId && v.funcionario_id == fnId) return true;
     if (fnNome && (v.funcionario||'').toLowerCase() === fnNome.toLowerCase()) return true;
     return false;
@@ -14239,7 +14322,10 @@ function fnFollowupsDoMes(fnId, fnNome) {
   return fnState.followups.filter(f => {
     if (!f.created_at) return false;
     const d = new Date(f.created_at);
-    if (d.getMonth() !== mes || d.getFullYear() !== ano) return false;
+    if (_fnRangeOverride) {
+      const local = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if (!fnDataNoPeriodo(local)) return false;
+    } else if (d.getMonth() !== mes || d.getFullYear() !== ano) return false;
     if (fnId && f.funcionario_id == fnId) return true;
     if (fnNome && (f.funcionario_nome||'').toLowerCase() === fnNome.toLowerCase()) return true;
     return false;
@@ -14250,7 +14336,7 @@ function fnFollowupsDoMes(fnId, fnNome) {
 function fnScoreAtendimento(fnId, fnNome) {
   const vendas      = fnVendasDoMes(fnId, fnNome);
   const total       = fnTotalVendido(fnId, fnNome);
-  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId));
+  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId)) * (_fnRangeOverride?.meses || 1);
   const recorrentes = fnClientesRecorrentes(fnId, fnNome);
   const recuperados = fnClientesRecuperados(fnId, fnNome);
   const followups   = fnFollowupsDoMes(fnId, fnNome).length;
@@ -14276,7 +14362,7 @@ function fnNivelAtendimento(score) {
 // Score inteligente para ranking (não só valor vendido)
 function fnScoreRanking(fnId, fnNome) {
   const total       = fnTotalVendido(fnId, fnNome);
-  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId));
+  const meta        = fnMetaMensal(fnState.funcionarios.find(f=>f.id==fnId)) * (_fnRangeOverride?.meses || 1);
   const ticket      = fnTicketMedio(fnId, fnNome);
   const score_atend = fnScoreAtendimento(fnId, fnNome);
   const recuperados = fnClientesRecuperados(fnId, fnNome);
