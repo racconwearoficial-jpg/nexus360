@@ -1339,7 +1339,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
         <div class="rel-actions">
           <select id="rel-periodo" onchange="renderRelatorios()" class="rel-select">
-            <option value="1">Último mês</option>
             <option value="1">Este mês</option>
             <option value="ant">Mês passado</option>
             <option value="3">Últimos 3 meses</option>
@@ -8643,7 +8642,7 @@ function renderRelatorios() {
     { icon:'↑',  lbl:'Crescimento',          val: crescimento===null ? '—' : fmtPct(crescimento), sub: crescimento===null ? 'sem período anterior p/ comparar' : P.meses===1?'vs mês anterior':'vs '+P.meses+' meses anteriores', cor:crescCor, bg:crescBg },
     { icon:'≈',  lbl:'Ticket Médio',         val: fmtR(ticketMedio),   sub: totalVendas+' venda'+(totalVendas===1?'':'s')+' no período', cor:'#8B5CF6', bg:'rgba(139,92,246,.1)' },
     { icon:'%',  lbl:'Conversão CRM',        val: convCRM+'%',         sub: crmFechados+'/'+crmTotal+' leads no período', cor:'#F59E0B', bg:'rgba(245,158,11,.1)' },
-    { icon:'★',  lbl:'Clientes no Período',  val: nCompradores,        sub: vipsPeriodo+' VIP · '+novosPeriodo+' novo'+(novosPeriodo===1?'':'s'), cor:'#A78BFA', bg:'rgba(167,139,250,.1)' },
+    { icon:'★',  lbl:'Clientes no Período',  val: nCompradores,        sub: 'de '+clientes.length+' cadastrados · '+vipsPeriodo+' VIP', cor:'#A78BFA', bg:'rgba(167,139,250,.1)' },
     { icon:'⟳',  lbl:'ROI Campanhas',        val: fmtR(roiTotal),      sub: campsP.length+' campanha'+(campsP.length===1?'':'s')+' com vendas', cor:'#10B981', bg:'rgba(16,185,129,.1)' },
   ];
 
@@ -8704,7 +8703,7 @@ function renderRelatorios() {
   const segs = [
     {lbl:'VIP (compraram)',    val:vipsPeriodo,   cor:'#8B5CF6'},
     {lbl:'Ativos (compraram)', val:ativosPeriodo, cor:'#10B981'},
-    {lbl:'Sem compra',         val:semCompra,     cor:'#64748B'},
+    {lbl:'Sem compra',         val:semCompra,     cor:'#EF4444'},
   ].map(s=>({ ...s, pct:Math.round(s.val/total*100) }));
   let offset = 0;
   const r = 50, cx = 60, cy = 60, circ = 2*Math.PI*r;
@@ -8910,7 +8909,7 @@ function renderRelatorios() {
       </div>`;
     }).join('') + '</div>' +
     `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--text3)">${P.label} · soma por dia da semana</span>
+      <span style="font-size:11px;color:var(--text3)">${P.label} · total de cada dia da semana no período</span>
       ${['Baixa','Média','Alta'].map((l,i)=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3)"><span style="width:12px;height:12px;border-radius:3px;background:rgba(99,102,241,${['.15','.5','.9'][i]});display:inline-block"></span>${l}</span>`).join('')}
       <span style="margin-left:auto;font-size:11px;color:#818CF8">${diaTop>=0?'Melhor dia: '+diasHeat[diaTop]:'Sem vendas no período'}</span>
     </div>`;
