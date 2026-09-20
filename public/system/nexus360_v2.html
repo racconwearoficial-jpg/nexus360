@@ -8564,6 +8564,9 @@ function renderRelatorios() {
   const receitaTotal = soma(vendasP, v=>v.valor);
   const totalVendas  = vendasP.length;
   const ticketMedio  = totalVendas>0 ? receitaTotal/totalVendas : 0;
+  // Média de faturamento por dia no período (até hoje, quando o período inclui hoje)
+  const diasPeriodo = Math.max(1, Math.round((new Date(P.cmpFim+'T12:00:00') - new Date(P.ini+'T12:00:00')) / 86400000) + 1);
+  const receitaMediaDia = receitaTotal / diasPeriodo;
 
   // Crescimento: período atual vs período anterior equivalente
   const receitaCmp  = soma(vendasP.filter(v=>(v.data||'').slice(0,10) <= P.cmpFim), v=>v.valor);
@@ -8638,7 +8641,7 @@ function renderRelatorios() {
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
   const kpis = [
-    { icon:'$',  lbl:'Receita Total',        val: fmtR(receitaTotal),  sub: P.label,                              cor:'#6366F1', bg:'rgba(99,102,241,.1)' },
+    { icon:'$',  lbl:'Receita Total',        val: fmtR(receitaTotal),  sub: P.label+' · média '+fmtR(receitaMediaDia)+'/dia',                              cor:'#6366F1', bg:'rgba(99,102,241,.1)' },
     { icon:'↑',  lbl:'Crescimento',          val: crescimento===null ? '—' : fmtPct(crescimento), sub: crescimento===null ? 'sem período anterior p/ comparar' : P.meses===1?'vs mês anterior':'vs '+P.meses+' meses anteriores', cor:crescCor, bg:crescBg },
     { icon:'≈',  lbl:'Ticket Médio',         val: fmtR(ticketMedio),   sub: totalVendas+' venda'+(totalVendas===1?'':'s')+' no período', cor:'#8B5CF6', bg:'rgba(139,92,246,.1)' },
     { icon:'%',  lbl:'Conversão CRM',        val: convCRM+'%',         sub: crmFechados+'/'+crmTotal+' leads no período', cor:'#F59E0B', bg:'rgba(245,158,11,.1)' },
@@ -9928,7 +9931,7 @@ RELATÓRIOS: vendas por mês, ROI de campanhas, funil CRM, atividade de clientes
 FUNCIONÁRIOS (só admin): módulo completo de gestão de equipe com 6 abas:
 - Dashboard: KPIs da equipe (total vendido, ativos hoje, melhor score, ticket médio, meta geral, clientes recuperados, follow-ups), alertas automáticos, gráfico de vendas por funcionário, gráfico semanal, top performers com score inteligente.
   Gráfico Vendas por Funcionário: a barra de cada pessoa é proporcional à meta dela (não ao maior vendedor), fica verde só ao chegar a 100% e mostra o percentual da meta e o nível de atendimento.
-  Desempenho Semanal: barras dos últimos 7 dias e seis cartões: Total 7 dias, Melhor dia, Dias com venda, Média por dia (dividida só pelos dias com venda), Funcionário da semana (quem mais vendeu nos últimos 7 dias) e Vs. semana anterior (variação percentual contra os 7 dias anteriores).
+  Desempenho do mês: barras por dia do mês escolhido (com linha da média) e seis cartões: Total do mês (ou até hoje), Média por dia (faturamento médio por dia do período), Melhor dia, Dias com venda, Funcionário do mês e Vs. mês anterior (variação contra os mesmos dias do mês anterior).
 - Equipe: lista de funcionários com avatar, cargo, vendas do mês, ticket médio, score de atendimento, progresso da meta. Ações: Ver perfil, Editar, Follow-up, WhatsApp.
 - Metas: cadastrar metas individuais ou por equipe (valor vendido, qtd vendas, novos clientes, ticket médio). Período: mensal, semanal, diário. Barra de progresso com % e valor faltante. Uma meta "Toda a equipe" mostra o total vendido pela equipe inteira.
   A meta mensal de cada funcionário em todo o módulo (Dashboard, Equipe, Ranking, Comissões, Perfil) vem desta aba: vale a meta individual de valor vendido mensal; se não houver, vale a meta mensal de valor vendido cadastrada para a equipe, aplicada a cada funcionário (por exemplo R$ 10.000 por vendedor); se também não houver, usa o campo Meta mensal do cadastro do funcionário, e por último R$ 5.000.
@@ -14601,74 +14604,71 @@ function fnRenderDashboard() {
     </div>`;
   }).join('') : '<div style="color:var(--text3);font-size:13px;padding:20px 0">Nenhum funcionário cadastrado</div>';
 
-  // Gráfico desempenho semanal
-  // Janela de 7 dias: termina hoje (mes atual) ou no ultimo dia do mes escolhido no seletor
-  const { mes: mesSemana, ano: anoSemana } = fnGetPeriodoSelecionado();
-  const agoraSemana = new Date();
-  const fimSemana = (mesSemana === agoraSemana.getMonth() && anoSemana === agoraSemana.getFullYear())
-    ? agoraSemana : new Date(anoSemana, mesSemana + 1, 0);
+  // Desempenho do mês escolhido: barras por dia, média de faturamento por dia e comparação com o mês anterior
+  const { mes: mesDes, ano: anoDes } = fnGetPeriodoSelecionado();
+  const agoraDes   = new Date();
+  const ehMesAtual = mesDes === agoraDes.getMonth() && anoDes === agoraDes.getFullYear();
+  const diasNoMes  = new Date(anoDes, mesDes + 1, 0).getDate();
+  const diasBase   = ehMesAtual ? agoraDes.getDate() : diasNoMes;   // dias já decorridos (mês atual) ou o mês inteiro
+  const doFunc     = v => fns.some(f => v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase());
+  const totalPorData = {};
+  (state.vendas||[]).forEach(v => { if (v.data && doFunc(v)) totalPorData[v.data] = (totalPorData[v.data]||0) + parseFloat(v.valor||0); });
   const dias = [];
-  for (let i=6; i>=0; i--) {
-    const d = new Date(fimSemana); d.setDate(d.getDate()-i);
+  for (let n=1; n<=diasNoMes; n++) {
+    const d  = new Date(anoDes, mesDes, n);
     const ds = _relYMD(d);
-    const total = (state.vendas||[]).filter(v => {
-      if (v.data !== ds) return false;
-      return fns.some(f => v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase());
-    }).reduce((s,v)=>s+parseFloat(v.valor||0),0);
-    dias.push({ label: d.toLocaleDateString('pt-BR',{weekday:'short'}), val: total, ds });
+    dias.push({ n, ds, label: d.toLocaleDateString('pt-BR',{weekday:'short'}), val: totalPorData[ds]||0, futuro: n > diasBase });
   }
-  const tituloSemana = document.getElementById('fn-semana-titulo');
-  if (tituloSemana) { const dm = ds => ds.slice(8,10) + '/' + ds.slice(5,7); tituloSemana.textContent = 'Desempenho Semanal · ' + dm(dias[0].ds) + ' a ' + dm(dias[dias.length-1].ds); }
-  const maxDia = Math.max(...dias.map(d=>d.val),1);
+  const dmData = ds => ds.slice(8,10) + '/' + ds.slice(5,7);
+  const diasPassados  = dias.filter(d=>!d.futuro);
+  const totalMes      = diasPassados.reduce((s,d)=>s+d.val,0);
+  const diasComVenda  = diasPassados.filter(d=>d.val>0).length;
+  const mediaDia      = diasBase ? totalMes/diasBase : 0;                       // faturamento médio por dia do período
+  const mediaComVenda = diasComVenda ? totalMes/diasComVenda : 0;
+  const melhorDia     = diasPassados.reduce((m,d)=>d.val>m.val?d:m, { val:0 });
+  const nomeMes       = new Date(anoDes, mesDes, 1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const tituloDes     = document.getElementById('fn-semana-titulo');
+  if (tituloDes) tituloDes.textContent = 'Desempenho do mês · ' + nomeMes;
+
+  const maxDia = Math.max(...dias.map(d=>d.val), mediaDia, 1);
   document.getElementById('fn-chart-semana').innerHTML =
-    `<div style="display:flex;align-items:flex-end;gap:6px;height:160px">` +
+    `<div style="position:relative;height:150px;display:flex;align-items:flex-end;gap:2px">` +
+    (mediaDia>0 ? `<div title="Média por dia: ${fnFmt(mediaDia)}" style="position:absolute;left:0;right:0;bottom:${(mediaDia/maxDia*100).toFixed(1)}%;border-top:1px dashed rgba(245,158,11,.8);pointer-events:none"></div>` : '') +
     dias.map(d => {
-      const h = Math.max(4, Math.round(d.val/maxDia*100));
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end">
-        ${d.val>0?`<div style="font-size:9px;color:var(--text3);white-space:nowrap">${fnFmt(d.val).replace('R$ ','')}</div>`:''}
-        <div style="width:100%;height:${h}%;background:linear-gradient(to top,#6366F1,#8B5CF6);border-radius:4px 4px 0 0;min-height:4px"></div>
-        <div style="font-size:9px;color:var(--text3);text-transform:capitalize">${d.label}</div>
+      const h = d.val>0 ? Math.max(3, Math.round(d.val/maxDia*100)) : 0;
+      return `<div title="${dmData(d.ds)} (${d.label}): ${fnFmt(d.val)}" style="flex:1;height:100%;display:flex;align-items:flex-end;opacity:${d.futuro?.25:1}">
+        <div style="width:100%;height:${h||2}%;min-height:2px;background:${d.val>0?'linear-gradient(to top,#6366F1,#8B5CF6)':'rgba(255,255,255,.07)'};border-radius:2px 2px 0 0"></div>
       </div>`;
-    }).join('') + '</div>';
+    }).join('') + '</div>' +
+    `<div style="display:flex;gap:2px;margin-top:4px">` +
+    dias.map(d => `<div style="flex:1;text-align:center;font-size:8px;color:var(--text3)">${(d.n===1||d.n%5===0||d.n===diasNoMes)?d.n:''}</div>`).join('') + '</div>' +
+    `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--text3)"><span style="width:14px;border-top:1px dashed rgba(245,158,11,.8)"></span>Média por dia: ${fnFmt(mediaDia)}</div>`;
 
-  // Métricas da semana
-  const totalSemana  = dias.reduce((s,d)=>s+d.val,0);
-  const melhorDia    = dias.reduce((m,d)=>d.val>m.val?d:m, dias[0]);
-  const diasComVenda = dias.filter(d=>d.val>0).length;
-  const mediaHoje    = diasComVenda ? (totalSemana/diasComVenda) : 0;
-  const metricasEl   = document.getElementById('fn-chart-semana-metricas');
+  const metricasEl = document.getElementById('fn-chart-semana-metricas');
 
-  // Funcionário da semana: quem mais vendeu nos últimos 7 dias
-  const datasSemana = new Set(dias.map(d=>d.ds));
-  const daSemana = fns.map(f => {
-    const vds = (state.vendas||[]).filter(v => datasSemana.has(v.data) &&
-      (v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase()));
-    return { nome: f.nome, total: vds.reduce((s,v)=>s+parseFloat(v.valor||0),0), qtd: vds.length };
-  }).sort((a,b)=>b.total-a.total)[0];
+  // Funcionário do mês: quem mais vendeu no mês escolhido
+  const daSemana = fns.map(f => ({ nome: f.nome, total: fnTotalVendido(f.id,f.nome), qtd: fnVendasDoMes(f.id,f.nome).length }))
+    .sort((a,b)=>b.total-a.total)[0];
 
-  // Semana anterior (7 dias imediatamente antes) para comparação
+  // Mês anterior: mesmos dias do mês (1 até diasBase) para comparação justa
+  const mesPrev = new Date(anoDes, mesDes - 1, 1);
+  const limitePrev = Math.min(diasBase, new Date(mesPrev.getFullYear(), mesPrev.getMonth() + 1, 0).getDate());
   let totalAnterior = 0;
-  for (let i=13; i>=7; i--) {
-    const d = new Date(fimSemana); d.setDate(d.getDate()-i);
-    const ds = _relYMD(d);
-    totalAnterior += (state.vendas||[]).filter(v => v.data===ds &&
-      fns.some(f => v.funcionario_id==f.id || (v.funcionario||'').toLowerCase()===f.nome.toLowerCase())
-    ).reduce((s,v)=>s+parseFloat(v.valor||0),0);
-  }
-  const variacao = totalAnterior > 0 ? Math.round((totalSemana-totalAnterior)/totalAnterior*100) : null;
+  for (let n=1; n<=limitePrev; n++) totalAnterior += totalPorData[_relYMD(new Date(mesPrev.getFullYear(), mesPrev.getMonth(), n))] || 0;
+  const variacao = totalAnterior > 0 ? Math.round((totalMes-totalAnterior)/totalAnterior*100) : null;
   const corVar = variacao===null ? '#94A3B8' : variacao>=0 ? '#10B981' : '#EF4444';
   const txtVar = variacao===null ? '—' : (variacao>=0?'▲ +':'▼ ')+variacao+'%';
 
   if (metricasEl) metricasEl.innerHTML = [
-    { lbl:'Total 7 dias',   val: fnFmt(totalSemana), cor:'#6366F1' },
-    { lbl:'Melhor dia',     val: melhorDia?.label||'—', cor:'#8B5CF6' },
-    { lbl:'Dias com venda', val: diasComVenda+' de 7', cor:'#10B981' },
-    { lbl:'Média por dia',  val: fnFmt(mediaHoje), cor:'#F59E0B' },
-    { lbl:'Funcionário da semana',
+    { lbl: ehMesAtual ? 'Total até hoje' : 'Total do mês', val: fnFmt(totalMes), cor:'#6366F1' },
+    { lbl:'Média por dia',  val: fnFmt(mediaDia), cor:'#F59E0B', sub: ehMesAtual ? `em ${diasBase} dia${diasBase===1?'':'s'} (até hoje)` : `em ${diasBase} dias` },
+    { lbl:'Melhor dia',     val: melhorDia.val>0 ? dmData(melhorDia.ds) : '—', cor:'#8B5CF6', sub: melhorDia.val>0 ? `${fnFmt(melhorDia.val)} · ${melhorDia.label}` : '' },
+    { lbl:'Dias com venda', val: diasComVenda+' de '+diasBase, cor:'#10B981', sub: diasComVenda ? `média de ${fnFmt(mediaComVenda)} nesses dias` : '' },
+    { lbl:'Funcionário do mês',
       val: daSemana && daSemana.total>0 ? daSemana.nome.split(' ')[0] : '—', cor:'#F59E0B',
-      sub: daSemana && daSemana.total>0 ? `${fnFmt(daSemana.total)} · ${daSemana.qtd} venda${daSemana.qtd===1?'':'s'}` : 'sem vendas na semana' },
-    { lbl:'Vs. semana anterior', val: txtVar, cor: corVar,
-      sub: totalAnterior>0 ? `${fnFmt(totalAnterior)} nos 7 dias antes` : 'sem dados da semana anterior' },
+      sub: daSemana && daSemana.total>0 ? `${fnFmt(daSemana.total)} · ${daSemana.qtd} venda${daSemana.qtd===1?'':'s'}` : 'sem vendas no mês' },
+    { lbl:'Vs. mês anterior', val: txtVar, cor: corVar,
+      sub: totalAnterior>0 ? `${fnFmt(totalAnterior)} nos mesmos ${limitePrev} dias` : 'sem dados do mês anterior' },
   ].map(k=>`<div style="padding:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px">
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${k.lbl}</div>
     <div style="font-size:20px;font-weight:800;color:${k.cor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${k.val}</div>
@@ -14993,29 +14993,33 @@ function fnRenderHistorico() {
     return true;
   }).forEach(v => {
     const cli = (state.clientes||[]).find(c=>c.id==v.cliente_id);
-    eventos.push({ ts: v.created_at || v.data+'T12:00:00', icon:'$', cor:'rgba(16,185,129,.15)', txt:`<strong>${v.funcionario||''}</strong> registrou venda de <strong>${fnFmt(v.valor)}</strong>${cli?' para '+cli.nome:''}`, sub: v.itens||'' });
+    eventos.push({ ts: (v.data||'')+'T12:00:00', soData:true, ord: v.created_at||'', tipo:'venda', valor: parseFloat(v.valor||0), icon:'$', cor:'rgba(16,185,129,.15)', txt:`<strong>${v.funcionario||''}</strong> registrou venda de <strong>${fnFmt(v.valor)}</strong>${cli?' para '+cli.nome:''}`, sub: v.itens||'' });
   });
 
   // Follow-ups
   fnState.followups.filter(f => {
     if (fnFiltroId && f.funcionario_id != fnFiltroId) return false;
-    if (dataIni && (f.created_at||'') < dataIni) return false;
-    if (dataFim && (f.created_at||'') > dataFim) return false;
+    const diaF = _relDiaLocal(f.created_at);
+    if (dataIni && diaF < dataIni) return false;
+    if (dataFim && diaF > dataFim) return false;
     return true;
   }).forEach(f => {
     const cli = (state.clientes||[]).find(c=>c.id==f.cliente_id);
     const tipoIcon = {ligacao:'Tel',whatsapp:'Msg',email:'Email',visita:'Visit'}[f.tipo]||'Log';
-    eventos.push({ ts: f.created_at, icon: tipoIcon, cor:'rgba(99,102,241,.1)', txt:`<strong>${f.funcionario_nome||''}</strong> realizou follow-up${cli?' com '+cli.nome:''}`, sub: f.observacao||f.tipo });
+    eventos.push({ ts: f.created_at, tipo:'followup', icon: tipoIcon, cor:'rgba(99,102,241,.1)', txt:`<strong>${f.funcionario_nome||''}</strong> realizou follow-up${cli?' com '+cli.nome:''}`, sub: f.observacao||f.tipo });
   });
 
-  eventos.sort((a,b)=>b.ts>a.ts?1:-1);
-  eventos = eventos.slice(0,60);
+  // Todos os registros do periodo (antes cortava em 60): mais recentes primeiro; no mesmo dia, pelo horario de registro
+  eventos.sort((a,b)=> a.ts===b.ts ? String(b.ord||'').localeCompare(String(a.ord||'')) : (b.ts>a.ts?1:-1));
+  const nVendas = eventos.filter(e=>e.tipo==='venda').length;
+  const totVendas = eventos.reduce((t,e)=>t+(e.tipo==='venda'?e.valor:0),0);
+  const nFollow = eventos.length - nVendas;
 
   const el = document.getElementById('fn-historico-lista');
   if (!eventos.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">Nenhum registro encontrado</div>'; return; }
 
-  el.innerHTML = '<div class="card">' + eventos.map(ev => {
-    const dt = ev.ts ? new Date(ev.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+  el.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:10px">${nVendas} venda${nVendas===1?'':'s'} · ${fnFmt(totVendas)} · ${nFollow} follow-up${nFollow===1?'':'s'} no período</div>` + '<div class="card">' + eventos.map(ev => {
+    const dt = !ev.ts ? '—' : ev.soData ? new Date(ev.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) : new Date(ev.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     return `<div class="fn-timeline-item">
       <div class="fn-timeline-icon" style="background:${ev.cor}">${ev.icon}</div>
       <div style="flex:1;min-width:0">
