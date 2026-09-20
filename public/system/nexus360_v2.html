@@ -14238,6 +14238,28 @@ div[style*="height:3px;background:linear-gradient(90deg,#4F46E5,#8B5CF6)"]{backg
 .cal-cell.today .cal-day-num{background:linear-gradient(135deg,#3B2B6E,#211640);box-shadow:inset 0 0 0 1px rgba(167,139,250,.35)}
 .cal-today-item:hover{border-color:rgba(167,139,250,.22)}
 .btn:focus-visible,#chatBtn:focus-visible{outline:2px solid #A78BFA;outline-offset:2px}
+/* ── iPad (769-1024 px): corrige o layout deformado ──────────────────────────────
+   O original tentava um trilho de 62px, mas o menu tem min-width:220px (nao encolhia), o conteudo
+   ainda recebia margin-left:62px (vao + tela espremida) e os nomes nao eram ocultados. Mantem-se o
+   menu completo (com Modo de uso e Sair da conta) e remove-se a margem. */
+@media (min-width:769px) and (max-width:1024px){
+  #main{margin-left:0!important;min-width:0}
+  #sidebar{width:220px!important;min-width:220px!important}
+  #sidebar .logo-title,#sidebar .logo-sub,#sidebar .nav-section-label{display:block!important}
+  #sidebar .nav-item{justify-content:flex-start!important;padding:9px 12px!important;gap:12px!important}
+  #content{padding:18px 16px}
+}
+/* Safari do iPad: 100vh inclui a barra de enderecos (rodape do menu/conteudo escondido) -> usa 100dvh */
+@supports (height:100dvh){
+  @media (min-width:769px){
+    body{min-height:100dvh}
+    #sidebar,#main{height:100dvh}
+  }
+}
+/* Safari do iPad amplia a pagina ao tocar em campos com fonte menor que 16px */
+@media (hover:none) and (pointer:coarse) and (min-width:769px){
+  input,select,textarea{font-size:16px}
+}
 @media (prefers-reduced-motion:reduce){#sidebar .nav-item,#sidebar .nav-item::before{transition:none}#sidebar .nav-item:hover{transform:none}}
 </style>
 <!-- REDESIGN FIM -->
