@@ -1339,10 +1339,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
         <div class="rel-actions">
           <select id="rel-periodo" onchange="renderRelatorios()" class="rel-select">
-            <option value="1">Este mês</option>
+            <option value="1" selected>Este mês</option>
             <option value="ant">Mês passado</option>
             <option value="3">Últimos 3 meses</option>
-            <option value="6" selected>Últimos 6 meses</option>
+            <option value="6">Últimos 6 meses</option>
             <option value="12">Últimos 12 meses</option>
           </select>
           <button class="btn btn-ghost rel-btn-export" onclick="relExportar('pdf')">
@@ -8529,7 +8529,7 @@ function _relShiftMes(d, n) {
 // Período escolhido no seletor da aba Relatórios, com o período anterior equivalente
 // (mesmo tamanho; se o período inclui hoje, compara só até o mesmo dia do mês).
 function relPeriodo() {
-  const val  = document.getElementById('rel-periodo')?.value || '6';
+  const val  = document.getElementById('rel-periodo')?.value || '1';
   const hoje = new Date();
   const y = hoje.getFullYear(), m = hoje.getMonth();
   const hojeStr = _relYMD(hoje);
