@@ -8923,10 +8923,209 @@ function renderRelatorios() {
     </div>`;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// RELATÓRIO EM PDF — documento próprio para impressão (não imprime mais a tela do sistema)
+// Monta o relatório completo do período escolhido em #rel-print-root e chama window.print();
+// durante a impressão só esse bloco fica visível (ver estilo #redesign-print).
+// ═══════════════════════════════════════════════════════════════════════════
+async function relGerarPdf() {
+  try { if (!(fnState.funcionarios||[]).length && typeof fnLoadAll === 'function') await fnLoadAll(); } catch(e) { console.warn('[PDF] funcionários:', e); }
+  try { renderRelatorios(); } catch(e) {}                       // sincroniza cartões/insights da tela com o período escolhido
+
+  const P = relPeriodo();
+  const esc  = t => String(t==null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmtR = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtN = v => parseInt(v||0).toLocaleString('pt-BR');
+  const soma = (arr, f) => arr.reduce((s,x) => s + parseFloat(f(x)||0), 0);
+  const dia  = v => (v.data||'').slice(0,10);
+  const dm   = ds => ds.slice(8,10) + '/' + ds.slice(5,7);
+  const dmy  = ds => dm(ds) + '/' + ds.slice(0,4);
+  const SEM  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const hoje = new Date();
+  const empresa = ((document.getElementById('topbarBusiness')||{}).textContent || '').trim();
+  const noPer = d => !!d && d >= P.ini && d <= P.fim;
+
+  // ── Vendas do período ───────────────────────────────────────────────────────
+  const vendas  = state.vendas || [];
+  const vendasP = vendas.filter(v => noPer(dia(v)));
+  const receita = soma(vendasP, v => v.valor);
+  const nVendas = vendasP.length;
+  const ticket  = nVendas ? receita / nVendas : 0;
+  const diasPeriodo = Math.max(1, Math.round((new Date(P.cmpFim+'T12:00:00') - new Date(P.ini+'T12:00:00')) / 86400000) + 1);
+  const mediaDia = receita / diasPeriodo;
+  const receitaCmp  = soma(vendasP.filter(v => dia(v) <= P.cmpFim), v => v.valor);
+  const receitaPrev = soma(vendas.filter(v => { const d = dia(v); return d >= P.prevIni && d <= P.prevFim; }), v => v.valor);
+  const cresc = receitaPrev > 0 ? Math.round((receitaCmp - receitaPrev) / receitaPrev * 100) : null;
+
+  const porDia = {};
+  vendasP.forEach(v => { const d = dia(v); const e = porDia[d] || (porDia[d] = { q:0, t:0 }); e.q++; e.t += parseFloat(v.valor||0); });
+  const datasVenda = Object.keys(porDia).sort();
+  const melhorDia  = datasVenda.reduce((m, d) => (!m || porDia[d].t > porDia[m].t) ? d : m, null);
+
+  // Por mês
+  const porMes = [];
+  for (let i = 0; i < P.meses; i++) {
+    const d = new Date(P.iniD.getFullYear(), P.iniD.getMonth() + i, 1);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    const vs = vendasP.filter(v => dia(v).startsWith(key));
+    const rot = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); porMes.push({ label: rot.charAt(0).toUpperCase() + rot.slice(1), q: vs.length, t: soma(vs, v => v.valor) });
+  }
+  const maxMes = Math.max(...porMes.map(m => m.t), 1);
+
+  // Por dia da semana (média por ocorrência, contando só até hoje)
+  const semTot = Array(7).fill(0), semOcc = Array(7).fill(0), semQtd = Array(7).fill(0);
+  vendasP.forEach(v => { const dd = dia(v); if (!dd) return; const w = new Date(dd+'T12:00:00').getDay(); semTot[w] += parseFloat(v.valor||0); semQtd[w]++; });
+  for (const d = new Date(P.ini+'T12:00:00'); d <= new Date(P.cmpFim+'T12:00:00'); d.setDate(d.getDate()+1)) semOcc[d.getDay()]++;
+  const semMed = semTot.map((t,i) => semOcc[i] ? t / semOcc[i] : 0);
+  const maxSem = Math.max(...semMed, 1);
+
+  // ── Clientes ────────────────────────────────────────────────────────────────
+  const clientes = state.clientes || [];
+  const cliById = {}; clientes.forEach(c => { cliById[String(c.id)] = c; });
+  const compras = {};
+  vendasP.forEach(v => {
+    if (!v.cliente_id) return;
+    const k = String(v.cliente_id); if (!cliById[k]) return;
+    const e = compras[k] || (compras[k] = { qtd:0, total:0 }); e.qtd++; e.total += parseFloat(v.valor||0);
+  });
+  const idsComp   = Object.keys(compras);
+  const nComp     = idsComp.length;
+  const nVipComp  = idsComp.filter(k => cliById[k].status === 'vip').length;
+  const nRecorr   = idsComp.filter(k => compras[k].qtd >= 2).length;
+  const nNovos    = clientes.filter(c => noPer(_relDiaLocal(c.created_at))).length;
+  const nBase     = { ativo: clientes.filter(c=>c.status==='ativo').length, vip: clientes.filter(c=>c.status==='vip').length, inativo: clientes.filter(c=>c.status==='inativo').length };
+  const nSemCli   = vendasP.filter(v => !v.cliente_id).length;
+  const topCli = idsComp.map(k => ({ c: cliById[k], ...compras[k] })).sort((a,b) => b.total - a.total).slice(0, 15);
+
+  // ── Categorias (texto antes do " — " no campo itens) ────────────────────────
+  const cats = {};
+  vendasP.forEach(v => {
+    const raw = String(v.itens||'').split(/\s[—–]\s/)[0].trim();
+    const k = raw ? raw.toLowerCase() : '(sem categoria)';
+    const e = cats[k] || (cats[k] = { nome: raw || 'Sem categoria', q:0, t:0 }); e.q++; e.t += parseFloat(v.valor||0);
+  });
+  const listaCats = Object.values(cats).sort((a,b) => b.t - a.t).slice(0, 10);
+  const temCats = listaCats.some(c => c.nome !== 'Sem categoria');
+
+  // ── Campanhas ───────────────────────────────────────────────────────────────
+  const campsP = (state.campanhas||[]).map(c => {
+    const vs = vendasP.filter(v => v.campanha_id != null && v.campanha_id == c.id);
+    return { nome: c.nome, tipo: c.tipo || '', q: vs.length, t: soma(vs, v => v.valor), env: c.enviados || 0 };
+  }).filter(c => c.q > 0).sort((a,b) => b.t - a.t);
+  const receitaCamp = soma(campsP, c => c.t);
+
+  // ── CRM ─────────────────────────────────────────────────────────────────────
+  const crm = (state.crmCards||[]).filter(c => noPer(_relDiaLocal(c.created_at)));
+  const etapasOrd = ['Lead','Contato','Proposta','Negociação','Fechado'];
+  const etapasAch = [...new Set(crm.map(c => c.etapa).filter(Boolean))];
+  const etapas = etapasOrd.filter(e => etapasAch.includes(e)).concat(etapasAch.filter(e => !etapasOrd.includes(e)));
+  const crmFech = crm.filter(c => c.etapa === 'Fechado').length;
+  const convCRM = crm.length ? Math.round(crmFech / crm.length * 100) : 0;
+
+  // ── Funcionários (métricas do período) ──────────────────────────────────────
+  let linhasFn = [];
+  const fnsAtivos = (fnState.funcionarios||[]).filter(f => f.status === 'ativo');
+  if (fnsAtivos.length) {
+    _fnRangeOverride = { ini:P.ini, fim:P.fim, meses:P.meses };
+    try {
+      linhasFn = fnsAtivos.map(f => {
+        const tot = fnTotalVendido(f.id, f.nome), q = fnVendasDoMes(f.id, f.nome).length, meta = fnMetaMensal(f) * P.meses;
+        return { nome: f.nome, cargo: f.cargo || '', tot, q, ticket: q ? tot/q : 0, meta, pct: meta > 0 ? Math.round(tot/meta*100) : 0, score: fnScoreRanking(f.id, f.nome) };
+      }).sort((a,b) => b.tot - a.tot);
+    } catch(e) { console.warn('[PDF] métricas de funcionários:', e); }
+    finally { _fnRangeOverride = null; }
+  }
+
+  // ── Insights da tela ────────────────────────────────────────────────────────
+  const insights = [...document.querySelectorAll('#rel-insights .rel-insight-card')].map(c => ({
+    t: (c.querySelector('.rel-insight-titulo')||{}).textContent || '', x: (c.querySelector('.rel-insight-txt')||{}).textContent || '' })).filter(i => i.t || i.x);
+
+  // ── Montagem do HTML ────────────────────────────────────────────────────────
+  const kpi = (lbl, val, sub) => `<div class="rp-kpi"><small>${esc(lbl)}</small><b>${esc(val)}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</div>`;
+  const barra = (v, max) => `<span class="rp-bar" style="width:${max > 0 ? Math.max(2, Math.round(v/max*100)) : 0}%"></span>`;
+  const secao = (titulo, corpo) => `<section class="rp-sec"><h2>${esc(titulo)}</h2>${corpo}</section>`;
+  const tabela = (cab, linhas) => `<table><thead><tr>${cab.map(c => `<th${c[1] ? ' class="n"' : ''}>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>${linhas.join('')}</tbody></table>`;
+  const stat = s => s === 'vip' ? 'VIP' : (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+  const vazio = txt => `<p class="rp-vazio">${esc(txt)}</p>`;
+
+  let h = '';
+  h += `<div class="rp"><header class="rp-head"><div><div class="rp-brand">NEXUS<span>360</span></div><div class="rp-sub">Relatório de desempenho${empresa && empresa !== 'Carregando...' ? ' · ' + esc(empresa) : ''}</div></div>
+    <div class="rp-meta"><b>Período: ${esc(P.label)}</b><br>${dmy(P.ini)} a ${dmy(P.fim)}${P.incluiHoje ? ' (até ' + dmy(P.cmpFim) + ')' : ''}<br>Comparação: ${dmy(P.prevIni)} a ${dmy(P.prevFim)}<br>Gerado em ${esc(hoje.toLocaleString('pt-BR'))}</div></header>`;
+
+  h += secao('Resumo do período', `<div class="rp-kpis">` + [
+    kpi('Receita total', fmtR(receita), P.label),
+    kpi('Vendas registradas', fmtN(nVendas), nSemCli ? fmtN(nSemCli) + ' sem cliente identificado' : ''),
+    kpi('Ticket médio', fmtR(ticket), ''),
+    kpi('Média por dia', fmtR(mediaDia), 'em ' + diasPeriodo + ' dia' + (diasPeriodo === 1 ? '' : 's') + (P.incluiHoje ? ' (até hoje)' : '')),
+    kpi('Crescimento', cresc === null ? '—' : (cresc >= 0 ? '+' : '') + cresc + '%', cresc === null ? 'sem período anterior para comparar' : 'vs ' + fmtR(receitaPrev) + ' (' + dm(P.prevIni) + ' a ' + dm(P.prevFim) + ')'),
+    kpi('Melhor dia', melhorDia ? dmy(melhorDia) : '—', melhorDia ? fmtR(porDia[melhorDia].t) + ' · ' + porDia[melhorDia].q + ' venda' + (porDia[melhorDia].q === 1 ? '' : 's') : ''),
+    kpi('Dias com venda', datasVenda.length + ' de ' + diasPeriodo, datasVenda.length ? 'média de ' + fmtR(receita / datasVenda.length) + ' nesses dias' : ''),
+    kpi('Clientes que compraram', fmtN(nComp), nVipComp + ' VIP · ' + Math.max(0, nComp - nVipComp) + ' ativos'),
+    kpi('Clientes recorrentes', fmtN(nRecorr), '2 ou mais compras no período'),
+    kpi('Novos cadastros', fmtN(nNovos), 'base: ' + fmtN(clientes.length) + ' clientes'),
+    kpi('Conversão CRM', convCRM + '%', crmFech + ' de ' + crm.length + ' leads'),
+    kpi('Receita de campanhas', fmtR(receitaCamp), campsP.length + ' campanha' + (campsP.length === 1 ? '' : 's') + ' com vendas'),
+  ].join('') + `</div>`);
+
+  if (insights.length) h += secao('Destaques do período', `<ul class="rp-ins">${insights.map(i => `<li><b>${esc(i.t)}</b> — ${esc(i.x)}</li>`).join('')}</ul>`);
+
+  h += secao(P.meses > 1 ? 'Receita por mês' : 'Receita do mês', tabela([['Mês'],['Vendas',1],['Receita',1],['Ticket médio',1],['% do total',1],['']],
+    porMes.map(m => `<tr><td>${esc(m.label)}</td><td class="n">${fmtN(m.q)}</td><td class="n">${fmtR(m.t)}</td><td class="n">${fmtR(m.q ? m.t/m.q : 0)}</td><td class="n">${receita > 0 ? Math.round(m.t/receita*100) : 0}%</td><td style="width:22%">${barra(m.t, maxMes)}</td></tr>`)));
+
+  if (P.meses === 1) {
+    const linhasDia = [];
+    const maxDiaV = Math.max(...Object.values(porDia).map(e => e.t), 1);
+    for (const d = new Date(P.ini+'T12:00:00'); d <= new Date(P.cmpFim+'T12:00:00'); d.setDate(d.getDate()+1)) {
+      const ds = _relYMD(d), e = porDia[ds];
+      linhasDia.push(`<tr><td>${dm(ds)}</td><td>${SEM[d.getDay()]}</td><td class="n">${e ? e.q : '—'}</td><td class="n">${e ? fmtR(e.t) : '—'}</td><td style="width:34%">${e ? barra(e.t, maxDiaV) : ''}</td></tr>`);
+    }
+    h += secao('Vendas por dia', tabela([['Data'],['Dia'],['Vendas',1],['Receita',1],['']], linhasDia));
+  } else {
+    const top = datasVenda.slice().sort((a,b) => porDia[b].t - porDia[a].t).slice(0, 10);
+    h += secao('Dez melhores dias', top.length ? tabela([['Data'],['Dia'],['Vendas',1],['Receita',1]],
+      top.map(ds => `<tr><td>${dmy(ds)}</td><td>${SEM[new Date(ds+'T12:00:00').getDay()]}</td><td class="n">${porDia[ds].q}</td><td class="n">${fmtR(porDia[ds].t)}</td></tr>`)) : vazio('Sem vendas no período.'));
+  }
+
+  h += secao('Vendas por dia da semana', tabela([['Dia'],['Ocorrências',1],['Vendas',1],['Receita',1],['Média por dia',1],['']],
+    SEM.map((nome, i) => `<tr><td>${nome}</td><td class="n">${semOcc[i]}</td><td class="n">${semQtd[i]}</td><td class="n">${fmtR(semTot[i])}</td><td class="n">${fmtR(semMed[i])}</td><td style="width:22%">${barra(semMed[i], maxSem)}</td></tr>`)));
+
+  if (temCats) h += secao('Vendas por categoria', tabela([['Categoria'],['Vendas',1],['Receita',1],['% da receita',1],['']],
+    listaCats.map(c => `<tr><td>${esc(c.nome)}</td><td class="n">${fmtN(c.q)}</td><td class="n">${fmtR(c.t)}</td><td class="n">${receita > 0 ? Math.round(c.t/receita*100) : 0}%</td><td style="width:26%">${barra(c.t, listaCats[0].t)}</td></tr>`)));
+
+  h += secao('Clientes', `<div class="rp-kpis rp-kpis4">${kpi('Base ativa', fmtN(nBase.ativo), '')}${kpi('VIP', fmtN(nBase.vip), '')}${kpi('Inativos', fmtN(nBase.inativo), '')}${kpi('Sem compra no período', fmtN(Math.max(0, clientes.length - nComp)), 'de ' + fmtN(clientes.length) + ' clientes')}</div>` +
+    (topCli.length ? `<h3>Melhores clientes do período</h3>` + tabela([['#',1],['Cliente'],['Status'],['Compras',1],['Total gasto',1],['Ticket médio',1]],
+      topCli.map((x,i) => `<tr><td class="n">${i+1}</td><td>${esc(x.c.nome)}</td><td>${esc(stat(x.c.status))}</td><td class="n">${x.qtd}</td><td class="n">${fmtR(x.total)}</td><td class="n">${fmtR(x.total/x.qtd)}</td></tr>`)) : vazio('Nenhuma compra de cliente identificado no período.')));
+
+  h += secao('Campanhas', campsP.length ? tabela([['Campanha'],['Tipo'],['Vendas',1],['Receita',1],['% da receita',1],['Enviados (total)',1]],
+    campsP.map(c => `<tr><td>${esc(c.nome)}</td><td style="text-transform:capitalize">${esc(c.tipo)}</td><td class="n">${c.q}</td><td class="n">${fmtR(c.t)}</td><td class="n">${receita > 0 ? Math.round(c.t/receita*100) : 0}%</td><td class="n">${fmtN(c.env)}</td></tr>`)) +
+    `<p class="rp-nota">Receita atribuída pelas vendas do período marcadas com a campanha; é uma marcação manual, não prova de causa.</p>` : vazio('Nenhuma venda associada a campanhas no período.'));
+
+  h += secao('Funil de conversão (CRM)', etapas.length ? tabela([['Etapa'],['Leads',1],['% dos leads',1],['']],
+    etapas.map(e => { const q = crm.filter(c => c.etapa === e).length; return `<tr><td>${esc(e)}</td><td class="n">${q}</td><td class="n">${crm.length ? Math.round(q/crm.length*100) : 0}%</td><td style="width:34%">${barra(q, crm.length)}</td></tr>`; })) +
+    `<p class="rp-nota">${crm.length} lead${crm.length === 1 ? '' : 's'} criado${crm.length === 1 ? '' : 's'} no período · conversão ${convCRM}%.</p>` : vazio('Nenhum lead no CRM neste período.'));
+
+  h += secao('Equipe', linhasFn.length ? tabela([['Funcionário'],['Cargo'],['Vendas',1],['Total vendido',1],['Ticket médio',1],['Meta',1],['% da meta',1],['Score',1]],
+    linhasFn.map(f => `<tr><td>${esc(f.nome)}</td><td>${esc(f.cargo)}</td><td class="n">${f.q}</td><td class="n">${fmtR(f.tot)}</td><td class="n">${fmtR(f.ticket)}</td><td class="n">${fmtR(f.meta)}</td><td class="n">${f.pct}%</td><td class="n">${esc(f.score)}</td></tr>`)) +
+    `<p class="rp-nota">Meta do período = meta mensal vigente × ${P.meses} ${P.meses === 1 ? 'mês' : 'meses'}.</p>` : vazio('Nenhum funcionário ativo cadastrado.'));
+
+  h += `<footer class="rp-foot">Valores baseados nas vendas registradas no Nexus360 no período; podem não refletir todo o faturamento do estabelecimento. Relatório gerado em ${esc(hoje.toLocaleString('pt-BR'))}.</footer></div>`;
+
+  // ── Impressão ───────────────────────────────────────────────────────────────
+  let root = document.getElementById('rel-print-root');
+  if (!root) { root = document.createElement('div'); root.id = 'rel-print-root'; document.body.appendChild(root); }
+  root.innerHTML = h;
+  const marcar = on => { document.documentElement.classList.toggle('rel-imprimindo', on); document.body.classList.toggle('rel-imprimindo', on); };
+  const limpar = () => { marcar(false); window.removeEventListener('afterprint', limpar); };
+  marcar(true);
+  window.addEventListener('afterprint', limpar);
+  setTimeout(limpar, 300000);
+  requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+}
+
 function relExportar(tipo) {
   if (tipo === 'pdf') {
-    // Abre janela de impressão do navegador — salva como PDF
-    window.print();
+    // Gera um relatório próprio para impressão/PDF (não imprime mais a tela do sistema)
+    relGerarPdf().catch(e => { console.error('[PDF]', e); toast('Não foi possível gerar o PDF: ' + e.message, 'error'); });
     return;
   }
 
@@ -14266,6 +14465,53 @@ div[style*="height:3px;background:linear-gradient(90deg,#4F46E5,#8B5CF6)"]{backg
 @media (prefers-reduced-motion:reduce){#sidebar .nav-item,#sidebar .nav-item::before{transition:none}#sidebar .nav-item:hover{transform:none}}
 </style>
 <!-- REDESIGN FIM -->
+
+<!-- ═════════════════════════════════════════════════════════════════
+     RELATORIO EM PDF (2026-09-20) — documento proprio de impressao
+     Fica oculto na tela. Ao gerar o PDF, o body recebe .rel-imprimindo e so #rel-print-root aparece.
+     Para reverter: apagar este bloco de estilo inteiro (ate PDF FIM).
+     ═════════════════════════════════════════════════════════════════ -->
+<style id="redesign-print">
+#rel-print-root{display:none}
+@media print{
+  @page{size:A4;margin:11mm 10mm}
+  html.rel-imprimindo,body.rel-imprimindo{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:block!important;background:#fff!important;color:#111!important}
+  body.rel-imprimindo>*:not(#rel-print-root){display:none!important}
+  body.rel-imprimindo #rel-print-root{display:block!important;position:static!important;width:auto!important;height:auto!important;overflow:visible!important;background:#fff!important}
+  #rel-print-root,#rel-print-root *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rp{font-family:Inter,Arial,Helvetica,sans-serif;color:#111;font-size:10pt;line-height:1.4}
+  .rp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #1f2937;padding-bottom:8px;margin-bottom:6px}
+  .rp-brand{font-size:21pt;font-weight:800;letter-spacing:-.5px;line-height:1}
+  .rp-brand span{color:#4b3fa8}
+  .rp-sub{font-size:10pt;color:#444;margin-top:3px}
+  .rp-meta{text-align:right;font-size:8.5pt;color:#444;line-height:1.5}
+  .rp-meta b{color:#111;font-size:10pt}
+  .rp-sec{margin-top:14px}
+  .rp h2{font-size:12pt;margin:0 0 7px;padding-bottom:3px;border-bottom:1px solid #d4d4d8;break-after:avoid;page-break-after:avoid}
+  .rp h3{font-size:10pt;margin:12px 0 5px;color:#333;break-after:avoid;page-break-after:avoid}
+  .rp-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .rp-kpis4{grid-template-columns:repeat(4,1fr)}
+  .rp-kpi{border:1px solid #d4d4d8;border-radius:6px;padding:7px 9px;break-inside:avoid;page-break-inside:avoid;background:#fafafa}
+  .rp-kpi small{display:block;color:#555;font-size:7.5pt;text-transform:uppercase;letter-spacing:.4px}
+  .rp-kpi b{display:block;font-size:13pt;margin:2px 0 1px;color:#111}
+  .rp-kpi i{display:block;font-style:normal;color:#555;font-size:8pt;line-height:1.3}
+  /* seletores com id + !important: as regras globais/mobile do sistema (td branco, nowrap, min-width) nao valem no relatorio */
+  #rel-print-root .rp table{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:9pt!important;table-layout:auto}
+  .rp thead{display:table-header-group}
+  #rel-print-root .rp th{background:#eeeef3!important;text-align:left;padding:4px 6px!important;border-bottom:1px solid #b9b9c4!important;font-size:7.5pt!important;font-weight:600!important;text-transform:uppercase;letter-spacing:.3px;color:#333!important;white-space:normal!important}
+  #rel-print-root .rp td{padding:3.5px 6px!important;border-bottom:1px solid #e6e6ec!important;vertical-align:middle;color:#111!important;background:transparent!important;white-space:normal!important}
+  .rp tr{break-inside:avoid;page-break-inside:avoid}
+  #rel-print-root .rp th.n,#rel-print-root .rp td.n{text-align:right!important;white-space:nowrap!important}
+  .rp-bar{display:block;height:6px;background:#5b4bd6;border-radius:3px}
+  .rp-ins{margin:0;padding-left:16px}
+  .rp-ins li{margin-bottom:3px}
+  .rp-nota{margin:5px 0 0;font-size:8pt;color:#666}
+  .rp-vazio{margin:4px 0;color:#666;font-size:9pt}
+  .rp-foot{margin-top:16px;padding-top:6px;border-top:1px solid #d4d4d8;font-size:7.5pt;color:#666}
+}
+</style>
+<!-- PDF FIM -->
+
 
 
 
