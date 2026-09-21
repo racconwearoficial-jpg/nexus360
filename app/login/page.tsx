@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { authCss } from '@/lib/authStyles'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,33 +26,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}>
-      <div style={{ background: '#0D1320', border: '1px solid rgba(255,255,255,.07)', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 400 }}>
-        <div style={{ fontWeight: 800, fontSize: 24, color: '#fff', textAlign: 'center', marginBottom: 28 }}>
-          Nexus<span style={{ color: '#3B82F6' }}>360</span>
+    <main className="nx-auth">
+      <style>{authCss}</style>
+      <div className="nx-grid" />
+
+      <div className="nx-wrap">
+        <Link href="/" className="nx-logo" aria-label="Nexus360">NEXUS<span>360</span></Link>
+
+        <div className="nx-card">
+          <h1>Entrar na sua conta</h1>
+          <p className="nx-sub">Acesse para continuar</p>
+
+          <form onSubmit={handleSubmit} className="nx-form">
+            <div>
+              <label className="nx-label" htmlFor="login-email">E-mail</label>
+              <input id="login-email" className="nx-input" type="email" autoComplete="email" placeholder="seu@email.com"
+                value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+            <div>
+              <label className="nx-label" htmlFor="login-senha">Senha</label>
+              <input id="login-senha" className="nx-input" type="password" autoComplete="current-password" placeholder="••••••••"
+                value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
+            {error && <div className="nx-erro" role="alert">{error}</div>}
+            <button type="submit" disabled={loading} className="nx-btn">
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+
+          <p className="nx-alt">
+            Não tem conta? <Link href="/register">Criar conta</Link>
+          </p>
         </div>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 28px', textAlign: 'center' }}>Entrar na sua conta</h1>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>E-mail</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, padding: '11px 14px', color: '#fff', fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>Senha</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-              style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, padding: '11px 14px', color: '#fff', fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' }} />
-          </div>
-          {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 8, padding: '10px 14px', color: '#ef4444', fontSize: 13 }}>{error}</div>}
-          <button type="submit" disabled={loading}
-            style={{ background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-        <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,.4)', marginTop: 24 }}>
-          Não tem conta? <a href="/register" style={{ color: '#3B82F6', textDecoration: 'none', fontWeight: 600 }}>Criar grátis</a>
-        </p>
       </div>
-    </div>
+    </main>
   )
 }
