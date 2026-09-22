@@ -4177,10 +4177,24 @@ function renderInsights() {
 }
 
 function _calcDonutSegments() {
-  const todos    = state.clientes;
+  const todos = state.clientes;
+  // Ativo/inativo recalculados agora pela última compra (mesma regra do card "Clientes
+  // Inativos"), em vez de ler c.status congelado no momento do último loadClientes(). Sem
+  // isso, o gráfico ficava atrasado durante sessões abertas por muito tempo: o card usa
+  // "new Date()" a cada render, mas c.status só é recalculado quando os clientes são
+  // recarregados do banco.
+  const limiteInativo = new Date(); limiteInativo.setDate(limiteInativo.getDate() - diasInativo());
   const vips     = todos.filter(c => c.status === 'vip').length;
-  const inativos = todos.filter(c => c.status === 'inativo').length;
-  const ativos   = todos.filter(c => c.status === 'ativo').length;
+  const inativos = todos.filter(c => {
+    if (c.status === 'vip') return false;
+    if (!c.ultima_compra) return true;
+    return new Date(c.ultima_compra) < limiteInativo;
+  }).length;
+  const ativos   = todos.filter(c => {
+    if (c.status === 'vip') return false;
+    if (!c.ultima_compra) return false;
+    return new Date(c.ultima_compra) >= limiteInativo;
+  }).length;
   const total    = todos.length || 1;
   return { vips, inativos, ativos, total };
 }
