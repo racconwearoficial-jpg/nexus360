@@ -506,7 +506,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
 <!-- MAIN -->
 <div id="main">
   <div class="topbar">
-    <span class="page-title" id="pageTitle">Dashboard</span>
     <div class="topbar-right">
       <span id="ultimaImportacaoLabel" style="font-size:11px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.25)));cursor:default"></span>
       <span id="temaWrap" style="position:relative;display:inline-flex">
@@ -816,7 +815,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     <!-- FIDELIDADE & INDICAÇÃO (funcionário) -->
     <div class="page" id="page-fidelidade-func">
       <div class="page-header">
-        <div class="page-header-title">Fidelidade & Indicação</div>
+        <div class="page-header-title">Fidelidade</div>
         <div class="page-header-sub">Registre indicações e veja como funciona o programa</div>
       </div>
 
@@ -964,7 +963,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
 
     <div class="page" id="page-fidelidade">
       <div class="page-header">
-        <div class="page-header-title">Fidelidade & Indicação</div>
+        <div class="page-header-title">Fidelidade</div>
         <div class="page-header-sub">Recompense clientes fiéis e cresça por indicação</div>
       </div>
 
@@ -2856,7 +2855,11 @@ function nav(id, el, skipHistory) {
     const oc = n.getAttribute('onclick') || '';
     if (oc.indexOf("'" + id + "'") > -1) n.classList.add('active');
   });
-  document.getElementById('pageTitle').textContent = pageNames[id] || id;
+  // Nome da página só aparece dentro da tela (page-header-title) — o span
+  // pageTitle do topo foi removido por duplicar o mesmo texto (pedido do
+  // usuário). Se algum dia voltar, isso continua funcionando sozinho.
+  const pageTitleEl = document.getElementById('pageTitle');
+  if (pageTitleEl) pageTitleEl.textContent = pageNames[id] || id;
   localStorage.setItem('nexus360_pagina', id); // persiste página atual
   // Mini tutorial da seção (apenas na primeira visita)
   setTimeout(() => miniTutMostrar(id), 400);
