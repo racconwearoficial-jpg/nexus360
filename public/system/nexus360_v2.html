@@ -5014,7 +5014,7 @@ let _importTipo    = 'produtos'; // 'produtos' | 'vendas'
 
 const DICAS = {
   produtos: 'Colunas aceitas: nome, categoria, preço (ou price), estoque (ou stock). Formato: CSV ou Excel.',
-  vendas:   'Colunas aceitas: nome_cliente, telefone (opc.), cpf (opc.), valor_venda, data_venda. Formato: CSV.',
+  vendas:   'Colunas aceitas: nome_cliente, telefone (opc.), cpf (opc.), valor_venda, data_venda, categoria (opc. — Ético/Genérico/Similar/Perfumaria etc, usada pra calcular os pontos de fidelidade corretamente). Formato: CSV.',
 };
 
 function setImportTipo(tipo) {
@@ -5161,6 +5161,7 @@ async function importarPlanilha(input) {
         const tel      = normalizarTel(r.telefone || r.tel || r.fone || r.celular || '');
         const cpf      = String(r.cpf || '').replace(/\D/g,'');
         const valor    = parseFloat((r.valor_venda || r.valor || r.total || '0').toString().replace(',','.')) || 0;
+        const categoria = (r.categoria || r.category || '').trim() || null;
         const dataRaw  = r.data_venda || r.data || r.date || '';
         // Normaliza data para YYYY-MM-DD
         let data = '';
@@ -5234,9 +5235,15 @@ async function confirmarImportacao() {
       for (const r of _importPreview) {
         const data = r.data || dataHoje;
 
+        // Pontos pela regra da categoria (mesma conta de uma venda lançada na mão);
+        // sem categoria na planilha, cai na regra geral — mas nunca mais na regra
+        // errada de uma categoria que não é essa.
+        const pontosGanhos = Math.floor(r.valor * (lcGetPontosPorReal(r.categoria) ?? (fcfgGet().ptsReal || 1)));
+        const itensLabel = r.categoria || 'Importado';
+
         if (!r.identificada) {
           // Venda não identificada — só faturamento
-          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:null, cliente_nome:'Não identificado', valor:r.valor, data, itens:'Importado' });
+          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:null, cliente_nome:'Não identificado', valor:r.valor, data, itens:itensLabel, categoria:r.categoria, pontos:pontosGanhos });
           naoId++;
           continue;
         }
@@ -5253,7 +5260,7 @@ async function confirmarImportacao() {
         }
 
         const novoGasto = (parseFloat(cliente?.total_gasto||0)) + r.valor;
-        const _fcsvPts = fcfgGet(); const novoPontos = (parseInt(cliente?.pontos||0)) + Math.floor(r.valor * (_fcsvPts.ptsReal||1));
+        const novoPontos = (parseInt(cliente?.pontos||0)) + pontosGanhos;
         // Determina status
         let status = 'ativo';
         if (novoGasto >= 300) status = 'vip';
@@ -5271,18 +5278,18 @@ async function confirmarImportacao() {
             ultima_compra: data,
             status,
           }).eq('id', cliente.id);
-          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:cliente.id, cliente_nome:cliente.nome, valor:r.valor, data, itens:'Importado' });
+          await db.from('vendas').insert({ company_id: state.companyId, cliente_id:cliente.id, cliente_nome:cliente.nome, valor:r.valor, data, itens:itensLabel, categoria:r.categoria, pontos:pontosGanhos });
           atualizados++;
         } else {
           // Cria novo cliente
           const { data: novo, error: errC } = await db.from('clientes').insert({
             company_id: state.companyId,
             nome: r.nome, telefone: r.tel||null,
-            total_gasto: r.valor, pontos: Math.floor(r.valor * (fcfgGet().ptsReal||1)),
+            total_gasto: r.valor, pontos: pontosGanhos,
             ultima_compra: data, status,
           }).select().single();
           if (!errC && novo) {
-            await db.from('vendas').insert({ company_id: state.companyId, cliente_id:novo.id, cliente_nome:novo.nome, valor:r.valor, data, itens:'Importado' });
+            await db.from('vendas').insert({ company_id: state.companyId, cliente_id:novo.id, cliente_nome:novo.nome, valor:r.valor, data, itens:itensLabel, categoria:r.categoria, pontos:pontosGanhos });
             criados++;
           }
         }
@@ -10567,18 +10574,31 @@ async function rsvUpdateEspera(id, status) {
   await rsvCarregarTudo();
 }
 
+// Abre UM WhatsApp por toque, não vários de uma vez: navegador (principalmente
+// Safari no iPhone) bloqueia window.open() em sequência disparado por um único
+// clique — só o primeiro abria, o resto sumia sem aviso. Cada toque no botão
+// avisa o próximo da fila; o toast diz quantos ainda faltam.
 async function rsvAvisarTodos(ids, prod) {
-  var neg = (state.config && state.config.nome_negocio) || 'nossa empresa';
-  ids.forEach(function(id) {
-    var e = _rsvEspera.find(function(x) { return x.id === id; });
-    if (!e || !e.clientes || !e.clientes.telefone) return;
-    var tel = e.clientes.telefone.replace(/\D/g,'');
-    var num = tel.startsWith('55') ? tel : '55'+tel;
-    var msg = encodeURIComponent('Olá ' + e.clientes.nome + '! Temos uma boa notícia: o produto "' + prod + '" que você estava esperando chegou em ' + neg + '. Quer que a gente separe para você?');
-    window.open('https://wa.me/' + num + '?text=' + msg, '_blank');
-    db.from('lista_espera').update({ status: 'notificado' }).eq('id', id);
+  var pendente = _rsvEspera.find(function(x) {
+    return ids.indexOf(x.id) > -1 && x.status !== 'notificado' && x.status !== 'convertido' && x.status !== 'cancelado';
   });
-  setTimeout(rsvCarregarTudo, 1000);
+  if (!pendente || !pendente.clientes || !pendente.clientes.telefone) {
+    toast('Todos os clientes dessa fila já foram avisados.', 'info');
+    return;
+  }
+  var neg = (state.config && state.config.nome_negocio) || 'nossa empresa';
+  var tel = pendente.clientes.telefone.replace(/\D/g,'');
+  var num = tel.startsWith('55') ? tel : '55'+tel;
+  var msg = encodeURIComponent('Olá ' + pendente.clientes.nome + '! Temos uma boa notícia: o produto "' + prod + '" que você estava esperando chegou em ' + neg + '. Quer que a gente separe para você?');
+  window.open('https://wa.me/' + num + '?text=' + msg, '_blank');
+  await db.from('lista_espera').update({ status: 'notificado' }).eq('id', pendente.id);
+  await rsvCarregarTudo();
+  var restam = ids.filter(function(id) {
+    var it = _rsvEspera.find(function(x) { return x.id === id; });
+    return it && it.status !== 'notificado' && it.status !== 'convertido' && it.status !== 'cancelado';
+  }).length;
+  if (restam > 0) toast('Avisado! Toque em "Avisar todos" de novo pros outros ' + restam + '.', 'info', 5000);
+  else toast('Todos avisados!', 'success');
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────────
@@ -13704,8 +13724,11 @@ function mOpen() {
   document.getElementById('mBtnFunc').classList.toggle('active', modo !== 'admin');
   document.getElementById('mBtnAdmin').classList.toggle('active', modo === 'admin');
   mSyncDrawerNav();
-  // Reset all, then mark current page
-  var page = (state && state.currentPage) || 'dashboard';
+  // Reset all, then mark current page. state.currentPage nunca é preenchido em
+  // lugar nenhum do sistema (variável morta) — por isso sempre caía em
+  // 'dashboard' aqui, mesmo estando em outra página. A página atual real fica
+  // salva no localStorage por nav() (ver 'nexus360_pagina').
+  var page = localStorage.getItem('nexus360_pagina') || 'dashboard';
   document.querySelectorAll('#mDrawerNav .md-nav-item').forEach(function(el) {
     el.classList.remove('active');
   });
@@ -14563,12 +14586,13 @@ div[style*="height:3px;background:linear-gradient(90deg,#4F46E5,#8B5CF6)"]{backg
   #sidebar .nav-item{justify-content:flex-start!important;padding:9px 12px!important;gap:12px!important}
   #content{padding:18px 16px}
 }
-/* Safari do iPad: 100vh inclui a barra de enderecos (rodape do menu/conteudo escondido) -> usa 100dvh */
+/* Safari (iPad e iPhone): 100vh inclui a barra de enderecos, que aparece/some ao
+   rolar -> conteudo "pula"/corta no topo. Usa 100dvh, que já desconta isso.
+   Antes só tinha esse conserto pra tablet (min-width:769px); o celular ficava
+   de fora e sofria o mesmo corte. */
 @supports (height:100dvh){
-  @media (min-width:769px){
-    body{min-height:100dvh}
-    #sidebar,#main{height:100dvh}
-  }
+  body{min-height:100dvh}
+  #sidebar,#main{height:100dvh}
 }
 /* Safari do iPad amplia a pagina ao tocar em campos com fonte menor que 16px */
 @media (hover:none) and (pointer:coarse) and (min-width:769px){
@@ -14652,6 +14676,11 @@ html[data-theme="light"] .tag-red{background:rgba(220,38,38,.12);border-color:rg
 html[data-theme="light"] .tag-amber{background:rgba(217,119,6,.16);border-color:rgba(217,119,6,.36)}
 html[data-theme="light"] .tag-purple{background:rgba(109,40,217,.12);border-color:rgba(109,40,217,.28)}
 html[data-theme="light"] .tag-blue{background:rgba(67,56,202,.12);border-color:rgba(67,56,202,.28)}
+/* Insights IA (Relatórios): a cor original (6% de opacidade) foi pensada pra fundo
+   escuro e quase sumia sobre o cinza-azulado claro. Mesmo criterio das tags acima:
+   dobra a presenca, mantendo o roxo escuro discreto da marca (sem brilho/neon). */
+html[data-theme="light"] .rel-insights-wrap{background:linear-gradient(135deg,rgba(76,63,145,.10) 0%,rgba(109,40,217,.07) 100%);border:1px solid rgba(76,63,145,.30)}
+html[data-theme="light"] .rel-insights-icon{background:linear-gradient(135deg,#4C3F91,#6D5FC0)}
 html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),html[data-theme="light"] select,html[data-theme="light"] textarea{border-color:#A3AEDB}
 /* menu-gaveta do celular (fundo escuro fixo): rotulos de secao mais legiveis no tema claro */
 html[data-theme="light"] #mDrawer .md-nav-section-label{color:rgba(255,255,255,.66)}
