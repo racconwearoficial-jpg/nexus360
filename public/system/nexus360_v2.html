@@ -2803,6 +2803,9 @@ function setBtn(id, loading, label='Salvar') {
 
 let SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
 let MODO_ATUAL = 'funcionario';
+// true só até a primeira troca de URL: usa replaceState (não empilha histórico
+// pro carregamento inicial), depois vira pushState normalmente — ver nav().
+let _navPrimeiraTroca = true;
 
 // Tutorial removido — funções stub para evitar erros
 function miniTutMostrar(secao) {}
@@ -2810,13 +2813,32 @@ function miniTutFechar() {}
 function iniciarTutorialSeNecessario() {}
 function verTutorialSecao(secao) {}
 
-function nav(id, el) {
+// Lê a página a partir da URL (/system/clientes -> 'clientes'), só se for uma
+// página conhecida — usado no primeiro carregamento e por nav() pra manter a
+// barra de endereço sincronizada com a tela.
+function _paginaDaUrl() {
+  const m = location.pathname.match(/\/system\/([a-z0-9-]+)$/i);
+  const id = m ? m[1] : null;
+  return (id && Object.prototype.hasOwnProperty.call(pageNames, id)) ? id : null;
+}
+
+function nav(id, el, skipHistory) {
   // Bloqueia páginas admin se não estiver autenticado
   if (ADMIN_PAGES.includes(id) && (typeof MODO_ATUAL === 'undefined' || MODO_ATUAL !== 'admin')) {
     toast('Acesso restrito — faça login como Admin', 'error');
     const primario = document.querySelector('.nav-item[data-role="todos"]');
     if (primario && !primario.classList.contains('active')) primario.click();
     return;
+  }
+  // Atualiza a URL (/system/<pagina>) sem recarregar a página. skipHistory=true
+  // quando a navegação já veio do botão voltar/avançar do navegador (popstate),
+  // pra não empilhar mais uma entrada no histórico.
+  if (!skipHistory && history.pushState) {
+    const novaUrl = '/system/' + id;
+    if (location.pathname !== novaUrl) {
+      (_navPrimeiraTroca ? history.replaceState({ pagina: id }, '', novaUrl) : history.pushState({ pagina: id }, '', novaUrl));
+    }
+    _navPrimeiraTroca = false;
   }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -2947,8 +2969,8 @@ async function loadAll() {
     renderVendas();
     renderItens();
     renderEntregas();
-    // restaura última página visitada
-    const paginaSalva = localStorage.getItem('nexus360_pagina') || 'dashboard';
+    // restaura a página da URL (link direto/recarregar) ou a última visitada
+    const paginaSalva = _paginaDaUrl() || localStorage.getItem('nexus360_pagina') || 'dashboard';
     nav(paginaSalva);
     // mostra tutorial apenas na primeira vez
     iniciarTutorialSeNecessario();
@@ -10539,8 +10561,15 @@ function rsvRenderEspera() {
         + '</div></div>';
     }).join('');
 
+    // JSON.stringify de ids-texto (uuid) usa aspas duplas — igual ao atributo
+    // onclick="...". A primeira aspas do JSON fechava o atributo bem no
+    // começo (onclick virava só 'rsvAvisarTodos([', cortado), e o clique
+    // sempre dava "Unexpected end of input". Troca as aspas do JSON por
+    // &quot; só dentro do atributo; o navegador desfaz isso ao interpretar
+    // o onclick, então o código que roda continua vendo aspas normais.
+    var idsJson = JSON.stringify(todosComTel.map(function(e){return e.id;})).replace(/"/g, '&quot;');
     var btnAvisarTodos = todosComTel.length > 1
-      ? '<button class="btn btn-ghost" style="font-size:11px;padding:5px 12px;border-color:rgba(37,211,102,.3);color:var(--t-green)" onclick="rsvAvisarTodos(' + JSON.stringify(todosComTel.map(function(e){return e.id;})) + ',\'' + prod.replace(/'/g,"\'") + '\')">Avisar todos (' + todosComTel.length + ')</button>'
+      ? '<button class="btn btn-ghost" style="font-size:11px;padding:5px 12px;border-color:rgba(37,211,102,.3);color:var(--t-green)" onclick="rsvAvisarTodos(' + idsJson + ',\'' + prod.replace(/'/g,"\\'") + '\')">Avisar todos (' + todosComTel.length + ')</button>'
       : '';
 
     return '<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">'
@@ -11189,13 +11218,21 @@ async function iniciarSistema() {
     iniciarRealtimeSync();
   } else {
     hideLoading();
-    nav(localStorage.getItem('nexus360_pagina') || 'dashboard');
+    nav(_paginaDaUrl() || localStorage.getItem('nexus360_pagina') || 'dashboard');
     renderDashboard();
   }
   iniciarTutorialSeNecessario();
   const badge = document.getElementById('topbarBusiness');
   if (badge && user.email) badge.title = user.email;
 }
+
+// Botão voltar/avançar do navegador: troca de página sem empilhar mais
+// história (senão voltar uma vez precisaria de dois cliques).
+window.addEventListener('popstate', function() {
+  const id = _paginaDaUrl() || 'dashboard';
+  const navEl = document.querySelector(`.nav-item[onclick*="nav('${id}'"]`);
+  nav(id, navEl, true);
+});
 
 window.onload = async function() {
   document.querySelectorAll('.modal-overlay').forEach(m =>
