@@ -1354,7 +1354,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start">
         <div>
           <div id="calView"></div>
 
@@ -10856,16 +10856,26 @@ INDICAÇÕES:
 
 NAVEGAÇÃO DO SISTEMA:
 ${modo === 'admin'
-  ? `Admin: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, CRM, Vendas, Produtos/Serviços, Entregas, Reservas, Cobranças, Calendário, Relatórios, Assinaturas, Integrações, Funcionários, Configurações`
+  ? `Admin: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, CRM, Vendas, Produtos/Serviços, Reposição, Entregas, Reservas, Cobranças, Calendário, Relatórios, Assinaturas, Integrações, Funcionários, Configurações`
   : `Funcionário: Dashboard, Clientes, Campanhas, Fidelidade, Indicação, Vendas, Produtos/Serviços, Entregas, Reservas`}
 
 MÓDULOS PRINCIPAIS:
 
 CLIENTES: cadastrar, editar, ver histórico de compras. Filtros: Todos, Ativos, Inativos, VIP, Aniversariantes, Bronze, Silver, Gold, Diamond. Botão "Ver" abre drawer com métricas do cliente.
 Ficha do cliente (botão Editar): tem o bloco "Promoções por WhatsApp", que mostra se o cliente recebe promoções e traz o botão Desativar (para de enviar) ou Ativar (volta a enviar). Age na hora, sem precisar salvar, e vale para todos os cadastros do mesmo telefone (a mesma pessoa cadastrada duas vezes). Serve para quem pede para sair pessoalmente ou quer voltar depois do prazo do VOLTAR.
-Botão "Recuperar inativos": lista os clientes inativos com telefone para mandar mensagem manualmente, um clique por cliente. Quem pediu para sair não aparece, e a mensagem leva o rodapé de saída. Não existe mais o botão "Campanha de pontos" em Clientes: as campanhas de fidelidade já cumprem esse papel.
+Botão "Recuperar inativos" (Clientes e o card de inativos no Dashboard): lista os clientes inativos com telefone para mandar mensagem manualmente, um clique por cliente. Quem pediu para sair não aparece, e a mensagem leva o rodapé de saída. A mensagem usada é a "Mensagem de Reativação" configurada em Configurações → Mensagens Padrão WhatsApp (sem configuração salva, usa um texto padrão). Não existe mais o botão "Campanha de pontos" em Clientes: as campanhas de fidelidade já cumprem esse papel.
 
 VENDAS: + Nova Venda. Modo rápido ou detalhado com produtos/serviços. Pode vincular campanha, selecionar funcionário responsável e criar entrega automática. Pontos adicionados automaticamente.
+- Mensagem pós-venda (botão WA na tela de Vendas, "agradecendo a compra e avisando os pontos"): editável em Configurações → Mensagens Padrão WhatsApp → "Mensagem pós-venda". Variáveis: {nome}, {negocio}, {valor}, {frase_pontos} (frase pronta com os pontos ganhos/acumulados, some sozinha se a venda não gerou pontos). Sem configuração salva, usa um texto padrão com o mesmo conteúdo.
+
+PRODUTOS/SERVIÇOS: cadastro de itens com nome, tipo, categoria, preço, estoque (produtos) ou duração (serviços). Abas de categoria acima da tabela "Todos os Itens" (com contagem), pra filtrar rápido sem precisar rolar a lista toda. Seção "Alertas de Estoque" mostra o que está zerado ou baixo, com botão Repor estoque. Importar Vendas CSV e Importar Produtos são botões separados — cada um abre só a própria tela de importação, sem alternar entre os dois tipos.
+
+REPOSIÇÃO (só admin) — lista de produtos a pedir pro fornecedor, separada de Produtos/Serviços pra não misturar as duas listas:
+- 3 abas por status: A pedir, Pedido feito, Recebido. Dentro de cada aba, abas de categoria (Ético, Genérico, Similar etc. — as mesmas categorias usadas no resto do sistema) pra organizar por tipo de produto.
+- Adicionar item: "+ Adicionar itens em falta" puxa automaticamente os produtos com estoque zerado/baixo (mesmo critério do Limite baixo em Produtos/Serviços); "+ Item avulso" abre um formulário manual com autocomplete do nome (sugere produtos já cadastrados na empresa — ao escolher um, linka o produto de verdade, então "marcar como recebido" soma no estoque automaticamente).
+- Editar: botão Editar em cada linha permite corrigir quantidade, fornecedor, categoria e observação de um item já adicionado.
+- Seleção em massa: checkbox em cada linha + "selecionar todos" da categoria/aba atual, com barra de ações pra marcar como pedido/recebido, voltar ou excluir vários de uma vez — inclusive remover em massa do histórico de Recebido.
+- "Gerar lista pro fornecedor": monta um texto agrupado por categoria com os itens da aba "A pedir", pronto pra copiar ou mandar por WhatsApp.
 
 CAMPANHAS: criar campanhas de WhatsApp por público (Todos, Ativos, Inativos, VIP, Aniversariantes). Tipos: Promoção, Reativação, Aniversário, Fidelidade. Pode vincular funcionário responsável. Variáveis no texto: {nome}, {negocio}, {pontos}, {faltam}, {beneficio} e {status_pontos} (frase pronta sobre os pontos do cliente).
 - Público "Ativos" = clientes que compraram dentro do prazo de dias configurado mais os VIP (mesmo critério do dashboard). Quem nunca comprou é inativo.
@@ -10890,9 +10900,9 @@ CRM: funil de vendas com etapas Lead, Contato, Proposta, Negociação, Fechado.
 
 ENTREGAS: registrar e gerenciar entregas. Pode criar entrega automática ao finalizar venda. Botão Editar em cada entrega.
 
-RESERVAS & LISTA DE ESPERA: gerenciar reservas de produtos com data de expiração. Lista de espera agrupada por produto com opção de avisar cliente via WhatsApp.
+RESERVAS & LISTA DE ESPERA: gerenciar reservas de produtos com data de expiração. Filtro por status em abas (Todos, Reservado, Retirado, Expirado, Cancelado), com contagem em cada aba. Lista de espera agrupada por produto com opção de avisar cliente via WhatsApp (um por um ou "Avisar todos").
 
-COBRANÇAS (Fiado Digital): registrar pendências de clientes, controlar pagamentos parciais, enviar lembretes via WhatsApp com IA. KPIs: total pendente, vencidos, vencem hoje.
+COBRANÇAS (Fiado Digital): registrar pendências de clientes, controlar pagamentos parciais, enviar lembretes via WhatsApp com IA. KPIs: total pendente, vencidos, vencem hoje. Filtro por status em abas (Todos, Pendente, Vencido, Vence hoje, Parcialmente pago, Pago), com contagem em cada aba.
 
 CALENDÁRIO OPERACIONAL: agenda visual em modo mês/semana/dia. Criar eventos por categoria: Atendimento, Serviço, Entrega, Renovação, VIP, Financeiro, Operacional.
 
@@ -11960,9 +11970,9 @@ window.onload = async function() {
 .cal-views{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:3px}
 .cal-view-btn{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .14s}
 .cal-view-btn.active{background:var(--bg2);color:var(--text1);box-shadow:0 1px 4px rgba(0,0,0,.2)}
-.cal-grid-month{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden}
-.cal-day-name{background:var(--bg2);padding:8px;text-align:center;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
-.cal-cell{background:var(--bg2);min-height:90px;padding:6px;cursor:pointer;transition:background .12s;position:relative}
+.cal-grid-month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border-radius:12px;overflow:hidden}
+.cal-day-name{background:var(--bg2);padding:8px;text-align:center;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;min-width:0}
+.cal-cell{background:var(--bg2);min-height:90px;min-width:0;padding:6px;cursor:pointer;transition:background .12s;position:relative}
 .cal-cell:hover{background:var(--bg3)}
 .cal-cell.other-month{opacity:.4}
 .cal-cell.today{background:rgba(99,102,241,.08)}
