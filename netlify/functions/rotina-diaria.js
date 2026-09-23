@@ -486,7 +486,7 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 
   const { data: campanhas } = await supabaseAdmin
     .from("campanhas")
-    .select("id, nome, publico, mensagem, imagem_url")
+    .select("id, nome, publico, mensagem, imagem_url, enviados")
     .eq("company_id", integ.company_id)
     .eq("ativa", true)
     .eq("auto_envio", true)
@@ -590,6 +590,11 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "campanha_auto", referenciaId: camp.id });
         console.log("[rotina-diaria] campanha automática enviada:", camp.id, cliente.id);
         enviados++;
+        // Mesmo contador "Enviados" que aparece no card da campanha (o envio
+        // manual já incrementa esse campo) — sem isso, campanha automática
+        // sempre mostrava 0 enviados pro usuário, mesmo enviando de verdade.
+        camp.enviados = (camp.enviados || 0) + 1;
+        await supabaseAdmin.from("campanhas").update({ enviados: camp.enviados }).eq("id", camp.id);
         gastarOrcamento();
       if (temOrcamento()) await pausaAleatoria();
       } catch (e) {
