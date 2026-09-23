@@ -9017,7 +9017,7 @@ function renderCRM() {
     const cards = allCards.filter(c => c.etapa === stage.key);
     const totalCol = cards.reduce((s,c) => s + parseFloat(c.valor||0), 0);
 
-    return `<div class="kanban-col" data-stage="${stage.key}" style="border:3px solid ${stage.cor}A0" ondragover="event.preventDefault()" ondrop="dropCrmCard(event,'${stage.key}')">
+    return `<div class="kanban-col" data-stage="${stage.key}" style="border:2px solid ${stage.cor}A0" ondragover="event.preventDefault()" ondrop="dropCrmCard(event,'${stage.key}')">
       <div class="kanban-header" style="color:${txc(stage.cor)}">${stage.key}</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
         <div class="kanban-count">${cards.length}</div>
