@@ -173,6 +173,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .table-wrap{overflow-x:auto;border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;padding:10px 16px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.25)));font-weight:500;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05));font-size:10px;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
+.entregas-head th{font-weight:700}
 td{padding:13px 16px;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.04));color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.55)));transition:background .1s,color .1s}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(var(--fg-rgb),calc(var(--kb)*.025));color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.8)))}
@@ -2084,7 +2085,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Cliente</th><th>Endereço</th><th>Itens</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
+            <thead><tr class="entregas-head"><th>Cliente</th><th>Endereço</th><th>Itens</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody id="entregasTable"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody>
           </table>
         </div>
@@ -6056,10 +6057,10 @@ function renderVendas() {
     const btnWpp  = num ? `<button class="btn-wpp" style="font-size:11px;padding:3px 8px;border-radius:5px;border:none;cursor:pointer" onclick="abrirModalWppVenda(${v.id})">WA</button>` : '';
     const btnDel  = MODO_ATUAL === 'admin' ? `<button class="btn btn-red" style="padding:4px 8px;font-size:11px;margin-left:4px" onclick="deleteVenda(${v.id})">Excluir</button>` : '';
     return `<tr>
-      <td style="color:var(--text1)">${nome}</td>
-      <td style="color:var(--text2)">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="color:var(--text3)">${v.itens||'—'}</td>
-      <td style="color:var(--text3)">${dtHora}</td>
+      <td style="color:var(--text1);font-weight:600">${nome}</td>
+      <td style="color:var(--text2);font-weight:600">R$ ${parseFloat(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="color:var(--text3);font-weight:500">${v.itens||'—'}</td>
+      <td style="color:var(--text3);font-weight:500">${dtHora}</td>
       <td style="display:flex;gap:4px;align-items:center">${btnWpp}${btnDel}</td>
     </tr>`;
   }).join('');
@@ -6715,8 +6716,8 @@ function renderItens() {
       <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:16px">${tipo==='zero'?'<svg width="16" height="16" fill="none" stroke="#fca5a5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/></svg>':'<svg width="16" height="16" fill="none" stroke="var(--amber)" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2"/></svg>'}</span>
         <div style="flex:1">
-          <div style="font-size:13px;color:var(--text1)">${i.nome}</div>
-          <div style="font-size:11px;color:var(--text3)">${tipo==='zero'?'Sem estoque':'Estoque baixo: '+i.estoque+' un'}</div>
+          <div style="font-size:13px;color:var(--text1);font-weight:700">${i.nome}</div>
+          <div style="font-size:11px;color:var(--text3);font-weight:600">${tipo==='zero'?'Sem estoque':'Estoque baixo: '+i.estoque+' un'}</div>
         </div>
         ${MODO_ATUAL === 'admin' ? '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="abrirReposicao('+i.id+')">Repor estoque</button>' : ''}
       </div>`).join('');
@@ -6742,10 +6743,10 @@ function renderItens() {
       : '—';
     const rowBg = semEst ? 'background:rgba(239,68,68,.04)' : baixo ? 'background:rgba(245,158,11,.04)' : '';
     return `<tr style="${rowBg}">
-      <td style="color:var(--text1)">${i.nome}</td>
+      <td style="color:var(--text1);font-weight:600">${i.nome}</td>
       <td><span class="tag tag-blue">${i.tipo||'produto'}</span></td>
-      <td style="color:var(--text3)">${i.categoria||'—'}</td>
-      <td style="color:var(--text2)">R$ ${parseFloat(i.preco||0).toFixed(2)}</td>
+      <td style="color:var(--text3);font-weight:500">${i.categoria||'—'}</td>
+      <td style="color:var(--text2);font-weight:600">R$ ${parseFloat(i.preco||0).toFixed(2)}</td>
       <td>${estTxt}</td>
       <td>${giroHtml}</td>
       <td style="display:flex;gap:6px">
@@ -11095,7 +11096,11 @@ function rsvRenderReservas() {
     var difH = Math.max(0, Math.floor((exp - agora) / 3600000));
     var nomeCli  = r.clientes ? r.clientes.nome : '—';
     var nomeProd = r.itens ? r.itens.nome : '—';
-    var border = vencida ? 'rgba(239,68,68,.3)' : expirando ? 'rgba(245,158,11,.3)' : 'var(--border)';
+    // No modo claro, contorna pela cor do status (mesma cor da tag) quando não
+    // há urgência de prazo; vencida/expirando continuam tendo prioridade.
+    var corStatusMap = { reservado:'#6366F1', retirado:'#10B981', expirado:'#EF4444', cancelado:'#F59E0B' };
+    var ehClaro = document.documentElement.getAttribute('data-theme') === 'light';
+    var border = vencida ? 'rgba(239,68,68,.3)' : expirando ? 'rgba(245,158,11,.3)' : (ehClaro ? (corStatusMap[r.status]||'#6366F1') + '55' : 'var(--border)');
 
     var acoes = '';
     if (r.status === 'reservado') {
@@ -11189,10 +11194,10 @@ function rsvRenderEspera() {
       ? '<button class="btn btn-ghost" style="font-size:11px;padding:5px 12px;border-color:rgba(37,211,102,.3);color:var(--t-green)" onclick="rsvAvisarTodos(' + idsJson + ',\'' + prod.replace(/'/g,"\\'") + '\')">Avisar todos (' + todosComTel.length + ')</button>'
       : '';
 
-    return '<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">'
-      + '<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(var(--fg-rgb),calc(var(--kb)*.02))">'
+    return '<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px;border-left:3px solid #8B5CF6">'
+      + '<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(139,92,246,.05)">'
       + '<div style="flex:1">'
-      + '<div style="font-size:14px;font-weight:700;color:var(--text1)">' + prod + '</div>'
+      + '<div style="font-size:14px;font-weight:700;color:var(--txs-purple)">' + prod + '</div>'
       + '</div>'
       + '<span class="tag-amber" style="padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">' + items.length + ' na fila</span>'
       + btnAvisarTodos
@@ -13141,8 +13146,8 @@ function dvRender() {
       <td><div style="font-weight:600;color:var(--text1)">${d.cliente_nome||'—'}</div><div style="font-size:11px;color:var(--text3)">${d.categoria||''}</div></td>
       <td><div style="font-weight:700;color:var(--text1)">R$ ${(d.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div style="font-size:11px;color:var(--text3)">Saldo: R$ ${saldo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></td>
       <td style="font-size:13px">${vencFmt}</td>
-      <td style="font-size:13px;color:${txc(dias>0?'var(--red)':'var(--text3)')}">${dias>0?dias+'d':'—'}</td>
-      <td><span class="${dvStatusClass(st)}" style="padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600">${dvStatusLabel(st)}</span></td>
+      <td style="font-size:13px;font-weight:${dias>0?'800':'500'};color:${txc(dias>0?'var(--red)':'var(--text3)')}">${dias>0?dias+'d':'—'}</td>
+      <td><span class="${dvStatusClass(st)}" style="padding:3px 8px;border-radius:100px;font-size:11px;font-weight:800">${dvStatusLabel(st)}</span></td>
       <td style="min-width:100px">
         <div style="display:flex;align-items:center;gap:6px">
           <div style="flex:1;height:5px;background:rgba(var(--fg-rgb),calc(var(--kb)*.06));border-radius:3px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#6366F1,#10B981);border-radius:3px;width:${pct}%"></div></div>
@@ -15354,6 +15359,18 @@ html[data-theme="light"] .rm-top3{background:linear-gradient(135deg,rgba(180,120
 html[data-theme="light"] .rm-pos-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#F1F0FA;color:#5B21B6;font-weight:700;border:1px solid rgba(91,33,182,.25)}
 /* status "Top 1/2/3" na tabela: mais vivos (mesma logica das tags gerais) */
 html[data-theme="light"] #rmTable .tag-green{background:rgba(5,150,105,.18);color:#047857;font-weight:700;border-color:rgba(5,150,105,.4)}
+/* "Como Funciona" (Fidelidade e Indicação, que reaproveita o mesmo HTML):
+   textos descritivos com mais cor em vez de cinza neutro no modo claro.
+   Usa o proprio atributo style (mesmos pesos de opacidade repetidos no
+   bloco) em vez de mexer no JS que gera o HTML. */
+html[data-theme="light"] #fidPanelComo [style*="var(--kt) + var(--ks)*.5"],
+html[data-theme="light"] #fidPanelComo [style*="var(--kt) + var(--ks)*.35"],
+html[data-theme="light"] #fidPanelComo [style*="var(--kt) + var(--ks)*.6"],
+html[data-theme="light"] #indComoFuncContent [style*="var(--kt) + var(--ks)*.5"],
+html[data-theme="light"] #indComoFuncContent [style*="var(--kt) + var(--ks)*.35"],
+html[data-theme="light"] #indComoFuncContent [style*="var(--kt) + var(--ks)*.6"]{color:#433C87!important}
+html[data-theme="light"] #fidPanelComo [style*="background:#A78BFA"],
+html[data-theme="light"] #indComoFuncContent [style*="background:#A78BFA"]{background:#7C3AED!important}
 /* icones do dashboard (Clientes Ativos/Inativos/Campanhas Ativas, Ações
    Recomendadas, Clientes para contatar agora): os tons pastel foram feitos
    pra contrastar em fundo escuro e quase somem no claro — reforça a saturação
