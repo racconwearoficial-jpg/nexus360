@@ -5732,7 +5732,7 @@ function renderCampanhas() {
       ${c.auto_envio ? `<span class="tag tag-green" style="margin-left:6px">AUTOMÁTICA${c.periodo_fim ? ' até '+new Date(c.periodo_fim+'T12:00:00').toLocaleDateString('pt-BR') : ''}</span>` : ''}
       <div class="flex-between mb12">
         <div>
-          <div style="font-size:14px;color:var(--text1);font-weight:500">${c.nome}</div>
+          <div class="campanha-nome" style="font-size:14px;color:var(--text1);font-weight:500">${c.nome}</div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Público: ${c.publico||'—'}</div>
         </div>
         <div style="text-align:right">
@@ -6860,7 +6860,6 @@ function renderPedidosReposicao() {
         + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'a_pedir\')">Voltar</button>';
     }
     return editarBtn
-      + '<span style="font-size:11px;color:var(--text3)">' + (p.recebido_em ? new Date(p.recebido_em).toLocaleDateString('pt-BR') : '') + '</span>'
       + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">Remover do histórico</button>';
   }
 
@@ -15337,6 +15336,10 @@ html[data-theme="light"] .tag-red{background:rgba(220,38,38,.12);border-color:rg
 html[data-theme="light"] .tag-amber{background:rgba(217,119,6,.16);border-color:rgba(217,119,6,.36)}
 html[data-theme="light"] .tag-purple{background:rgba(109,40,217,.12);border-color:rgba(109,40,217,.28)}
 html[data-theme="light"] .tag-blue{background:rgba(67,56,202,.12);border-color:rgba(67,56,202,.28)}
+/* Campanhas: nome em roxo mais forte e título do tipo (Reativação, Fidelidade
+   etc.) mais encorpado */
+html[data-theme="light"] .campanha-nome{color:#4C3F91;font-weight:700}
+html[data-theme="light"] .campaign-type{font-weight:700}
 /* icones do dashboard (Clientes Ativos/Inativos/Campanhas Ativas, Ações
    Recomendadas, Clientes para contatar agora): os tons pastel foram feitos
    pra contrastar em fundo escuro e quase somem no claro — reforça a saturação
