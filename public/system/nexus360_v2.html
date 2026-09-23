@@ -3676,6 +3676,118 @@ function _hojeLocal() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+// ── Classificação de sexo pelo primeiro nome (pra segmentar campanhas) ──────
+// Dicionário de primeiros nomes comuns no Brasil + heurística de sufixo
+// (-a = feminino, -o = masculino) como fallback. Só usada quando o campo
+// Sexo não foi definido manualmente no cadastro; nomes ambíguos (terminam
+// em -e, consoante etc. e não estão no dicionário) ficam sem classificar
+// em vez de arriscar um palpite ruim.
+const SEXO_DIC = {
+  maria:'F', ana:'F', francisca:'F', antonia:'F', adriana:'F', juliana:'F', marcia:'F',
+  fernanda:'F', patricia:'F', aline:'F', sandra:'F', camila:'F', amanda:'F', bruna:'F',
+  jessica:'F', leticia:'F', julia:'F', luciana:'F', vanessa:'F', mariana:'F', gabriela:'F',
+  valeria:'F', simone:'F', raquel:'F', daniela:'F', cristiane:'F', michele:'F', michelle:'F',
+  jaqueline:'F', jacqueline:'F', tatiane:'F', tatiana:'F', renata:'F', priscila:'F', priscilla:'F',
+  natalia:'F', natasha:'F', eliane:'F', luiza:'F', luisa:'F', helena:'F', isabela:'F', isabella:'F',
+  beatriz:'F', larissa:'F', carolina:'F', caroline:'F', karina:'F', karen:'F', debora:'F',
+  monica:'F', monique:'F', rafaela:'F', regina:'F', rosangela:'F', rosana:'F', rosa:'F',
+  sabrina:'F', silvia:'F', silvana:'F', solange:'F', sonia:'F', tainara:'F', taina:'F',
+  viviane:'F', vitoria:'F', yasmin:'F', yara:'F', wanessa:'F', elaine:'F', elisangela:'F',
+  edilene:'F', edna:'F', eliana:'F', erica:'F', esther:'F', ester:'F', eva:'F', fabiana:'F',
+  flavia:'F', gislaine:'F', giovana:'F', giulia:'F', gleice:'F', graziela:'F', grazielle:'F',
+  ingrid:'F', irene:'F', iris:'F', isadora:'F', isaura:'F', ivone:'F', ivonete:'F', janaina:'F',
+  janete:'F', joana:'F', joyce:'F', karla:'F', katia:'F', kelly:'F', laura:'F', leila:'F',
+  lidia:'F', lilian:'F', liliane:'F', lorena:'F', lucia:'F', lucimar:'F', luciene:'F', lurdes:'F',
+  magda:'F', marcela:'F', margarete:'F', marilene:'F', marilia:'F', marina:'F', marisa:'F',
+  marizete:'F', marlene:'F', meire:'F', milena:'F', miriam:'F', myrian:'F', nadia:'F', nair:'F',
+  neide:'F', neusa:'F', nilza:'F', noemi:'F', paloma:'F', pamela:'F', paola:'F', paula:'F',
+  quiteria:'F', raimunda:'F', rebeca:'F', rita:'F', roberta:'F', rosaria:'F', rosemary:'F',
+  rosemeire:'F', rute:'F', ruth:'F', samara:'F', sara:'F', sarah:'F', selma:'F', sheila:'F',
+  shirley:'F', stefani:'F', stefany:'F', stephanie:'F', suellen:'F', suzana:'F', suzane:'F',
+  tais:'F', talita:'F', tamires:'F', teresa:'F', thais:'F', thalia:'F', valdirene:'F', valentina:'F',
+  vania:'F', vera:'F', veronica:'F', vilma:'F', virginia:'F', zenaide:'F', zilda:'F', zuleide:'F',
+  alessandra:'F', alexandra:'F', andrea:'F', angela:'F', angelica:'F', barbara:'F', bianca:'F',
+  brenda:'F', carla:'F', catia:'F', celia:'F', celina:'F', clara:'F', claudia:'F', cleide:'F',
+  conceicao:'F', cristina:'F', daiana:'F', daniele:'F', danielle:'F', denise:'F', dulce:'F',
+  edinalva:'F', eduarda:'F', elisa:'F', elisabete:'F', elizabete:'F', elizabeth:'F', emanuela:'F',
+  emilly:'F', emily:'F', fatima:'F', gabrielle:'F', geovana:'F', geiziane:'F', geisiane:'F',
+  glaucia:'F', heloisa:'F', heloise:'F', ivanete:'F', ivana:'F', izabela:'F', jenifer:'F',
+  jennifer:'F', joice:'F', josefa:'F', josiane:'F', kamila:'F', kamilly:'F', keila:'F', kessia:'F',
+  laine:'F', laiane:'F', laianny:'F', lavinia:'F', leidiane:'F', leidiana:'F', lene:'F', livia:'F',
+  luana:'F', luany:'F', lucineide:'F', luzia:'F', madalena:'F', manuela:'F',
+  marlucia:'F', mayara:'F', melissa:'F', mirela:'F', mirella:'F', nadja:'F', nathalia:'F',
+  nathaly:'F', nayara:'F', nicole:'F', olivia:'F', pietra:'F', poliana:'F', rayane:'F', rayanne:'F',
+  raiane:'F', sirlene:'F', sueli:'F', taciana:'F', tayna:'F', valquiria:'F',
+  wilma:'F', yolanda:'F', zelia:'F', alice:'F', alicia:'F', adrielly:'F', agatha:'F', agata:'F',
+  antonella:'F', antonieta:'F', clarice:'F', clarissa:'F', damaris:'F', dandara:'F',
+  eloa:'F', evelin:'F', evelyn:'F', evely:'F', hellen:'F', helen:'F', isis:'F', jamile:'F',
+  jamille:'F', kauany:'F', kauane:'F', leandra:'F', leticia:'F', lisandra:'F', luiziane:'F',
+  maiara:'F', maisa:'F', maite:'F', manoela:'F', mariah:'F', maryana:'F', nauana:'F',
+  nicolly:'F', nicolle:'F', rosicleia:'F', rosicleide:'F', taynara:'F', valdineia:'F',
+  walkiria:'F', yohanna:'F', yasmim:'F', analu:'F', analy:'F',
+  alaine:'F', arlete:'F', ani:'F', carmem:'F', carmen:'F', christany:'F', consueli:'F',
+  daniely:'F', danielly:'F', dayane:'F', deise:'F', denize:'F', dircy:'F', doraci:'F',
+  doracy:'F', eliene:'F', ellane:'F', ellen:'F', estefane:'F', francilene:'F', gracieli:'F',
+  guiomar:'F', islany:'F', ivani:'F', ivete:'F', jacy:'F', jaque:'F', juciely:'F',
+  jucileide:'F', kamylle:'F', karoline:'F', katiany:'F', keity:'F', klauren:'F', lais:'F',
+  lane:'F', leane:'F', lely:'F', lilliane:'F', liz:'F', lusy:'F', lyne:'F', malu:'F',
+  marcelle:'F', mari:'F', mariih:'F', marines:'F', maryah:'F', micaelle:'F',
+  mikaele:'F', mikaelly:'F', milady:'F', nay:'F', rejane:'F', ritchely:'F', roseanne:'F',
+  salete:'F', sirley:'F', stephany:'F', suelen:'F', thays:'F', vilnete:'F', walneide:'F',
+  williane:'F', girlene:'F', giselly:'F',
+  jose:'M', joao:'M', antonio:'M', francisco:'M', carlos:'M', paulo:'M', pedro:'M', lucas:'M',
+  luiz:'M', marcos:'M', luis:'M', gabriel:'M', rafael:'M', daniel:'M', marcelo:'M', bruno:'M',
+  eduardo:'M', felipe:'M', raimundo:'M', rodrigo:'M', manoel:'M', manuel:'M', nelson:'M',
+  roberto:'M', fabio:'M', alexandre:'M', ricardo:'M', leonardo:'M', vinicius:'M',
+  gustavo:'M', mateus:'M', matheus:'M', diego:'M', alessandro:'M', anderson:'M',
+  andre:'M', wagner:'M', wellington:'M', wesley:'M', adriano:'M', aguinaldo:'M', ailton:'M',
+  alan:'M', alberto:'M', alex:'M', alexsandro:'M', alison:'M', allan:'M', ander:'M', adilson:'M',
+  amaury:'M', aparecido:'M', aristides:'M', arlindo:'M', arnaldo:'M', arthur:'M',
+  artur:'M', augusto:'M', benedito:'M', caio:'M', cassio:'M', cesar:'M', charles:'M', christian:'M',
+  claudio:'M', claudinei:'M', clayton:'M', cleber:'M', cleiton:'M', cristian:'M', cristiano:'M',
+  danilo:'M', darlan:'M', davi:'M', david:'M', denis:'M', deivid:'M', deivison:'M', dener:'M',
+  denilson:'M', dimas:'M', dionisio:'M', divino:'M', domingos:'M', douglas:'M',
+  edilson:'M', edimar:'M', edinaldo:'M', edino:'M', edmilson:'M', edson:'M',
+  elias:'M', eliezer:'M', eliseu:'M', elton:'M', emanuel:'M', enio:'M', enzo:'M', erick:'M',
+  erik:'M', esdras:'M', ewerton:'M', everson:'M', everton:'M', ezequiel:'M', fabricio:'M',
+  fabiano:'M', fagner:'M', fernando:'M', flavio:'M', frederico:'M', gean:'M',
+  genilson:'M', geovane:'M', geraldo:'M', gerson:'M', gilberto:'M', gilmar:'M', gilson:'M',
+  helio:'M', henrique:'M', heitor:'M', hugo:'M', humberto:'M', igor:'M', isaac:'M',
+  isaias:'M', israel:'M', itamar:'M', ivan:'M', ivo:'M', jackson:'M', jair:'M', jefferson:'M',
+  jeferson:'M', jhonatan:'M', jhon:'M', joel:'M', jonas:'M', jonathan:'M', jorge:'M',
+  josimar:'M', josue:'M', juliano:'M', julio:'M', junior:'M', kaike:'M', kaio:'M', kauan:'M',
+  kaua:'M', kelvin:'M', kevin:'M', lauro:'M', lazaro:'M', leandro:'M', leomar:'M',
+  levi:'M', lindomar:'M', luciano:'M', maicon:'M', marcio:'M', mario:'M',
+  marlon:'M', mauricio:'M', mauro:'M', michael:'M', miguel:'M', milton:'M', misael:'M',
+  moacir:'M', moises:'M', murilo:'M', nathan:'M', natanael:'M', nicolas:'M',
+  nilson:'M', nilton:'M', norberto:'M', osvaldo:'M', otavio:'M', pablo:'M', patrick:'M',
+  raul:'M', renan:'M', renato:'M', reginaldo:'M',
+  robson:'M', rogerio:'M', ronaldo:'M', roniel:'M', ronilson:'M', rubens:'M', samuel:'M',
+  sandro:'M', sebastiao:'M', sergio:'M', silas:'M', silvio:'M', tarcisio:'M', thales:'M',
+  thiago:'M', tiago:'M', valdemar:'M', valdir:'M', valdomiro:'M', valter:'M', walter:'M',
+  vicente:'M', victor:'M', vitor:'M', wanderley:'M', wander:'M', washington:'M', wilson:'M',
+  yago:'M', yuri:'M', zeca:'M', abel:'M', abraao:'M', adao:'M', ademar:'M', ademir:'M',
+  agenor:'M', alcides:'M', aldo:'M', alfredo:'M', amauri:'M', anisio:'M', apolinario:'M',
+  belarmino:'M', bento:'M', celso:'M', clovis:'M', danrley:'M', davison:'M', dyego:'M',
+  edvaldo:'M', edvan:'M', emerson:'M', evandro:'M', geovani:'M', gilvan:'M', ildo:'M',
+  irineu:'M', jaime:'M', jhonata:'M', juarez:'M', laercio:'M',
+  leonel:'M', marcus:'M', matias:'M', natalino:'M', olavo:'M', orlando:'M',
+  osmar:'M', otoniel:'M', reinaldo:'M', romario:'M', romulo:'M', salomao:'M', tadeu:'M',
+  telmo:'M', teodoro:'M', valentim:'M', vagner:'M', vander:'M', wallace:'M', wallison:'M',
+  adauton:'M', adonildes:'M', anaelson:'M', erico:'M', felix:'M', gleyson:'M', joaquim:'M',
+  lairson:'M', welligton:'M', wanderson:'M',
+};
+const _sexoExcMascA = new Set(['luca','joshua','ezra','noa']);
+function _classificarSexoPorNome(nomeCompleto) {
+  const primeiro = (nomeCompleto || '').trim().split(/\s+/)[0] || '';
+  const n = primeiro.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+  if (!n || n.length < 2) return null;
+  if (SEXO_DIC[n]) return SEXO_DIC[n];
+  if (n.endsWith('a') && !_sexoExcMascA.has(n)) return 'F';
+  if (n.endsWith('o')) return 'M';
+  return null;
+}
+
 function calcularStatus(c) {
   const pontos = parseInt(c.pontos || 0);
   // VIP por pontos (configurável via Configurações de Fidelidade — sem fallback por gasto)
@@ -5440,6 +5552,7 @@ async function confirmarImportacao() {
           const { data: novo, error: errC } = await db.from('clientes').insert({
             company_id: state.companyId,
             nome: r.nome, telefone: r.tel||null,
+            sexo: _classificarSexoPorNome(r.nome),
             total_gasto: r.valor, pontos: pontosGanhos,
             ultima_compra: data, status,
           }).select().single();
@@ -5645,7 +5758,7 @@ async function saveCliente() {
     nome,
     telefone:    document.getElementById('nc-tel').value.trim() || null,
     cpf:         document.getElementById('nc-cpf').value.replace(/\D/g,'') || null,
-    sexo:        document.getElementById('nc-sexo').value || null,
+    sexo:        document.getElementById('nc-sexo').value || _classificarSexoPorNome(nome),
     aniversario: document.getElementById('nc-aniv').value || null,
     company_id:  state.companyId,
   };
@@ -8729,7 +8842,7 @@ async function ind2Registrar() {
 
   try {
     const telFmt = '+55' + telAmigo;
-    const { data: novo, error } = await db.from('clientes').insert({ company_id: state.companyId, nome: nomeAmigo, telefone: telFmt, status: 'ativo', pontos: 0 }).select().single();
+    const { data: novo, error } = await db.from('clientes').insert({ company_id: state.companyId, nome: nomeAmigo, telefone: telFmt, sexo: _classificarSexoPorNome(nomeAmigo), status: 'ativo', pontos: 0 }).select().single();
     if (error) throw error;
 
     await salvarIndicacao(quem, nomeAmigo, telFmt, novo.id);
@@ -8785,6 +8898,7 @@ async function indRegistrar() {
       company_id: state.companyId,
       nome: nomeAmigo,
       telefone: telFmt,
+      sexo: _classificarSexoPorNome(nomeAmigo),
       aniversario: aniver,
       status: 'ativo',
       pontos: 0
@@ -8886,6 +9000,7 @@ async function indVerificarIndicacao(indId) {
         company_id: state.companyId,
         nome: ind.amigo_nome,
         telefone: ind.amigo_tel,
+        sexo: _classificarSexoPorNome(ind.amigo_nome),
         aniversario: anivValido,
         status: 'ativo',
         pontos: 0,
