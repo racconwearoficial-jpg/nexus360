@@ -173,7 +173,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .table-wrap{overflow-x:auto;border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;padding:10px 16px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.25)));font-weight:500;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05));font-size:10px;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
-.entregas-head th{font-weight:700}
+.th-bold th{font-weight:700}
 td{padding:13px 16px;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.04));color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.55)));transition:background .1s,color .1s}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(var(--fg-rgb),calc(var(--kb)*.025));color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.8)))}
@@ -992,7 +992,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="section-title mb12">Ranking de Clientes por Pontos</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>#</th><th>Nome</th><th>Pontos</th><th>Nível</th><th>Próximo benefício</th><th>Ação</th></tr></thead>
+              <thead><tr class="th-bold"><th>#</th><th>Nome</th><th>Pontos</th><th>Nível</th><th>Próximo benefício</th><th>Ação</th></tr></thead>
               <tbody id="fidelidadeTable"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody>
             </table>
           </div>
@@ -1033,7 +1033,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr>
+              <thead><tr class="th-bold">
                 <th style="width:40px">#</th>
                 <th>Cliente</th>
                 <th>Pontos no mês</th>
@@ -1217,7 +1217,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="section-title mb12">Histórico de Vendas</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Cliente</th><th>Valor</th><th>Itens</th><th>Data / Hora</th><th>Ações</th></tr></thead>
+            <thead><tr class="th-bold"><th>Cliente</th><th>Valor</th><th>Itens</th><th>Data / Hora</th><th>Ações</th></tr></thead>
             <tbody id="vendasTable"><tr><td colspan="5"><div class="skeleton" style="margin:10px 0"></div></td></tr></tbody>
           </table>
         </div>
@@ -1261,7 +1261,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Tipo</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Giro</th><th>Ações</th></tr></thead>
+            <thead><tr class="th-bold"><th>Nome</th><th>Tipo</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Giro</th><th>Ações</th></tr></thead>
             <tbody id="itensTable"><tr><td colspan="7"><div class="skeleton" style="margin:10px 0"></div></td></tr></tbody>
           </table>
         </div>
@@ -1328,7 +1328,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="card" style="padding:0;overflow:hidden">
         <div style="overflow-x:auto">
           <table style="width:100%">
-            <thead><tr>
+            <thead><tr class="th-bold">
               <th>Cliente</th><th>Valor</th><th>Vencimento</th><th>Atraso</th><th>Status</th><th>Progresso</th><th>Ações</th>
             </tr></thead>
             <tbody id="dvTableBody"></tbody>
@@ -2085,7 +2085,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr class="entregas-head"><th>Cliente</th><th>Endereço</th><th>Itens</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
+            <thead><tr class="th-bold"><th>Cliente</th><th>Endereço</th><th>Itens</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody id="entregasTable"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody>
           </table>
         </div>
@@ -6898,7 +6898,7 @@ function renderPedidosReposicao() {
   const idsVisiveis = itensCat.map(function(p) { return String(p.id); });
   const todosMarcados = idsVisiveis.length > 0 && idsVisiveis.every(function(id) { return _reposSelecionados.has(id); });
   el.innerHTML = '<div class="table-wrap"><table>'
-    + '<thead><tr><th style="width:32px"><input type="checkbox" ' + (todosMarcados ? 'checked' : '') + ' onchange="reposToggleSelecionarTodos(this.checked)"></th><th>Medicamento/Produto</th><th>Quantidade</th><th>Fornecedor</th><th>Observação</th><th>' + (_reposAbaAtual === 'recebido' ? 'Recebido em' : _reposAbaAtual === 'pedido' ? 'Pedido em' : 'Adicionado em') + '</th><th>Ações</th></tr></thead>'
+    + '<thead><tr class="th-bold"><th style="width:32px"><input type="checkbox" ' + (todosMarcados ? 'checked' : '') + ' onchange="reposToggleSelecionarTodos(this.checked)"></th><th>Medicamento/Produto</th><th>Quantidade</th><th>Fornecedor</th><th>Observação</th><th>' + (_reposAbaAtual === 'recebido' ? 'Recebido em' : _reposAbaAtual === 'pedido' ? 'Pedido em' : 'Adicionado em') + '</th><th>Ações</th></tr></thead>'
     + '<tbody>' + itensCat.map(function(p) {
       const dt = p[dataCampo] ? new Date(p[dataCampo]).toLocaleDateString('pt-BR') : '—';
       const marcado = _reposSelecionados.has(String(p.id));
@@ -7830,14 +7830,14 @@ function renderRankingMensal() {
     tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">Nenhuma venda registrada este mês ainda.</div></div></td></tr>';
     rmCarregarConfig(); return;
   }
-  const medalhasIco = ['1°','2°','3°'];
+  const posCoresTop = ['#FFD700','#C0C0C0','#CD7F32'];
   tb.innerHTML = ranking.map((r, i) => {
     const cli     = state.clientes.find(c => c.id === r.id);
     if (!cli) return '';
     const prox    = ranking[i-1];
     const diffTxt = i === 0 ? '— Líder do mês' : 'Faltam ' + (prox.pts - r.pts) + ' pts para ' + i + 'º';
     const posHtml = i < 3
-      ? '<span style="font-size:16px">' + medalhasIco[i] + '</span>'
+      ? '<span class="rm-pos-badge rm-pos-top" style="--pc:' + posCoresTop[i] + '">' + (i+1) + '</span>'
       : '<span class="rm-pos-badge">' + (i+1) + '</span>';
     return '<tr style="' + (i < 3 ? 'background:rgba(var(--fg-rgb),calc(var(--kb)*.02))' : '') + '">'
       + '<td style="text-align:center">' + posHtml + '</td>'
@@ -11112,7 +11112,7 @@ function rsvRenderReservas() {
     }
     acoes += '<button class="btn btn-red" style="font-size:11px;padding:5px 8px" onclick="rsvDeleteReserva(\'' + r.id + '\')">×</button>';
 
-    return '<div class="card" style="border-color:' + border + ';gap:0;padding:0;overflow:hidden">'
+    return '<div class="card" style="border-color:' + border + ';border-width:2px;gap:0;padding:0;overflow:hidden">'
       + (expirando||vencida ? '<div style="background:' + (vencida?'rgba(239,68,68,.08)':'rgba(245,158,11,.08)') + ';padding:6px 16px;font-size:11px;font-weight:600;color:' + txc((vencida?'#FCA5A5':'#FCD34D')) + ';border-bottom:1px solid var(--border)">'
         + (vencida ? 'Reserva vencida' : 'Expira em ' + difH + 'h') + '</div>' : '')
       + '<div style="padding:16px">'
@@ -15357,6 +15357,7 @@ html[data-theme="light"] .rm-top2{background:linear-gradient(135deg,rgba(148,163
 html[data-theme="light"] .rm-top3{background:linear-gradient(135deg,rgba(180,120,60,.22),var(--bg2) 70%)}
 .rm-pos-badge{color:var(--text3);font-weight:600}
 html[data-theme="light"] .rm-pos-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#FFFFFF;color:#5B21B6;font-weight:700;border:1.5px solid #7C3AED;box-shadow:0 1px 3px rgba(91,33,182,.25)}
+html[data-theme="light"] .rm-pos-top{border-color:var(--pc)!important;color:var(--pc)!important;font-weight:800}
 /* status "Top 1/2/3" na tabela: mais vivos (mesma logica das tags gerais) */
 html[data-theme="light"] #rmTable .tag-green{background:rgba(5,150,105,.18);color:#047857;font-weight:700;border-color:rgba(5,150,105,.4)}
 /* "Como Funciona" (Fidelidade e Indicação, que reaproveita o mesmo HTML):
