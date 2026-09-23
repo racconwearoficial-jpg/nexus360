@@ -1293,6 +1293,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <button class="btn btn-ghost repos-tab" id="reposTab-recebido" onclick="reposAba('recebido')">Recebido</button>
           <button class="btn-wpp" style="font-size:12px;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;margin-left:auto" id="reposBtnGerarLista" onclick="reposAbrirLista()">Gerar lista pro fornecedor</button>
         </div>
+        <div id="reposCatTabs" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px"></div>
         <div id="reposLista"></div>
       </div>
     </div>
@@ -6768,6 +6769,7 @@ async function confirmarReposicao() {
 // e lembra o que já foi solicitado, pra não repetir nem esquecer item.
 // ══════════════════════════════════════════════════════════════════════════════
 let _reposAbaAtual = 'a_pedir';
+let _reposCatAtual = null; // categoria selecionada na aba de categorias; null = pega a primeira
 
 async function loadPedidosReposicao() {
   if (!state.companyId) { state.pedidosReposicao = []; return; }
@@ -6841,25 +6843,41 @@ function renderPedidosReposicao() {
     return a.localeCompare(b, 'pt-BR');
   });
 
-  el.innerHTML = categoriasOrdenadas.map(function(cat) {
-    const itensCat = porCategoria[cat];
-    return '<div style="background:rgba(var(--fg-rgb),calc(var(--kb)*.025));border:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.07));border-radius:10px;padding:14px 16px;margin-bottom:16px">'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.08))">'
-      + '<span style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px">' + cat + '</span>'
-      + '<span style="font-size:11px;color:var(--text3)">(' + itensCat.length + ')</span>'
-      + '</div>'
-      + '<div style="display:flex;flex-direction:column;gap:10px">'
-      + itensCat.map(function(p) {
-        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:8px">'
-          + '<div style="min-width:0">'
-          + '<div style="font-size:13px;color:var(--text1);font-weight:500">' + p.nome + ' <span style="color:var(--text3);font-weight:400">· ' + p.quantidade + ' un.</span></div>'
-          + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
-          + '</div>'
-          + '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + acoesPorLinha(p) + '</div>'
-          + '</div>';
-      }).join('')
-      + '</div></div>';
-  }).join('');
+  // Categoria atual pode ter sumido (trocou de aba, item foi removido...) —
+  // se sumiu, volta pra primeira da lista.
+  if (categoriasOrdenadas.indexOf(_reposCatAtual) === -1) _reposCatAtual = categoriasOrdenadas[0];
+
+  // Abas de categoria: Ético | Similar | Genérico ... — uma por vez, igual
+  // pediu. Rolam pro lado se não couberem todas.
+  const catTabsEl = document.getElementById('reposCatTabs');
+  if (catTabsEl) {
+    catTabsEl.innerHTML = categoriasOrdenadas.map(function(cat) {
+      const ativo = cat === _reposCatAtual;
+      return '<button class="btn ' + (ativo ? 'btn-primary' : 'btn-ghost') + '" style="font-size:12px;white-space:nowrap;flex-shrink:0" onclick="reposCatAba(\'' + cat.replace(/'/g,"\\'") + '\')">'
+        + cat + ' (' + porCategoria[cat].length + ')</button>';
+    }).join('');
+  }
+
+  const itensCat = porCategoria[_reposCatAtual] || [];
+  const dataCampo = _reposAbaAtual === 'recebido' ? 'recebido_em' : _reposAbaAtual === 'pedido' ? 'pedido_em' : 'created_at';
+  el.innerHTML = '<div class="table-wrap"><table>'
+    + '<thead><tr><th>Medicamento/Produto</th><th>Quantidade</th><th>Fornecedor</th><th>Observação</th><th>' + (_reposAbaAtual === 'recebido' ? 'Recebido em' : _reposAbaAtual === 'pedido' ? 'Pedido em' : 'Adicionado em') + '</th><th>Ações</th></tr></thead>'
+    + '<tbody>' + itensCat.map(function(p) {
+      const dt = p[dataCampo] ? new Date(p[dataCampo]).toLocaleDateString('pt-BR') : '—';
+      return '<tr>'
+        + '<td style="color:var(--text1);font-weight:500">' + p.nome + '</td>'
+        + '<td>' + p.quantidade + ' un.</td>'
+        + '<td style="color:var(--text2)">' + (p.fornecedor || '—') + '</td>'
+        + '<td style="color:var(--text3);font-size:12px">' + (p.observacao || '—') + '</td>'
+        + '<td style="color:var(--text3);font-size:12px">' + dt + '</td>'
+        + '<td style="display:flex;gap:6px;flex-wrap:wrap">' + acoesPorLinha(p) + '</td>'
+        + '</tr>';
+    }).join('') + '</tbody></table></div>';
+}
+
+function reposCatAba(cat) {
+  _reposCatAtual = cat;
+  renderPedidosReposicao();
 }
 
 // Puxa os itens sem estoque / estoque baixo pra dentro da lista, sem duplicar
