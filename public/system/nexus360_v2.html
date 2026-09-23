@@ -1858,6 +1858,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="form-group"><label>Oferta VIP</label>
             <textarea id="cfg-msg-vip" rows="3" placeholder="Use {nome} para personalizar..."></textarea>
           </div>
+          <div class="form-group"><label>Mensagem pós-venda (enviada pelo botão WA em Vendas)</label>
+            <textarea id="cfg-msg-posvenda" rows="4" placeholder="Use {nome} para personalizar..."></textarea>
+            <div style="font-size:11px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.3)));margin-top:4px">Variáveis: {nome}, {negocio}, {valor} (da venda), {frase_pontos} (frase pronta com os pontos ganhos — some sozinha se a venda não gerou pontos).</div>
+          </div>
           <button class="btn btn-primary" onclick="saveConfig()">Salvar mensagens</button>
         </div>
       </div>
@@ -3697,6 +3701,7 @@ function applyConfig() {
   if (c.msg_reativacao)    document.getElementById('cfg-msg-reativacao').value    = c.msg_reativacao;
   if (c.msg_aniversario)   document.getElementById('cfg-msg-aniversario').value   = c.msg_aniversario;
   if (c.msg_vip)           document.getElementById('cfg-msg-vip').value           = c.msg_vip;
+  if (c.msg_posvenda && document.getElementById('cfg-msg-posvenda')) document.getElementById('cfg-msg-posvenda').value = c.msg_posvenda;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -6393,7 +6398,15 @@ function abrirModalWppVenda(vendaId) {
   const frasePontos  = pontosGanhos > 0
     ? ' Você ganhou ' + pontosGanhos + ' pontos com essa compra e já soma ' + totalPontos + ' pontos acumulados.'
     : '';
-  const msgDef  = 'Olá, ' + cliente.nome + '! Sua compra foi registrada e você já está participando do programa de fidelidade da ' + neg + '. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos.' + frasePontos + ' Obrigado por confiar na gente.';
+  // Editável em Configurações > Mensagens Padrão WhatsApp; sem configuração
+  // salva, usa o texto padrão de sempre.
+  const tmplPosvenda = (state.config && state.config.msg_posvenda)
+    || 'Olá, {nome}! Sua compra de R$ {valor} foi registrada e você já está participando do programa de fidelidade da {negocio}. A cada compra você acumula pontos, que podem ser trocados por descontos, além de participar do nosso ranking de clientes e concorrer a prêmios exclusivos.{frase_pontos} Obrigado por confiar na gente.';
+  const msgDef  = tmplPosvenda
+    .replace(/\{nome\}/g, cliente.nome)
+    .replace(/\{negocio\}/g, neg)
+    .replace(/\{valor\}/g, valor)
+    .replace(/\{frase_pontos\}/g, frasePontos);
   const labelBtn = 'Enviar agora';
 
   var modal = document.createElement('div');
@@ -7640,11 +7653,14 @@ async function fidRegistrarCompra() {
   }
 
   try {
+    // Data local, não toISOString() (que é UTC) — à noite (Brasil é UTC-3) isso
+    // virava "amanhã" e a última compra/venda ficava datada errada.
+    const hojeLocal = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
     const { error } = await db.from('clientes').update({
       pontos: novosPontos,
       total_gasto: (parseFloat(cli.total_gasto)||0) + val,
       status: novoStatus,
-      ultima_compra: new Date().toISOString().split('T')[0]
+      ultima_compra: hojeLocal
     }).eq('id', cliId);
     if (error) throw error;
 
@@ -7653,7 +7669,7 @@ async function fidRegistrarCompra() {
     cli.status      = novoStatus;
 
     // Salvar venda no Supabase para ranking mensal atualizar corretamente
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = hojeLocal;
     const vendaObj = {
       company_id:  state.companyId,
       cliente_id:  parseInt(cliId),
@@ -9352,6 +9368,7 @@ async function saveConfig() {
     msg_reativacao:   document.getElementById('cfg-msg-reativacao').value.trim() || null,
     msg_aniversario:  document.getElementById('cfg-msg-aniversario').value.trim() || null,
     msg_vip:          document.getElementById('cfg-msg-vip').value.trim() || null,
+    msg_posvenda:     document.getElementById('cfg-msg-posvenda')?.value.trim() || null,
     company_id:       state.companyId,
   };
   try {
@@ -13011,7 +13028,7 @@ function calEventsForWeek(startDate) {
   for (let i = 0; i < 7; i++) {
     const d = new Date(startDate);
     d.setDate(d.getDate() + i);
-    days.push(d.toISOString().split('T')[0]);
+    days.push(calDateStr(d)); // data local — toISOString() é UTC, deslocava o dia à noite
   }
   return calData.filter(e => days.includes(e.data));
 }
@@ -13891,7 +13908,9 @@ async function mvrRegistrar() {
   if (!cliId) { toast('Selecione um cliente', 'error'); return; }
   if (!valor || valor <= 0) { toast('Informe o valor da venda', 'error'); return; }
   try {
-    const hoje    = new Date().toISOString().split('T')[0];
+    // Data local, não toISOString() (UTC) — à noite virava "amanhã".
+    const hojeD = new Date();
+    const hoje  = `${hojeD.getFullYear()}-${String(hojeD.getMonth()+1).padStart(2,'0')}-${String(hojeD.getDate()).padStart(2,'0')}`;
     const cliente = state.clientes?.find(c => c.id == cliId);
     const itensStr = cat || 'Venda rápida';
     const payload = {
@@ -15081,7 +15100,10 @@ function fnAba(aba) {
 function fnRenderDashboard() {
   const fns   = fnState.funcionarios.filter(f => f.status === 'ativo');
   const todos  = fnState.funcionarios;
-  const hoje   = new Date().toISOString().split('T')[0];
+  // Data local, não toISOString() (UTC) — à noite "hoje" virava amanhã e
+  // "Ativos hoje" não contava quem vendeu de verdade nesse horário.
+  const hojeFD = new Date();
+  const hoje   = `${hojeFD.getFullYear()}-${String(hojeFD.getMonth()+1).padStart(2,'0')}-${String(hojeFD.getDate()).padStart(2,'0')}`;
 
   const totalVendido   = fns.reduce((s,f) => s + fnTotalVendido(f.id, f.nome), 0);
   const ranked         = fns.map(f => ({ ...f, total: fnTotalVendido(f.id, f.nome), score: fnScoreRanking(f.id, f.nome) })).sort((a,b)=>b.score-a.score);
@@ -15769,11 +15791,13 @@ function fnVerPerfil(id) {
   const bonus   = pct>=100?(fnState.configComissao.bonus_meta??200):0;
   const entrada = f.data_entrada?new Date(f.data_entrada+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
-  // Gráfico últimos 7 dias
+  // Gráfico últimos 7 dias. ds precisa ser a data LOCAL (toISOString() usa UTC —
+  // Brasil é UTC-3, então uma venda feita à noite virava "amanhã" na comparação
+  // e sumia do dia certo). Mesmo padrão de data local usado no resto do sistema.
   const dias7=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
-    const ds=d.toISOString().split('T')[0];
+    const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const v=(state.vendas||[]).filter(vv=>vv.data===ds&&(vv.funcionario_id==f.id||(vv.funcionario||'').toLowerCase()===f.nome.toLowerCase())).reduce((s,vv)=>s+parseFloat(vv.valor||0),0);
     dias7.push({label:d.toLocaleDateString('pt-BR',{weekday:'short'}),val:v});
   }
