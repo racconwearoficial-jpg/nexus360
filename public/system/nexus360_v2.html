@@ -6841,6 +6841,9 @@ function renderPedidosReposicao() {
   if (btnLista) btnLista.style.display = cont.a_pedir ? '' : 'none';
 
   if (!lista.length) {
+    const catTabsElVazio = document.getElementById('reposCatTabs');
+    if (catTabsElVazio) catTabsElVazio.innerHTML = ''; // limpa abas de categoria "fantasma" de quando a aba esvaziou
+    _reposCatAtual = null;
     el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">' +
       (_reposAbaAtual === 'a_pedir' ? 'Nada pra pedir agora. Clique em "+ Adicionar itens em falta" ou "+ Item avulso".'
         : _reposAbaAtual === 'pedido' ? 'Nenhum pedido em andamento.'
@@ -10353,10 +10356,10 @@ function renderEntregas() {
     const nextColor  = e.status === 'pendente' ? 'var(--blue2)' : 'var(--green)';
 
     return `<tr>
-      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.85)))">${e.cliente_nome||'Avulso'}</td>
-      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.45)));font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.endereco||'—'}</td>
-      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.itens||'—'}</td>
-      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-size:12px">${dt}</td>
+      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.85)));font-weight:600">${e.cliente_nome||'Avulso'}</td>
+      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.45)));font-size:12px;font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.endereco||'—'}</td>
+      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-size:12px;font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.itens||'—'}</td>
+      <td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-size:12px;font-weight:500">${dt}</td>
       <td><span class="tag ${st.cls}">${st.label}</span></td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
