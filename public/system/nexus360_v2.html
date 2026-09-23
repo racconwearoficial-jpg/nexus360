@@ -1002,7 +1002,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div id="fidPanelMensal" style="display:none">
         <!-- Cabeçalho do mês -->
         <div class="grid3 mb16">
-          <div class="metric" style="border:1px solid rgba(255,215,0,.2);background:linear-gradient(135deg,rgba(255,215,0,.06),transparent)">
+          <div class="metric rm-mes-atual-card" style="border:1px solid rgba(255,215,0,.2);background:linear-gradient(135deg,rgba(255,215,0,.06),transparent)">
             <div class="metric-label">Mês atual</div>
             <div class="metric-value" id="rm-mes-atual" style="font-size:18px">—</div>
           </div>
@@ -7804,11 +7804,12 @@ function renderRankingMensal() {
     const premDesc= [cfg.p1.desc + ' + ' + cfg.p1.bonus + ' pts bônus',
                      (cfg.p2.desc||cfg.p2.vale||'Prêmio') + ' + ' + cfg.p2.bonus + ' pts',
                      (cfg.p3.desc||cfg.p3.vale||'Prêmio') + ' + ' + cfg.p3.bonus + ' pts'];
+    const rmPosClasse = ['rm-top1','rm-top2','rm-top3'];
     top3El.innerHTML = [0,1,2].map(i => {
       const r   = ranking[i];
       const cli = r ? state.clientes.find(c => c.id === r.id) : null;
       const cor = cors[i];
-      return '<div class="card" style="border:1px solid ' + cor + '44;position:relative;overflow:hidden">'
+      return '<div class="card ' + rmPosClasse[i] + '" style="border:1px solid ' + cor + '44;position:relative;overflow:hidden">'
         + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:' + cor + '"></div>'
         + '<div style="font-size:13px;font-weight:700;color:' + txc(cor) + ';margin-bottom:6px">' + labels[i] + '</div>'
         + (cli
@@ -7836,7 +7837,7 @@ function renderRankingMensal() {
     const diffTxt = i === 0 ? '— Líder do mês' : 'Faltam ' + (prox.pts - r.pts) + ' pts para ' + i + 'º';
     const posHtml = i < 3
       ? '<span style="font-size:16px">' + medalhasIco[i] + '</span>'
-      : '<span style="color:var(--text3);font-weight:600">' + (i+1) + '</span>';
+      : '<span class="rm-pos-badge">' + (i+1) + '</span>';
     return '<tr style="' + (i < 3 ? 'background:rgba(var(--fg-rgb),calc(var(--kb)*.02))' : '') + '">'
       + '<td style="text-align:center">' + posHtml + '</td>'
       + '<td><div style="display:flex;align-items:center;gap:8px"><div class="client-avatar" style="width:26px;height:26px;font-size:11px">' + cli.nome.charAt(0).toUpperCase() + '</div>'
@@ -15340,6 +15341,19 @@ html[data-theme="light"] .tag-blue{background:rgba(67,56,202,.12);border-color:r
    etc.) mais encorpado */
 html[data-theme="light"] .campanha-nome{color:#4C3F91;font-weight:700}
 html[data-theme="light"] .campaign-type{font-weight:700}
+/* Fidelidade — Ranking Mensal: no escuro o card "Mês atual" já tem um
+   verniz dourado sutil que funciona por contraste; no claro (fundo já
+   claro) esse mesmo verniz quase some, então reforça bem mais. Top 1/2/3
+   ganham o mesmo tratamento (ouro/prata/bronze), com o texto do rótulo
+   escurecido pra continuar legível sobre o fundo agora colorido. */
+html[data-theme="light"] .rm-mes-atual-card{background:linear-gradient(135deg,rgba(234,179,8,.22),var(--bg2) 65%)!important;border-color:rgba(202,138,4,.45)!important}
+html[data-theme="light"] .rm-top1{background:linear-gradient(135deg,rgba(234,179,8,.20),var(--bg2) 70%)}
+html[data-theme="light"] .rm-top2{background:linear-gradient(135deg,rgba(148,163,184,.24),var(--bg2) 70%)}
+html[data-theme="light"] .rm-top3{background:linear-gradient(135deg,rgba(180,120,60,.22),var(--bg2) 70%)}
+.rm-pos-badge{color:var(--text3);font-weight:600}
+html[data-theme="light"] .rm-pos-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#F1F0FA;color:#5B21B6;font-weight:700;border:1px solid rgba(91,33,182,.25)}
+/* status "Top 1/2/3" na tabela: mais vivos (mesma logica das tags gerais) */
+html[data-theme="light"] #rmTable .tag-green{background:rgba(5,150,105,.18);color:#047857;font-weight:700;border-color:rgba(5,150,105,.4)}
 /* icones do dashboard (Clientes Ativos/Inativos/Campanhas Ativas, Ações
    Recomendadas, Clientes para contatar agora): os tons pastel foram feitos
    pra contrastar em fundo escuro e quase somem no claro — reforça a saturação
