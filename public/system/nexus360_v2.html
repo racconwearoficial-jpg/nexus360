@@ -4886,7 +4886,8 @@ function recuperarInativos() {
   }
 
   const neg      = state.config.nome_negocio || 'nossa loja';
-  const msgPadrao = `Olá {nome}, sentimos sua falta em ${neg}! Temos uma oferta especial para você. Volte e ganhe um desconto exclusivo!`;
+  const msgPadrao = (state.config && state.config.msg_reativacao)
+    || `Olá {nome}, sentimos sua falta em ${neg}! Temos uma oferta especial para você. Volte e ganhe um desconto exclusivo!`;
 
   // Abre modal de envio em massa reutilizando o painel de campanhas
   document.getElementById('envioCampanhaTitulo').textContent = `Recuperar inativos`;
