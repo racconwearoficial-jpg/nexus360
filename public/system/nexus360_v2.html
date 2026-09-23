@@ -7003,7 +7003,8 @@ async function reposAcaoEmMassa(acao) {
   }
 
   _reposSelecionados.clear();
-  renderItens(); // atualiza tabela/métricas de estoque e a lista de reposição junto
+  renderPedidosReposicao(); // tira os itens da aba antiga na hora
+  renderItens(); // atualiza tabela/métricas de estoque de quebra
   toast(ids.length + ' item(ns) atualizado(s).', 'success');
 }
 
@@ -7155,7 +7156,8 @@ async function reposMudarStatus(id, novoStatus) {
         dispararAutomacao('/api/automacoes/estoque-reposto', { type:'UPDATE', record:{ id:item.id, company_id:state.companyId, nome:item.nome, estoque:novoEstoque }, old_record:{ estoque:estoqueAntes } });
       }
     }
-    renderItens(); // atualiza tabela/métricas de estoque e a lista de reposição junto
+    renderPedidosReposicao(); // tira o item da aba antiga na hora
+    renderItens(); // atualiza tabela/métricas de estoque de quebra
   } catch(e) {
     toast('Erro: ' + e.message, 'error');
   }
@@ -9028,9 +9030,12 @@ function renderCRM() {
         const lembreteHoje     = lembreteDate && lembreteDate.getTime() === hoje.getTime();
         const telLimpo = (c.telefone||'').replace(/\D/g,'');
         const telNum   = telLimpo ? (telLimpo.startsWith('55') ? telLimpo : '55'+telLimpo) : '';
+        // Contorno na cor da própria etapa (a mesma do título da coluna), pra
+        // identificar de relance em qual etapa o card tá; atraso/parado no
+        // follow-up continua tendo prioridade visual (vermelho/âmbar).
         const bordaCard = lembreteAtrasado
           ? '1px solid rgba(239,68,68,.5)'
-          : criado > 7 ? '1px solid rgba(245,158,11,.3)' : '1px solid rgba(var(--fg-rgb),calc(var(--kb)*.06))';
+          : criado > 7 ? '1px solid rgba(245,158,11,.3)' : '1.5px solid ' + stage.cor + '80';
 
         return `<div class="kanban-card" data-crm-id="${c.id}"
           style="border:${bordaCard};cursor:grab;user-select:none">
