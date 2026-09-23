@@ -805,7 +805,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="section-title mb12">Lista de Indicações</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Quem indicou</th><th>Amigo indicado</th><th>Telefone</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead>
+              <thead><tr class="th-bold"><th>Quem indicou</th><th>Amigo indicado</th><th>Telefone</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead>
               <tbody id="indTable2"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody>
             </table>
           </div>
@@ -1259,6 +1259,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
             <input type="number" id="limiteEstoque" value="5" min="1" style="width:60px;padding:4px 8px;font-size:12px" onchange="renderItens()">
           </div>
         </div>
+        <div id="itensCatTabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap"></div>
         <div class="table-wrap">
           <table>
             <thead><tr class="th-bold"><th>Nome</th><th>Tipo</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Giro</th><th>Ações</th></tr></thead>
@@ -1314,16 +1315,9 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <div class="card" style="margin-bottom:16px;padding:14px 16px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input id="dvSearch" type="text" placeholder="Buscar cliente..." style="flex:1;min-width:180px" oninput="dvRender()">
-          <select id="dvFilter" onchange="dvRender()" style="min-width:150px">
-            <option value="">Todos</option>
-            <option value="pendente">Pendente</option>
-            <option value="vencido">Vencido</option>
-            <option value="hoje">Vence hoje</option>
-            <option value="parcial">Parcialmente pago</option>
-            <option value="pago">Pago</option>
-          </select>
           <button class="btn btn-primary" onclick="dvOpenNovo()">+ Nova Cobrança</button>
         </div>
+        <div id="dvFiltroTabs" style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap"></div>
       </div>
       <div class="card" style="padding:0;overflow:hidden">
         <div style="overflow-x:auto">
@@ -6658,6 +6652,12 @@ async function deleteVenda(id) {
 // ══════════════════════════════════════════════════════════════════════════════
 // ITENS
 // ══════════════════════════════════════════════════════════════════════════════
+let _itensFiltroCat = '';
+function itensFiltroCat(cat) {
+  _itensFiltroCat = cat;
+  renderItens();
+}
+
 function renderItens() {
   const tb = document.getElementById('itensTable');
   if (!tb) return;
@@ -6717,13 +6717,31 @@ function renderItens() {
       </div>`).join('');
   }
 
+  // ── Abas de categoria ────────────────────────────────────────────────────
+  const catTabsEl = document.getElementById('itensCatTabs');
+  if (catTabsEl) {
+    const contPorCat = {};
+    state.itens.forEach(i => { const c = i.categoria || 'Sem categoria'; contPorCat[c] = (contPorCat[c]||0) + 1; });
+    const cats = Object.keys(contPorCat).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    if (cats.indexOf(_itensFiltroCat) === -1) _itensFiltroCat = '';
+    const abas = [['', 'Todos (' + state.itens.length + ')']].concat(cats.map(c => [c, c + ' (' + contPorCat[c] + ')']));
+    catTabsEl.innerHTML = abas.map(a => {
+      const ativo = _itensFiltroCat === a[0];
+      return '<button class="btn ' + (ativo ? 'btn-primary' : 'btn-ghost') + '" style="font-size:12px" onclick="itensFiltroCat(\'' + a[0].replace(/'/g,"\\'") + '\')">' + a[1] + '</button>';
+    }).join('');
+  }
+
   // ── Tabela ────────────────────────────────────────────────────────────────
-  if (!state.itens.length) {
-    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"></div><div class="empty-state-text">Nenhum produto ou serviço cadastrado.</div></div></td></tr>`;
+  const itensFiltrados = _itensFiltroCat
+    ? state.itens.filter(i => (i.categoria || 'Sem categoria') === _itensFiltroCat)
+    : state.itens;
+
+  if (!itensFiltrados.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"></div><div class="empty-state-text">${state.itens.length ? 'Nenhum item nesta categoria.' : 'Nenhum produto ou serviço cadastrado.'}</div></div></td></tr>`;
     return;
   }
 
-  tb.innerHTML = state.itens.map(i => {
+  tb.innerHTML = itensFiltrados.map(i => {
     const isProd  = i.tipo !== 'serviço';
     const est     = i.estoque != null ? parseInt(i.estoque) : null;
     const semEst  = isProd && est === 0;
@@ -8721,11 +8739,11 @@ async function renderIndTable2() {
   tb.innerHTML = [...indicacoes].reverse().map(ind => {
     const dt = ind.data ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR') : '—';
     return '<tr>'
-      + '<td style="color:var(--fg-strong)">' + ind.quemNome + '</td>'
-      + '<td style="color:var(--fg-strong)">' + ind.amigoNome + '</td>'
-      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)))">' + (ind.amigoTel||'—') + '</td>'
+      + '<td style="color:var(--fg-strong);font-weight:600">' + ind.quemNome + '</td>'
+      + '<td style="color:var(--fg-strong);font-weight:600">' + ind.amigoNome + '</td>'
+      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-weight:500">' + (ind.amigoTel||'—') + '</td>'
       + '<td><span class="tag ' + (ind.status==='validada'?'tag-green':'tag-amber') + '">' + (ind.status==='validada'?'Validada':'Pendente') + '</span></td>'
-      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)))">' + dt + '</td>'
+      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-weight:500">' + dt + '</td>'
       + '<td>' + (ind.status==='pendente' ? '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="indVerificarIndicacao(' + ind.id + ');renderIndTable2()">Validar</button>' : 'OK') + '</td>'
       + '</tr>';
   }).join('');
@@ -8900,11 +8918,11 @@ async function renderIndicacoes() {
   tb.innerHTML = [...indicacoes].reverse().map(ind => {
     const dt = ind.data ? _dataUltimaCompra(ind.data).toLocaleDateString('pt-BR') : '—';
     return '<tr>'
-      + '<td style="color:var(--fg-strong)">' + ind.quemNome + '</td>'
-      + '<td style="color:var(--fg-strong)">' + ind.amigoNome + '</td>'
-      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)))">' + (ind.amigoTel||'—') + '</td>'
+      + '<td style="color:var(--fg-strong);font-weight:600">' + ind.quemNome + '</td>'
+      + '<td style="color:var(--fg-strong);font-weight:600">' + ind.amigoNome + '</td>'
+      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-weight:500">' + (ind.amigoTel||'—') + '</td>'
       + '<td><span class="tag ' + (ind.status==='validada'?'tag-green':'tag-amber') + '">' + (ind.status==='validada'?'Validada':'Pendente') + '</span></td>'
-      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)))">' + dt + '</td>'
+      + '<td style="color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.4)));font-weight:500">' + dt + '</td>'
       + '<td>' + (ind.status==='pendente' ? '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="indVerificarIndicacao(' + ind.id + ')">Validar</button>' : 'OK') + '</td>'
       + '</tr>';
   }).join('');
@@ -13137,12 +13155,34 @@ function dvRenderKpis() {
   `).join('');
 }
 
+let _dvFiltroStatus = '';
+function dvRenderFiltroTabs() {
+  const tabsEl = document.getElementById('dvFiltroTabs');
+  if (!tabsEl) return;
+  const cont = { '':dvData.length, pendente:0, vencido:0, hoje:0, parcial:0, pago:0 };
+  dvData.forEach(d => { const s = dvStatus(d); if (cont[s] !== undefined) cont[s]++; });
+  const abas = [
+    ['', 'Todos'], ['pendente','Pendente'], ['vencido','Vencido'],
+    ['hoje','Vence hoje'], ['parcial','Parcialmente pago'], ['pago','Pago'],
+  ];
+  tabsEl.innerHTML = abas.map(a => {
+    const ativo = _dvFiltroStatus === a[0];
+    return '<button class="btn ' + (ativo ? 'btn-primary' : 'btn-ghost') + '" style="font-size:12px" onclick="dvFiltroAba(\'' + a[0] + '\')">'
+      + a[1] + (cont[a[0]] ? ' (' + cont[a[0]] + ')' : '') + '</button>';
+  }).join('');
+}
+
+function dvFiltroAba(status) {
+  _dvFiltroStatus = status;
+  dvRender();
+}
+
 function dvRender() {
   const q = (document.getElementById('dvSearch')?.value||'').toLowerCase();
-  const f = document.getElementById('dvFilter')?.value||'';
+  dvRenderFiltroTabs();
   let list = [...dvData];
   if (q) list = list.filter(d => (d.cliente_nome||'').toLowerCase().includes(q));
-  if (f) list = list.filter(d => dvStatus(d) === f);
+  if (_dvFiltroStatus) list = list.filter(d => dvStatus(d) === _dvFiltroStatus);
 
   const tbody = document.getElementById('dvTableBody');
   const empty = document.getElementById('dvEmpty');
@@ -13526,10 +13566,7 @@ async function dvDashboardAlert() {
 function dvNavFiltro(filtro) {
   const navEl = document.querySelector('.nav-item[onclick*="devedores"]');
   nav('devedores', navEl);
-  setTimeout(() => {
-    const sel = document.getElementById('dvFilter');
-    if (sel) { sel.value = filtro; dvRender(); }
-  }, 300);
+  setTimeout(() => { _dvFiltroStatus = filtro; dvRender(); }, 300);
 }
 
 // Call dvDashboardAlert after page loads
