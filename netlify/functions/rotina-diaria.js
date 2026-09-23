@@ -543,6 +543,10 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
         const [, mesAniv, diaAniv] = c.aniversario.split("-").map(Number);
         return mesAniv === hoje.mes && diaAniv === hoje.dia;
       });
+    } else if (pub === "feminino") {
+      destinatarios = destinatarios.filter((c) => c.sexo === "F");
+    } else if (pub === "masculino") {
+      destinatarios = destinatarios.filter((c) => c.sexo === "M");
     }
 
     // Uma mensagem por TELEFONE nesta campanha: tira quem repete dentro da lista e

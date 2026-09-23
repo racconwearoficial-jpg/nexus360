@@ -2213,6 +2213,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     </div>
     <div class="form-row">
       <div class="form-group" style="margin:0"><label>CPF</label><input id="nc-cpf" placeholder="000.000.000-00"><div style="font-size:11px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.3)));margin-top:4px">Necessário só pra assinatura recorrente (Pix).</div></div>
+      <div class="form-group" style="margin:0"><label>Sexo</label>
+        <select id="nc-sexo" style="width:100%;box-sizing:border-box"><option value="">Não informado</option><option value="F">Feminino</option><option value="M">Masculino</option></select>
+        <div style="font-size:11px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.3)));margin-top:4px">Usado pra segmentar campanhas por público.</div>
+      </div>
     </div>
     <div class="form-row" id="formRowAnivStatus">
       <div class="form-group" style="margin:0"><label>Aniversário</label><input type="date" id="nc-aniv" style="width:100%;box-sizing:border-box"></div>
@@ -2250,7 +2254,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <select id="camp-tipo"><option value="promoção">Promoção</option><option value="reativação">Reativação</option><option value="aniversário">Aniversário</option><option value="fidelidade">Fidelidade &amp; Indicação</option></select>
       </div>
       <div class="form-group" style="margin:0"><label>Público Alvo</label>
-        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option></select>
+        <select id="camp-publico"><option value="Todos">Todos</option><option value="Ativos">Ativos</option><option value="Inativos">Inativos</option><option value="VIP">VIP</option><option value="Aniversariantes">Aniversariantes</option><option value="Feminino">Feminino</option><option value="Masculino">Masculino</option></select>
         <div style="font-size:11px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.35)));margin-top:4px">
           Variáveis na mensagem: <code>{nome}</code>, <code>{negocio}</code>, <code>{pontos}</code>, <code>{faltam}</code>, <code>{beneficio}</code>. Ou use <code>{status_pontos}</code> pra já vir pronto ("Faltam X pontos..." ou, se já bateu o máximo, "Você já pode trocar seus pontos...").
         </div>
@@ -5540,6 +5544,7 @@ function openModalNewCliente() {
   document.getElementById('nc-nome').value  = '';
   document.getElementById('nc-tel').value   = '';
   document.getElementById('nc-cpf').value   = '';
+  document.getElementById('nc-sexo').value  = '';
   document.getElementById('nc-aniv').value  = '';
   document.getElementById('nc-status').value= 'ativo';
   document.getElementById('nc-gasto').value = '';
@@ -5556,6 +5561,7 @@ function editCliente(id) {
   document.getElementById('nc-nome').value   = c.nome || '';
   document.getElementById('nc-tel').value    = c.telefone || '';
   document.getElementById('nc-cpf').value    = c.cpf || '';
+  document.getElementById('nc-sexo').value   = c.sexo || '';
   document.getElementById('nc-aniv').value   = c.aniversario || '';
   document.getElementById('nc-status').value = c.status || 'ativo';
   document.getElementById('nc-gasto').value  = c.total_gasto || '';
@@ -5639,6 +5645,7 @@ async function saveCliente() {
     nome,
     telefone:    document.getElementById('nc-tel').value.trim() || null,
     cpf:         document.getElementById('nc-cpf').value.replace(/\D/g,'') || null,
+    sexo:        document.getElementById('nc-sexo').value || null,
     aniversario: document.getElementById('nc-aniv').value || null,
     company_id:  state.companyId,
   };
@@ -10057,6 +10064,10 @@ function enviarCampanha(id) {
       const d = new Date(c.aniversario + 'T12:00:00');
       return d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth();
     });
+  } else if (pub === 'feminino') {
+    destinatarios = destinatarios.filter(c => c.sexo === 'F');
+  } else if (pub === 'masculino') {
+    destinatarios = destinatarios.filter(c => c.sexo === 'M');
   }
   // pub === 'todos' → mantém lista completa com telefone
 
@@ -10880,7 +10891,8 @@ REPOSIÇÃO (só admin) — lista de produtos a pedir pro fornecedor, separada d
 - Seleção em massa: checkbox em cada linha + "selecionar todos" da categoria/aba atual, com barra de ações pra marcar como pedido/recebido, voltar ou excluir vários de uma vez — inclusive remover em massa do histórico de Recebido.
 - "Gerar lista pro fornecedor": monta um texto agrupado por categoria com os itens da aba "A pedir", pronto pra copiar ou mandar por WhatsApp.
 
-CAMPANHAS: criar campanhas de WhatsApp por público (Todos, Ativos, Inativos, VIP, Aniversariantes). Tipos: Promoção, Reativação, Aniversário, Fidelidade. Pode vincular funcionário responsável. Variáveis no texto: {nome}, {negocio}, {pontos}, {faltam}, {beneficio} e {status_pontos} (frase pronta sobre os pontos do cliente).
+CAMPANHAS: criar campanhas de WhatsApp por público (Todos, Ativos, Inativos, VIP, Aniversariantes, Feminino, Masculino). Tipos: Promoção, Reativação, Aniversário, Fidelidade. Pode vincular funcionário responsável. Variáveis no texto: {nome}, {negocio}, {pontos}, {faltam}, {beneficio} e {status_pontos} (frase pronta sobre os pontos do cliente).
+- Público Feminino/Masculino usa o campo "Sexo" do cadastro do cliente (editável na ficha, ao lado do CPF). Cliente sem sexo definido não entra em nenhum dos dois públicos.
 - Público "Ativos" = clientes que compraram dentro do prazo de dias configurado mais os VIP (mesmo critério do dashboard). Quem nunca comprou é inativo.
 - Envio manual: botão "Enviar Campanha" abre a lista de clientes e o envio é um clique por cliente. A lista conta pessoas, não cadastros: a mesma pessoa cadastrada duas vezes aparece uma vez, e quem pediu para sair fica de fora. A mensagem leva o rodapé de saída.
 - Envio automático: a campanha marcada com envio automático e com data de início e fim é enviada sozinha pelo sistema, sem ninguém clicar. As datas de início e fim são inclusivas, então duas campanhas que terminam e começam no mesmo dia rodam juntas nesse dia e dividem o limite; para evitar, comece a nova no dia seguinte ao fim da anterior.
