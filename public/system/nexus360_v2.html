@@ -135,7 +135,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 /* Reflow automático: quando itens somem por permissão de role (data-admin-only), os que restam preenchem o espaço em vez de deixar buraco */
 .metric-row{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.dash-flex-row{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start}
 
 /* KPIs — Stripe style */
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-1);transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
@@ -368,8 +368,8 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       Produtos/Serviços
     </div>
     <div class="nav-item" onclick="nav('reposicao',this)" data-role="admin">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" stroke-width="2"/><polyline points="16 6 12 2 8 6" stroke-width="2"/><line x1="12" y1="2" x2="12" y2="15" stroke-width="2"/></svg>
-      Pedidos de Reposição <span id="nav-reposicao-badge" style="display:none;background:#f59e0b;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 2v6h-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 22v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Reposição <span id="nav-reposicao-badge" style="display:none;background:#f59e0b;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
     </div>
     <div class="nav-item" onclick="nav('entregas',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><path d="M16 8h4l3 5v4h-7V8z" stroke-width="2"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg>
@@ -1269,7 +1269,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     <!-- PEDIDOS DE REPOSIÇÃO -->
     <div class="page" id="page-reposicao">
       <div class="page-header">
-        <div class="page-header-title">Pedidos de Reposição</div>
+        <div class="page-header-title">Reposição</div>
         <div class="page-header-sub">Organize o que precisa pedir ao fornecedor e acompanhe até chegar</div>
       </div>
       <div class="flex-between mb16" style="flex-wrap:wrap;gap:8px">
@@ -1300,6 +1300,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
 
     <!-- RELATÓRIOS -->
     <div class="page" id="page-devedores">
+      <div class="page-header">
+        <div class="page-header-title">Cobranças</div>
+        <div class="page-header-sub">Controle pendências e receba o que falta receber</div>
+      </div>
       <div id="dvKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px"></div>
       <div class="card" style="margin-bottom:16px;padding:14px 16px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -2878,7 +2882,7 @@ window._nexusState = state;
 const pageNames = {
   dashboard:'Dashboard', clientes:'Clientes', campanhas:'Campanhas',
   fidelidade:'Fidelidade', indicacao:'Indicação', crm:'CRM — Funil de Vendas', vendas:'Vendas',
-  itens:'Produtos e Serviços', reposicao:'Pedidos de Reposição', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
+  itens:'Produtos e Serviços', reposicao:'Reposição', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
   devedores:'Cobranças', calendario:'Calendário',
   relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários',
   integracoes:'Integrações', assinaturas:'Assinaturas'
@@ -3654,6 +3658,13 @@ function avisarAssinaturaWpp(assinatura_id) {
 function _dataUltimaCompra(str) {
   if (!str) return null;
   return new Date(String(str).split('T')[0] + 'T12:00:00');
+}
+
+// Data de hoje no fuso local (YYYY-MM-DD) — nunca usar toISOString() pra isso,
+// que é UTC e vira "amanhã" à noite no Brasil (UTC-3).
+function _hojeLocal() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function calcularStatus(c) {
@@ -5170,9 +5181,11 @@ function abrirImportarPlanilha(tipo = 'produtos') {
   const modalAberto = document.getElementById('modalImportacao').classList.contains('open');
   openModal('modalImportacao');
 
-  // Atualiza UI sem disparar o picker (setImportTipo já vai disparar)
-  document.getElementById('btnTipoProdutos').className = tipo === 'produtos' ? 'btn btn-primary' : 'btn btn-ghost';
-  document.getElementById('btnTipoVendas').className   = tipo === 'vendas'   ? 'btn btn-primary' : 'btn btn-ghost';
+  // Chamado a partir de um botão específico (Importar Produtos / Importar
+  // Vendas CSV) — mostra só o tipo escolhido, sem o alternador entre os dois,
+  // pra não confundir com a opção errada aberta.
+  document.getElementById('importacao-tipo-sel').style.display = 'none';
+  document.getElementById('modalImportacaoTitulo').textContent = tipo === 'vendas' ? 'Importar Vendas + Clientes' : 'Importar Produtos';
   document.getElementById('importacao-dica').textContent = DICAS[tipo];
   document.getElementById('importacao-status').textContent = '';
   document.getElementById('importacao-preview').innerHTML  = '';
@@ -10259,7 +10272,7 @@ function openModalEntrega() {
   document.getElementById('ent-endereco').value = '';
   document.getElementById('ent-itens').value    = '';
   document.getElementById('ent-obs').value      = '';
-  document.getElementById('ent-data').value     = new Date().toISOString().split('T')[0];
+  document.getElementById('ent-data').value     = _hojeLocal();
   document.getElementById('ent-status').value   = 'pendente';
   // Reset autocomplete cliente
   document.getElementById('ent-cliente-busca').value = '';
@@ -10287,7 +10300,7 @@ async function saveEntrega() {
     endereco,
     itens:        document.getElementById('ent-itens').value.trim() || null,
     observacoes:  document.getElementById('ent-obs').value.trim() || null,
-    data:         document.getElementById('ent-data').value || new Date().toISOString().split('T')[0],
+    data:         document.getElementById('ent-data').value || _hojeLocal(),
     status:       document.getElementById('ent-status').value,
   };
   try {
@@ -12975,7 +12988,7 @@ function dvOpenNovo() {
   document.getElementById('dv-valor').value = '';
   document.getElementById('dv-obs').value = '';
   const hoje = new Date(); hoje.setDate(hoje.getDate()+7);
-  document.getElementById('dv-vencimento').value = hoje.toISOString().split('T')[0];
+  document.getElementById('dv-vencimento').value = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
   document.getElementById('dvModalTitle').textContent = 'Nova Pendência';
   openModal('modalDvNovo');
 }
@@ -14137,7 +14150,7 @@ function rsvWppEnviar() {
     <div class="md-nav-section-label">Vendas</div>
     <div class="md-nav-item" onclick="mNav('vendas')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Vendas</div>
     <div class="md-nav-item" onclick="mNav('itens')"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Produtos/Serviços</div>
-    <div class="md-nav-item" onclick="mNav('reposicao')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Pedidos de Reposição</div>
+    <div class="md-nav-item" onclick="mNav('reposicao')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>Reposição</div>
     <div class="md-nav-item" onclick="mNav('entregas')"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Entregas</div>
     <div class="md-nav-item" onclick="mNav('reservas')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Reservas</div>
     <div class="md-nav-item" onclick="mNav('devedores')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cobranças</div>
