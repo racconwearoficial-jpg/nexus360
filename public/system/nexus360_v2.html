@@ -1244,6 +1244,24 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div class="section-title mb10">Alertas de Estoque</div>
         <div id="estAlertas"></div>
       </div>
+
+      <!-- PEDIDOS DE REPOSIÇÃO -->
+      <div class="card mb16" id="reposCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div class="section-title" style="margin:0">Pedidos de Reposição</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:12px" onclick="reposAdicionarDosAlertas()">+ Adicionar itens em falta</button>
+            <button class="btn btn-ghost" style="font-size:12px" data-admin-only onclick="reposAbrirModalManual()">+ Item avulso</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">
+          <button class="btn btn-ghost repos-tab" id="reposTab-a_pedir" onclick="reposAba('a_pedir')">A pedir</button>
+          <button class="btn btn-ghost repos-tab" id="reposTab-pedido" onclick="reposAba('pedido')">Pedido feito</button>
+          <button class="btn btn-ghost repos-tab" id="reposTab-recebido" onclick="reposAba('recebido')">Recebido</button>
+        </div>
+        <div id="reposLista"></div>
+      </div>
+
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
           <div class="section-title" style="margin:0">Todos os Itens</div>
@@ -2503,6 +2521,59 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
   </div>
 </div>
 
+<!-- Item avulso — Pedidos de Reposição -->
+<div class="modal-overlay" id="modalReposAvulso">
+  <div class="modal" style="width:400px">
+    <div class="modal-title">
+      <span>Adicionar item à lista de reposição</span>
+      <button class="modal-close" onclick="closeModal('modalReposAvulso')">×</button>
+    </div>
+    <div class="form-group">
+      <label>Nome do produto *</label>
+      <input id="repav-nome" placeholder="Ex: Dipirona 500mg">
+    </div>
+    <div class="form-group">
+      <label>Quantidade *</label>
+      <input type="number" id="repav-qtd" placeholder="Ex: 10" min="1" value="1">
+    </div>
+    <div class="form-group">
+      <label>Fornecedor (opcional)</label>
+      <input id="repav-fornecedor" placeholder="Ex: Distribuidora Central">
+    </div>
+    <div class="form-group">
+      <label>Observação (opcional)</label>
+      <input id="repav-obs" placeholder="Ex: pedir a marca genérica">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalReposAvulso')">Cancelar</button>
+      <button class="btn btn-primary" id="btnReposAvulso" onclick="reposSalvarAvulso()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lista formatada pra mandar pro fornecedor -->
+<div class="modal-overlay" id="modalReposLista">
+  <div class="modal" style="width:460px">
+    <div class="modal-title">
+      <span>Lista para o fornecedor</span>
+      <button class="modal-close" onclick="closeModal('modalReposLista')">×</button>
+    </div>
+    <div class="form-group">
+      <label>Texto pronto (copie ou mande direto por WhatsApp)</label>
+      <textarea id="reposListaTexto" rows="10" readonly style="font-size:13px"></textarea>
+    </div>
+    <div class="form-group">
+      <label>WhatsApp do fornecedor (opcional)</label>
+      <input id="reposListaTel" placeholder="(63) 90000-0000">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalReposLista')">Fechar</button>
+      <button class="btn btn-ghost" onclick="reposCopiarLista()">Copiar texto</button>
+      <button class="btn-wpp" style="padding:9px 16px;border-radius:8px;font-weight:600" onclick="reposEnviarListaWpp()">Enviar por WhatsApp</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalItem">
   <div class="modal">
     <div class="modal-title" id="modalItemTitle">Novo Produto / Serviço</div>
@@ -2767,6 +2838,7 @@ let state = {
   rankingInicioTs: 0,
   companyId:      '720e05bf-16de-428d-b6f1-1cb122a55be9',
   loyaltyCatRules: [],
+  pedidosReposicao: [],
 };
 window._nexusState = state;
 
@@ -2961,7 +3033,7 @@ async function loadAll() {
   showLoading('Carregando dados...');
   try {
     await loadCompanyId();
-    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), fnLoadAll(), loadIntegracoes(), loadIntegracaoAsaas(), loadIntegracaoZapi()]);
+    await Promise.all([loadClientes(), loadCampanhas(), loadItens(), loadVendas(), loadCrmCards(), loadEntregas(), loadConfig(), loadLoyaltyCatRules(), loadPedidosReposicao(), fnLoadAll(), loadIntegracoes(), loadIntegracaoAsaas(), loadIntegracaoZapi()]);
     await loadAssinaturas(); // depende de state.clientes já carregado, roda depois do Promise.all
     renderDashboard();
     filterClients();
@@ -6529,6 +6601,7 @@ async function deleteVenda(id) {
 // ITENS
 // ══════════════════════════════════════════════════════════════════════════════
 function renderItens() {
+  renderPedidosReposicao();
   const tb = document.getElementById('itensTable');
   if (!tb) return;
   const limite = parseInt(document.getElementById('limiteEstoque')?.value || '5');
@@ -6654,6 +6727,201 @@ async function confirmarReposicao() {
   } finally {
     setBtn('btnConfirmarReposicao', false, 'Confirmar reposição');
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PEDIDOS DE REPOSIÇÃO — lista de produtos a pedir pro fornecedor, com
+// acompanhamento de status (a_pedir -> pedido -> recebido). Complementa os
+// Alertas de Estoque acima: aquele mostra o que falta, este organiza o pedido
+// e lembra o que já foi solicitado, pra não repetir nem esquecer item.
+// ══════════════════════════════════════════════════════════════════════════════
+let _reposAbaAtual = 'a_pedir';
+
+async function loadPedidosReposicao() {
+  if (!state.companyId) { state.pedidosReposicao = []; return; }
+  const { data, error } = await db.from('pedidos_reposicao').select('*').eq('company_id', state.companyId).order('created_at', { ascending: false });
+  if (error) { state.pedidosReposicao = []; return; }
+  state.pedidosReposicao = data || [];
+}
+
+function reposAba(status) {
+  _reposAbaAtual = status;
+  renderPedidosReposicao();
+}
+
+function renderPedidosReposicao() {
+  const todos = state.pedidosReposicao || [];
+  const cont = { a_pedir: 0, pedido: 0, recebido: 0 };
+  todos.forEach(function(p) { if (cont[p.status] !== undefined) cont[p.status]++; });
+  [['a_pedir','A pedir'],['pedido','Pedido feito'],['recebido','Recebido']].forEach(function(t) {
+    const btn = document.getElementById('reposTab-' + t[0]);
+    if (!btn) return;
+    btn.className = 'btn repos-tab ' + (_reposAbaAtual === t[0] ? 'btn-primary' : 'btn-ghost');
+    btn.textContent = t[1] + (cont[t[0]] ? ' (' + cont[t[0]] + ')' : '');
+  });
+
+  const el = document.getElementById('reposLista');
+  if (!el) return;
+  const lista = todos.filter(function(p) { return p.status === _reposAbaAtual; });
+
+  if (!lista.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">' +
+      (_reposAbaAtual === 'a_pedir' ? 'Nada pra pedir agora. Clique em "+ Adicionar itens em falta" ou "+ Item avulso".'
+        : _reposAbaAtual === 'pedido' ? 'Nenhum pedido em andamento.'
+        : 'Nenhum item recebido ainda.') + '</div>';
+    return;
+  }
+
+  function acoesPorLinha(p) {
+    if (p.status === 'a_pedir') {
+      return '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'pedido\')">Marcar como pedido</button>'
+        + '<button class="btn btn-red" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">×</button>';
+    }
+    if (p.status === 'pedido') {
+      return '<button class="btn btn-green" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'recebido\')">Marcar como recebido</button>'
+        + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'a_pedir\')">Voltar</button>';
+    }
+    return '<span style="font-size:11px;color:var(--text3)">' + (p.recebido_em ? new Date(p.recebido_em).toLocaleDateString('pt-BR') : '') + '</span>'
+      + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">Remover do histórico</button>';
+  }
+
+  el.innerHTML =
+    (_reposAbaAtual === 'a_pedir' && lista.length
+      ? '<div style="margin-bottom:10px"><button class="btn-wpp" style="font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer" onclick="reposAbrirLista()">Gerar lista pro fornecedor (' + lista.length + ')</button></div>'
+      : '')
+    + lista.map(function(p) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05))">'
+        + '<div style="min-width:0">'
+        + '<div style="font-size:13px;color:var(--text1);font-weight:500">' + p.nome + ' <span style="color:var(--text3);font-weight:400">· ' + p.quantidade + ' un.</span></div>'
+        + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3)">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
+        + '</div>'
+        + '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + acoesPorLinha(p) + '</div>'
+        + '</div>';
+    }).join('');
+}
+
+// Puxa os itens sem estoque / estoque baixo pra dentro da lista, sem duplicar
+// quem já está "a pedir" ou "pedido" pro mesmo item.
+async function reposAdicionarDosAlertas() {
+  const limite = parseInt(document.getElementById('limiteEstoque')?.value || '5');
+  const faltando = state.itens.filter(function(i) { return i.tipo !== 'serviço' && parseInt(i.estoque || 0) <= limite; });
+  if (!faltando.length) { toast('Nenhum item em falta ou com estoque baixo agora.', 'info'); return; }
+
+  const jaNaLista = new Set((state.pedidosReposicao || []).filter(function(p) { return p.status !== 'recebido' && p.item_id; }).map(function(p) { return p.item_id; }));
+  const novos = faltando.filter(function(i) { return !jaNaLista.has(i.id); });
+  if (!novos.length) { toast('Todos os itens em falta já estão na lista.', 'info'); return; }
+
+  const payload = novos.map(function(i) {
+    return { company_id: state.companyId, item_id: i.id, nome: i.nome, quantidade: Math.max(1, limite - parseInt(i.estoque || 0) + 5), status: 'a_pedir' };
+  });
+  const { error } = await db.from('pedidos_reposicao').insert(payload);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  await loadPedidosReposicao();
+  reposAba('a_pedir');
+  toast(novos.length + ' item(ns) adicionado(s) à lista de reposição.', 'success');
+}
+
+function reposAbrirModalManual() {
+  document.getElementById('repav-nome').value = '';
+  document.getElementById('repav-qtd').value = '1';
+  document.getElementById('repav-fornecedor').value = '';
+  document.getElementById('repav-obs').value = '';
+  openModal('modalReposAvulso');
+  setTimeout(function() { document.getElementById('repav-nome').focus(); }, 100);
+}
+
+async function reposSalvarAvulso() {
+  const nome = document.getElementById('repav-nome').value.trim();
+  const qtd  = parseInt(document.getElementById('repav-qtd').value) || 1;
+  if (!nome) { toast('Informe o nome do produto', 'error'); return; }
+  setBtn('btnReposAvulso', true, 'Adicionando...');
+  try {
+    const { error } = await db.from('pedidos_reposicao').insert({
+      company_id: state.companyId, item_id: null, nome, quantidade: qtd,
+      fornecedor: document.getElementById('repav-fornecedor').value.trim() || null,
+      observacao: document.getElementById('repav-obs').value.trim() || null,
+      status: 'a_pedir',
+    });
+    if (error) throw error;
+    await loadPedidosReposicao();
+    reposAba('a_pedir');
+    closeModal('modalReposAvulso');
+    toast('Item adicionado à lista de reposição!', 'success');
+  } catch(e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    setBtn('btnReposAvulso', false, 'Adicionar');
+  }
+}
+
+async function reposMudarStatus(id, novoStatus) {
+  const p = (state.pedidosReposicao || []).find(function(x) { return String(x.id) === String(id); });
+  if (!p) return;
+  const payload = { status: novoStatus };
+  if (novoStatus === 'pedido')   payload.pedido_em = new Date().toISOString();
+  if (novoStatus === 'recebido') payload.recebido_em = new Date().toISOString();
+  if (novoStatus === 'a_pedir')  { payload.pedido_em = null; payload.recebido_em = null; }
+  try {
+    const { error } = await db.from('pedidos_reposicao').update(payload).eq('id', id);
+    if (error) throw error;
+    Object.assign(p, payload);
+
+    // Recebido + item catalogado -> soma no estoque, igual o "Repor estoque" manual.
+    if (novoStatus === 'recebido' && p.item_id) {
+      const item = state.itens.find(function(i) { return i.id === p.item_id; });
+      if (item) {
+        const estoqueAntes = parseInt(item.estoque) || 0;
+        const novoEstoque  = estoqueAntes + (parseInt(p.quantidade) || 0);
+        await db.from('itens').update({ estoque: novoEstoque }).eq('id', item.id);
+        item.estoque = novoEstoque;
+        dispararAutomacao('/api/automacoes/estoque-reposto', { type:'UPDATE', record:{ id:item.id, company_id:state.companyId, nome:item.nome, estoque:novoEstoque }, old_record:{ estoque:estoqueAntes } });
+      }
+    }
+    renderItens(); // atualiza tabela/métricas de estoque e a lista de reposição junto
+  } catch(e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+async function reposRemover(id) {
+  if (!confirm('Remover este item da lista de reposição?')) return;
+  try {
+    const { error } = await db.from('pedidos_reposicao').delete().eq('id', id);
+    if (error) throw error;
+    state.pedidosReposicao = (state.pedidosReposicao || []).filter(function(p) { return String(p.id) !== String(id); });
+    renderPedidosReposicao();
+  } catch(e) {
+    toast('Erro: ' + e.message, 'error');
+  }
+}
+
+function reposAbrirLista() {
+  const lista = (state.pedidosReposicao || []).filter(function(p) { return p.status === 'a_pedir'; });
+  if (!lista.length) { toast('Nada na lista "A pedir" agora.', 'info'); return; }
+  const neg    = (state.config && state.config.nome_negocio) || 'nossa loja';
+  const linhas = lista.map(function(p) { return '- ' + p.nome + ' — ' + p.quantidade + ' un.' + (p.observacao ? ' (' + p.observacao + ')' : ''); }).join('\n');
+  document.getElementById('reposListaTexto').value = 'Pedido de reposição — ' + neg + '\n\n' + linhas;
+  document.getElementById('reposListaTel').value = '';
+  openModal('modalReposLista');
+}
+
+function reposCopiarLista() {
+  const ta = document.getElementById('reposListaTexto');
+  ta.select();
+  const feito = function() { toast('Texto copiado!', 'success'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value).then(feito).catch(function() { document.execCommand('copy'); feito(); });
+  } else {
+    document.execCommand('copy'); feito();
+  }
+}
+
+function reposEnviarListaWpp() {
+  const tel = document.getElementById('reposListaTel').value.replace(/\D/g, '');
+  if (!tel) { toast('Informe o WhatsApp do fornecedor, ou use "Copiar texto".', 'error'); return; }
+  const num   = tel.startsWith('55') ? tel : '55' + tel;
+  const texto = document.getElementById('reposListaTexto').value;
+  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(texto), '_blank');
 }
 
 function itBuscarCat(q) {
