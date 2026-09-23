@@ -6843,22 +6843,22 @@ function renderPedidosReposicao() {
 
   el.innerHTML = categoriasOrdenadas.map(function(cat) {
     const itensCat = porCategoria[cat];
-    return '<div style="margin-bottom:18px">'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-      + '<span style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px">' + cat + '</span>'
+    return '<div style="background:rgba(var(--fg-rgb),calc(var(--kb)*.025));border:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.07));border-radius:10px;padding:14px 16px;margin-bottom:16px">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.08))">'
+      + '<span style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px">' + cat + '</span>'
       + '<span style="font-size:11px;color:var(--text3)">(' + itensCat.length + ')</span>'
-      + '<div style="flex:1;height:1px;background:rgba(var(--fg-rgb),calc(var(--kb)*.06))"></div>'
       + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px">'
       + itensCat.map(function(p) {
-        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05))">'
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:8px">'
           + '<div style="min-width:0">'
           + '<div style="font-size:13px;color:var(--text1);font-weight:500">' + p.nome + ' <span style="color:var(--text3);font-weight:400">· ' + p.quantidade + ' un.</span></div>'
-          + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3)">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
+          + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
           + '</div>'
           + '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + acoesPorLinha(p) + '</div>'
           + '</div>';
       }).join('')
-      + '</div>';
+      + '</div></div>';
   }).join('');
 }
 
