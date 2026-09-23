@@ -126,6 +126,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg0
 .toast-success{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--t-green)}
 .toast-error{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--t-red)}
 .toast-info{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2);color:var(--t-blue)}
+.toast-forte{background:#dc2626;border-color:#dc2626;color:#fff;font-weight:700}
 
 /* CARDS */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-1),0 0 0 1px rgba(var(--fg-rgb),calc(var(--kb)*.02)) inset}
@@ -1294,6 +1295,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <button class="btn-wpp" style="font-size:12px;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;margin-left:auto" id="reposBtnGerarLista" onclick="reposAbrirLista()">Gerar lista pro fornecedor</button>
         </div>
         <div id="reposCatTabs" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px"></div>
+        <div id="reposBulkBar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.25);border-radius:8px">
+          <span id="reposBulkCount" style="font-size:12px;font-weight:600;color:var(--text1)"></span>
+          <div id="reposBulkAcoes" style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto"></div>
+        </div>
         <div id="reposLista"></div>
       </div>
     </div>
@@ -2548,18 +2553,29 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
 <div class="modal-overlay" id="modalReposAvulso">
   <div class="modal" style="width:400px">
     <div class="modal-title">
-      <span>Adicionar item à lista de reposição</span>
+      <span id="modalReposAvulsoTitulo">Adicionar item à lista de reposição</span>
       <button class="modal-close" onclick="closeModal('modalReposAvulso')">×</button>
     </div>
+    <input type="hidden" id="repav-id">
+    <input type="hidden" id="repav-item-id">
     <div class="form-group">
       <label>Nome do produto *</label>
-      <input id="repav-nome" placeholder="Ex: Dipirona 500mg">
+      <div style="position:relative">
+        <input id="repav-nome" placeholder="Ex: Dipirona 500mg" autocomplete="off"
+          oninput="reposBuscarNome(this.value);document.getElementById('repav-item-id').value=''"
+          onfocus="reposBuscarNome(this.value)"
+          onblur="setTimeout(()=>{const d=document.getElementById('repav-nome-drop');if(d)d.style.display='none'},180)"
+          style="width:100%">
+        <div id="repav-nome-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1000;
+          background:var(--surface-pop);border:1px solid rgba(79,70,229,.3);border-radius:8px;
+          box-shadow:0 4px 20px rgba(0,0,0,.5);max-height:200px;overflow-y:auto;margin-top:2px"></div>
+      </div>
     </div>
     <div class="form-group">
       <label>Quantidade *</label>
       <input type="number" id="repav-qtd" placeholder="Ex: 10" min="1" value="1">
     </div>
-    <div class="form-group" style="margin:0">
+    <div class="form-group" style="margin-bottom:24px">
       <label>Categoria</label>
       <div style="position:relative">
         <input id="repav-cat" placeholder="Buscar ou criar categoria..." autocomplete="off"
@@ -6783,6 +6799,7 @@ async function confirmarReposicao() {
 // ══════════════════════════════════════════════════════════════════════════════
 let _reposAbaAtual = 'a_pedir';
 let _reposCatAtual = null; // categoria selecionada na aba de categorias; null = pega a primeira
+let _reposSelecionados = new Set(); // ids marcados nos checkboxes, pra ação em massa
 
 async function loadPedidosReposicao() {
   if (!state.companyId) { state.pedidosReposicao = []; return; }
@@ -6793,6 +6810,7 @@ async function loadPedidosReposicao() {
 
 function reposAba(status) {
   _reposAbaAtual = status;
+  _reposSelecionados.clear();
   renderPedidosReposicao();
 }
 
@@ -6830,15 +6848,19 @@ function renderPedidosReposicao() {
   }
 
   function acoesPorLinha(p) {
+    const editarBtn = '<button class="btn btn-ghost" style="font-size:11px;padding:4px 8px" onclick="reposAbrirEditar(\'' + p.id + '\')">Editar</button>';
     if (p.status === 'a_pedir') {
-      return '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'pedido\')">Marcar como pedido</button>'
+      return editarBtn
+        + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'pedido\')">Marcar como pedido</button>'
         + '<button class="btn btn-red" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">×</button>';
     }
     if (p.status === 'pedido') {
-      return '<button class="btn btn-green" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'recebido\')">Marcar como recebido</button>'
+      return editarBtn
+        + '<button class="btn btn-green" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'recebido\')">Marcar como recebido</button>'
         + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="reposMudarStatus(\'' + p.id + '\',\'a_pedir\')">Voltar</button>';
     }
-    return '<span style="font-size:11px;color:var(--text3)">' + (p.recebido_em ? new Date(p.recebido_em).toLocaleDateString('pt-BR') : '') + '</span>'
+    return editarBtn
+      + '<span style="font-size:11px;color:var(--text3)">' + (p.recebido_em ? new Date(p.recebido_em).toLocaleDateString('pt-BR') : '') + '</span>'
       + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">Remover do histórico</button>';
   }
 
@@ -6873,11 +6895,15 @@ function renderPedidosReposicao() {
 
   const itensCat = porCategoria[_reposCatAtual] || [];
   const dataCampo = _reposAbaAtual === 'recebido' ? 'recebido_em' : _reposAbaAtual === 'pedido' ? 'pedido_em' : 'created_at';
+  const idsVisiveis = itensCat.map(function(p) { return String(p.id); });
+  const todosMarcados = idsVisiveis.length > 0 && idsVisiveis.every(function(id) { return _reposSelecionados.has(id); });
   el.innerHTML = '<div class="table-wrap"><table>'
-    + '<thead><tr><th>Medicamento/Produto</th><th>Quantidade</th><th>Fornecedor</th><th>Observação</th><th>' + (_reposAbaAtual === 'recebido' ? 'Recebido em' : _reposAbaAtual === 'pedido' ? 'Pedido em' : 'Adicionado em') + '</th><th>Ações</th></tr></thead>'
+    + '<thead><tr><th style="width:32px"><input type="checkbox" ' + (todosMarcados ? 'checked' : '') + ' onchange="reposToggleSelecionarTodos(this.checked)"></th><th>Medicamento/Produto</th><th>Quantidade</th><th>Fornecedor</th><th>Observação</th><th>' + (_reposAbaAtual === 'recebido' ? 'Recebido em' : _reposAbaAtual === 'pedido' ? 'Pedido em' : 'Adicionado em') + '</th><th>Ações</th></tr></thead>'
     + '<tbody>' + itensCat.map(function(p) {
       const dt = p[dataCampo] ? new Date(p[dataCampo]).toLocaleDateString('pt-BR') : '—';
+      const marcado = _reposSelecionados.has(String(p.id));
       return '<tr>'
+        + '<td><input type="checkbox" ' + (marcado ? 'checked' : '') + ' onchange="reposToggleSelecionado(\'' + p.id + '\',this.checked)"></td>'
         + '<td style="color:var(--text1);font-weight:500">' + p.nome + '</td>'
         + '<td>' + p.quantidade + ' un.</td>'
         + '<td style="color:var(--text2)">' + (p.fornecedor || '—') + '</td>'
@@ -6886,11 +6912,99 @@ function renderPedidosReposicao() {
         + '<td style="display:flex;gap:6px;flex-wrap:wrap">' + acoesPorLinha(p) + '</td>'
         + '</tr>';
     }).join('') + '</tbody></table></div>';
+
+  renderReposBulkBar();
 }
 
 function reposCatAba(cat) {
   _reposCatAtual = cat;
+  _reposSelecionados.clear();
   renderPedidosReposicao();
+}
+
+function reposToggleSelecionado(id, marcado) {
+  if (marcado) _reposSelecionados.add(String(id)); else _reposSelecionados.delete(String(id));
+  renderReposBulkBar();
+}
+
+function reposToggleSelecionarTodos(marcado) {
+  const lista = (state.pedidosReposicao || []).filter(function(p) {
+    return p.status === _reposAbaAtual && (p.categoria || REPOS_SEM_CATEGORIA) === _reposCatAtual;
+  });
+  lista.forEach(function(p) {
+    if (marcado) _reposSelecionados.add(String(p.id)); else _reposSelecionados.delete(String(p.id));
+  });
+  renderPedidosReposicao();
+}
+
+// Atualiza só a barra de seleção em massa (sem re-renderizar a tabela toda,
+// senão perde o foco/checkbox que acabou de ser clicado).
+function renderReposBulkBar() {
+  const bar = document.getElementById('reposBulkBar');
+  if (!bar) return;
+  const n = _reposSelecionados.size;
+  bar.style.display = n ? 'flex' : 'none';
+  if (!n) return;
+  document.getElementById('reposBulkCount').textContent = n + ' selecionado(s)';
+  const acoesEl = document.getElementById('reposBulkAcoes');
+  const botoes = [];
+  if (_reposAbaAtual === 'a_pedir') {
+    botoes.push('<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="reposAcaoEmMassa(\'pedido\')">Marcar como pedido</button>');
+  }
+  if (_reposAbaAtual === 'pedido') {
+    botoes.push('<button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="reposAcaoEmMassa(\'recebido\')">Marcar como recebido</button>');
+    botoes.push('<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="reposAcaoEmMassa(\'a_pedir\')">Voltar pra "A pedir"</button>');
+  }
+  botoes.push('<button class="btn btn-red" style="font-size:12px;padding:6px 12px" onclick="reposAcaoEmMassa(\'excluir\')">' + (_reposAbaAtual === 'recebido' ? 'Remover do histórico' : 'Excluir') + '</button>');
+  acoesEl.innerHTML = botoes.join('');
+}
+
+async function reposAcaoEmMassa(acao) {
+  const ids = Array.from(_reposSelecionados);
+  if (!ids.length) return;
+
+  if (acao === 'excluir') {
+    if (!confirm('Remover ' + ids.length + ' item(ns) selecionado(s)?')) return;
+    const { error } = await db.from('pedidos_reposicao').delete().in('id', ids);
+    if (error) { toast('Erro: ' + error.message, 'error'); return; }
+    state.pedidosReposicao = (state.pedidosReposicao || []).filter(function(p) { return !ids.includes(String(p.id)); });
+    _reposSelecionados.clear();
+    renderPedidosReposicao();
+    toast(ids.length + ' item(ns) removido(s).', 'success');
+    return;
+  }
+
+  const payload = { status: acao };
+  if (acao === 'pedido')   payload.pedido_em = new Date().toISOString();
+  if (acao === 'recebido') payload.recebido_em = new Date().toISOString();
+  if (acao === 'a_pedir')  { payload.pedido_em = null; payload.recebido_em = null; }
+  const { error } = await db.from('pedidos_reposicao').update(payload).in('id', ids);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+
+  ids.forEach(function(id) {
+    const p = (state.pedidosReposicao || []).find(function(x) { return String(x.id) === String(id); });
+    if (p) Object.assign(p, payload);
+  });
+
+  // Recebido em massa + itens catalogados -> soma no estoque de cada um.
+  if (acao === 'recebido') {
+    for (const id of ids) {
+      const p = (state.pedidosReposicao || []).find(function(x) { return String(x.id) === String(id); });
+      if (p && p.item_id) {
+        const item = state.itens.find(function(i) { return i.id === p.item_id; });
+        if (item) {
+          const estoqueAntes = parseInt(item.estoque) || 0;
+          const novoEstoque  = estoqueAntes + (parseInt(p.quantidade) || 0);
+          await db.from('itens').update({ estoque: novoEstoque }).eq('id', item.id);
+          item.estoque = novoEstoque;
+        }
+      }
+    }
+  }
+
+  _reposSelecionados.clear();
+  renderItens(); // atualiza tabela/métricas de estoque e a lista de reposição junto
+  toast(ids.length + ' item(ns) atualizado(s).', 'success');
 }
 
 // Puxa os itens sem estoque / estoque baixo pra dentro da lista, sem duplicar
@@ -6915,39 +7029,107 @@ async function reposAdicionarDosAlertas() {
 }
 
 function reposAbrirModalManual() {
+  document.getElementById('modalReposAvulsoTitulo').textContent = 'Adicionar item à lista de reposição';
+  document.getElementById('repav-id').value = '';
+  document.getElementById('repav-item-id').value = '';
   document.getElementById('repav-nome').value = '';
   document.getElementById('repav-qtd').value = '1';
   document.getElementById('repav-cat').value = '';
   document.getElementById('repav-fornecedor').value = '';
   document.getElementById('repav-obs').value = '';
+  setBtn('btnReposAvulso', false, 'Adicionar');
   openModal('modalReposAvulso');
   setTimeout(function() { document.getElementById('repav-nome').focus(); }, 100);
 }
 
+// Reaproveita o mesmo modal do item avulso pra editar estoque/observação/
+// fornecedor de um item já adicionado na lista, seja ele avulso ou puxado
+// dos alertas de estoque.
+function reposAbrirEditar(id) {
+  const p = (state.pedidosReposicao || []).find(function(x) { return String(x.id) === String(id); });
+  if (!p) return;
+  document.getElementById('modalReposAvulsoTitulo').textContent = 'Editar item da lista';
+  document.getElementById('repav-id').value = p.id;
+  document.getElementById('repav-item-id').value = p.item_id || '';
+  document.getElementById('repav-nome').value = p.nome || '';
+  document.getElementById('repav-qtd').value = p.quantidade || 1;
+  document.getElementById('repav-cat').value = p.categoria || '';
+  document.getElementById('repav-fornecedor').value = p.fornecedor || '';
+  document.getElementById('repav-obs').value = p.observacao || '';
+  setBtn('btnReposAvulso', false, 'Salvar');
+  openModal('modalReposAvulso');
+}
+
 async function reposSalvarAvulso() {
+  const id   = document.getElementById('repav-id').value;
   const nome = document.getElementById('repav-nome').value.trim();
   const qtd  = parseInt(document.getElementById('repav-qtd').value) || 1;
   const cat  = document.getElementById('repav-cat').value.trim();
-  if (!nome) { toast('Informe o nome do produto', 'error'); return; }
-  setBtn('btnReposAvulso', true, 'Adicionando...');
+  if (!nome) { toast('Informe o nome do produto', 'forte'); return; }
+  setBtn('btnReposAvulso', true, id ? 'Salvando...' : 'Adicionando...');
   try {
     if (cat) salvarCategoria(cat); // categoria nova digitada na hora, sem passar pelo dropdown
-    const { error } = await db.from('pedidos_reposicao').insert({
-      company_id: state.companyId, item_id: null, nome, categoria: cat || null, quantidade: qtd,
-      fornecedor: document.getElementById('repav-fornecedor').value.trim() || null,
-      observacao: document.getElementById('repav-obs').value.trim() || null,
-      status: 'a_pedir',
-    });
-    if (error) throw error;
-    await loadPedidosReposicao();
-    reposAba('a_pedir');
-    closeModal('modalReposAvulso');
-    toast('Item adicionado à lista de reposição!', 'success');
+    const itemId      = document.getElementById('repav-item-id').value || null;
+    const fornecedor  = document.getElementById('repav-fornecedor').value.trim() || null;
+    const observacao  = document.getElementById('repav-obs').value.trim() || null;
+    if (id) {
+      const payload = { nome, categoria: cat || null, quantidade: qtd, fornecedor, observacao, item_id: itemId };
+      const { error } = await db.from('pedidos_reposicao').update(payload).eq('id', id);
+      if (error) throw error;
+      const p = (state.pedidosReposicao || []).find(function(x) { return String(x.id) === String(id); });
+      if (p) Object.assign(p, payload);
+      renderPedidosReposicao();
+      closeModal('modalReposAvulso');
+      toast('Item atualizado!', 'success');
+    } else {
+      const { error } = await db.from('pedidos_reposicao').insert({
+        company_id: state.companyId, item_id: itemId, nome, categoria: cat || null, quantidade: qtd,
+        fornecedor, observacao, status: 'a_pedir',
+      });
+      if (error) throw error;
+      await loadPedidosReposicao();
+      reposAba('a_pedir');
+      closeModal('modalReposAvulso');
+      toast('Item adicionado à lista de reposição!', 'success');
+    }
   } catch(e) {
     toast('Erro: ' + e.message, 'error');
   } finally {
-    setBtn('btnReposAvulso', false, 'Adicionar');
+    setBtn('btnReposAvulso', false, id ? 'Salvar' : 'Adicionar');
   }
+}
+
+// Autocomplete do nome do produto no item avulso — sugere os produtos já
+// cadastrados na empresa (state.itens), pra não digitar de novo e já linkar
+// item_id (assim, quando marcar como recebido, soma no estoque de verdade).
+function reposBuscarNome(q) {
+  const drop = document.getElementById('repav-nome-drop');
+  if (!drop) return;
+  const ql = (q || '').toLowerCase().trim();
+  if (!ql) { drop.innerHTML = ''; drop.style.display = 'none'; return; }
+  const sugestoes = (state.itens || []).filter(function(i) {
+    return i.tipo !== 'serviço' && i.nome && i.nome.toLowerCase().includes(ql);
+  }).slice(0, 8);
+  if (!sugestoes.length) { drop.innerHTML = ''; drop.style.display = 'none'; return; }
+  drop.innerHTML = sugestoes.map(function(i) {
+    return '<div onclick="reposSelecionarNome(\'' + i.id + '\')"'
+      + ' style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.04));font-size:13px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.75)))"'
+      + ' onmouseover="this.style.background=\'rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.04)))\'" onmouseout="this.style.background=\'\'">'
+      + i.nome + (i.categoria ? ' <span style="color:var(--text3);font-size:11px">— ' + i.categoria + '</span>' : '')
+      + '</div>';
+  }).join('');
+  drop.style.display = '';
+}
+
+function reposSelecionarNome(itemId) {
+  const item = (state.itens || []).find(function(i) { return String(i.id) === String(itemId); });
+  if (!item) return;
+  document.getElementById('repav-nome').value = item.nome;
+  document.getElementById('repav-item-id').value = item.id;
+  if (item.categoria && !document.getElementById('repav-cat').value.trim()) {
+    document.getElementById('repav-cat').value = item.categoria;
+  }
+  document.getElementById('repav-nome-drop').style.display = 'none';
 }
 
 async function reposMudarStatus(id, novoStatus) {
