@@ -367,6 +367,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/></svg>
       Produtos/Serviços
     </div>
+    <div class="nav-item" onclick="nav('reposicao',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" stroke-width="2"/><polyline points="16 6 12 2 8 6" stroke-width="2"/><line x1="12" y1="2" x2="12" y2="15" stroke-width="2"/></svg>
+      Pedidos de Reposição <span id="nav-reposicao-badge" style="display:none;background:#f59e0b;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle"></span>
+    </div>
     <div class="nav-item" onclick="nav('entregas',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><path d="M16 8h4l3 5v4h-7V8z" stroke-width="2"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg>
       Entregas
@@ -386,6 +390,10 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/><line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/></svg>
       Relatórios
     </div>
+    <div class="nav-item" onclick="nav('funcionarios',this)" data-role="admin">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
+      Funcionários
+    </div>
     <div class="nav-item" onclick="nav('calendario',this)" data-role="todos">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg>
       Calendário
@@ -399,10 +407,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
     <div class="nav-item" onclick="nav('integracoes',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6" stroke-width="2" stroke-linecap="round"/><rect x="9" y="9" width="6" height="6" rx="1" stroke-width="2"/></svg>
       Integrações
-    </div>
-    <div class="nav-item" onclick="nav('funcionarios',this)" data-role="admin">
-      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke-width="2"/><line x1="16" y1="11" x2="22" y2="11" stroke-width="2"/></svg>
-      Funcionários
     </div>
     <div class="nav-item" onclick="nav('config',this)" data-role="admin">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-width="2"/></svg>
@@ -1245,23 +1249,6 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         <div id="estAlertas"></div>
       </div>
 
-      <!-- PEDIDOS DE REPOSIÇÃO -->
-      <div class="card mb16" id="reposCard">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-          <div class="section-title" style="margin:0">Pedidos de Reposição</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" style="font-size:12px" onclick="reposAdicionarDosAlertas()">+ Adicionar itens em falta</button>
-            <button class="btn btn-ghost" style="font-size:12px" data-admin-only onclick="reposAbrirModalManual()">+ Item avulso</button>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">
-          <button class="btn btn-ghost repos-tab" id="reposTab-a_pedir" onclick="reposAba('a_pedir')">A pedir</button>
-          <button class="btn btn-ghost repos-tab" id="reposTab-pedido" onclick="reposAba('pedido')">Pedido feito</button>
-          <button class="btn btn-ghost repos-tab" id="reposTab-recebido" onclick="reposAba('recebido')">Recebido</button>
-        </div>
-        <div id="reposLista"></div>
-      </div>
-
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
           <div class="section-title" style="margin:0">Todos os Itens</div>
@@ -1276,6 +1263,37 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
             <tbody id="itensTable"><tr><td colspan="7"><div class="skeleton" style="margin:10px 0"></div></td></tr></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- PEDIDOS DE REPOSIÇÃO -->
+    <div class="page" id="page-reposicao">
+      <div class="page-header">
+        <div class="page-header-title">Pedidos de Reposição</div>
+        <div class="page-header-sub">Organize o que precisa pedir ao fornecedor e acompanhe até chegar</div>
+      </div>
+      <div class="flex-between mb16" style="flex-wrap:wrap;gap:8px">
+        <span class="section-title" style="margin:0">Itens por categoria</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="abrirGerenciarCategorias()">Categorias</button>
+          <button class="btn btn-ghost" onclick="reposAdicionarDosAlertas()">+ Adicionar itens em falta</button>
+          <button class="btn btn-primary" onclick="reposAbrirModalManual()">+ Item avulso</button>
+        </div>
+      </div>
+      <div class="grid4 mb16">
+        <div class="metric"><div class="metric-label">A pedir</div><div class="metric-value text-amber" id="repos-cont-a_pedir">—</div></div>
+        <div class="metric"><div class="metric-label">Pedido feito</div><div class="metric-value" id="repos-cont-pedido">—</div></div>
+        <div class="metric"><div class="metric-label">Recebido (total)</div><div class="metric-value text-green" id="repos-cont-recebido">—</div></div>
+        <div class="metric"><div class="metric-label">Categorias na lista</div><div class="metric-value" id="repos-cont-categorias">—</div></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost repos-tab" id="reposTab-a_pedir" onclick="reposAba('a_pedir')">A pedir</button>
+          <button class="btn btn-ghost repos-tab" id="reposTab-pedido" onclick="reposAba('pedido')">Pedido feito</button>
+          <button class="btn btn-ghost repos-tab" id="reposTab-recebido" onclick="reposAba('recebido')">Recebido</button>
+          <button class="btn-wpp" style="font-size:12px;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;margin-left:auto" id="reposBtnGerarLista" onclick="reposAbrirLista()">Gerar lista pro fornecedor</button>
+        </div>
+        <div id="reposLista"></div>
       </div>
     </div>
 
@@ -2536,6 +2554,20 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
       <label>Quantidade *</label>
       <input type="number" id="repav-qtd" placeholder="Ex: 10" min="1" value="1">
     </div>
+    <div class="form-group" style="margin:0">
+      <label>Categoria</label>
+      <div style="position:relative">
+        <input id="repav-cat" placeholder="Buscar ou criar categoria..." autocomplete="off"
+          oninput="reposBuscarCat(this.value)" onfocus="reposBuscarCat(this.value)"
+          onblur="setTimeout(()=>{const d=document.getElementById('repav-cat-drop');if(d)d.style.display='none'},180)"
+          onkeydown="if(event.key==='Escape'){document.getElementById('repav-cat-drop').style.display='none'}"
+          style="width:100%;padding-right:28px">
+        <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.25)));font-size:10px;pointer-events:none">▼</span>
+        <div id="repav-cat-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1000;
+          background:var(--surface-pop);border:1px solid rgba(79,70,229,.3);border-radius:8px;
+          box-shadow:0 4px 20px rgba(0,0,0,.5);max-height:200px;overflow-y:auto;margin-top:2px"></div>
+      </div>
+    </div>
     <div class="form-group">
       <label>Fornecedor (opcional)</label>
       <input id="repav-fornecedor" placeholder="Ex: Distribuidora Central">
@@ -2845,13 +2877,13 @@ window._nexusState = state;
 const pageNames = {
   dashboard:'Dashboard', clientes:'Clientes', campanhas:'Campanhas',
   fidelidade:'Fidelidade', indicacao:'Indicação', crm:'CRM — Funil de Vendas', vendas:'Vendas',
-  itens:'Produtos e Serviços', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
+  itens:'Produtos e Serviços', reposicao:'Pedidos de Reposição', entregas:'Entregas', reservas:'Reservas & Lista de Espera',
   devedores:'Cobranças', calendario:'Calendário',
   relatorios:'Relatórios', config:'Configurações', funcionarios:'Funcionários',
   integracoes:'Integrações', assinaturas:'Assinaturas'
 };
 
-const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores','integracoes','assinaturas'];
+const ADMIN_PAGES = ['crm','relatorios','config','funcionarios','devedores','integracoes','assinaturas','reposicao'];
 // ══════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2945,6 +2977,7 @@ function nav(id, el, skipHistory) {
   if (id === 'reservas')   rsvInit();
   if (id === 'entregas')   renderEntregas();
   if (id === 'devedores')  dvInit();
+  if (id === 'reposicao')  renderPedidosReposicao();
   if (id === 'calendario') calInit();
   if (id === 'indicacao')   { renderIndTable2(); indAba('registrar'); }
 }
@@ -6601,7 +6634,6 @@ async function deleteVenda(id) {
 // ITENS
 // ══════════════════════════════════════════════════════════════════════════════
 function renderItens() {
-  renderPedidosReposicao();
   const tb = document.getElementById('itensTable');
   if (!tb) return;
   const limite = parseInt(document.getElementById('limiteEstoque')?.value || '5');
@@ -6749,20 +6781,30 @@ function reposAba(status) {
   renderPedidosReposicao();
 }
 
+const REPOS_SEM_CATEGORIA = 'Sem categoria';
+
 function renderPedidosReposicao() {
   const todos = state.pedidosReposicao || [];
   const cont = { a_pedir: 0, pedido: 0, recebido: 0 };
   todos.forEach(function(p) { if (cont[p.status] !== undefined) cont[p.status]++; });
   [['a_pedir','A pedir'],['pedido','Pedido feito'],['recebido','Recebido']].forEach(function(t) {
     const btn = document.getElementById('reposTab-' + t[0]);
-    if (!btn) return;
-    btn.className = 'btn repos-tab ' + (_reposAbaAtual === t[0] ? 'btn-primary' : 'btn-ghost');
-    btn.textContent = t[1] + (cont[t[0]] ? ' (' + cont[t[0]] + ')' : '');
+    if (btn) {
+      btn.className = 'btn repos-tab ' + (_reposAbaAtual === t[0] ? 'btn-primary' : 'btn-ghost');
+      btn.textContent = t[1] + (cont[t[0]] ? ' (' + cont[t[0]] + ')' : '');
+    }
+    const met = document.getElementById('repos-cont-' + t[0]);
+    if (met) met.textContent = cont[t[0]];
   });
 
   const el = document.getElementById('reposLista');
   if (!el) return;
   const lista = todos.filter(function(p) { return p.status === _reposAbaAtual; });
+
+  const metCat = document.getElementById('repos-cont-categorias');
+  if (metCat) metCat.textContent = new Set(lista.map(function(p) { return p.categoria || REPOS_SEM_CATEGORIA; })).size;
+  const btnLista = document.getElementById('reposBtnGerarLista');
+  if (btnLista) btnLista.style.display = cont.a_pedir ? '' : 'none';
 
   if (!lista.length) {
     el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">' +
@@ -6785,19 +6827,39 @@ function renderPedidosReposicao() {
       + '<button class="btn btn-ghost" style="font-size:11px;padding:4px 8px" onclick="reposRemover(\'' + p.id + '\')">Remover do histórico</button>';
   }
 
-  el.innerHTML =
-    (_reposAbaAtual === 'a_pedir' && lista.length
-      ? '<div style="margin-bottom:10px"><button class="btn-wpp" style="font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer" onclick="reposAbrirLista()">Gerar lista pro fornecedor (' + lista.length + ')</button></div>'
-      : '')
-    + lista.map(function(p) {
-      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05))">'
-        + '<div style="min-width:0">'
-        + '<div style="font-size:13px;color:var(--text1);font-weight:500">' + p.nome + ' <span style="color:var(--text3);font-weight:400">· ' + p.quantidade + ' un.</span></div>'
-        + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3)">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
-        + '</div>'
-        + '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + acoesPorLinha(p) + '</div>'
-        + '</div>';
-    }).join('');
+  // Agrupa por categoria (as mesmas categorias do resto do sistema — ver
+  // getCategorias()), ordenado alfabeticamente; "Sem categoria" sempre por
+  // último, já que é o grupo "sobra", não uma categoria real.
+  const porCategoria = {};
+  lista.forEach(function(p) {
+    const cat = p.categoria || REPOS_SEM_CATEGORIA;
+    (porCategoria[cat] = porCategoria[cat] || []).push(p);
+  });
+  const categoriasOrdenadas = Object.keys(porCategoria).sort(function(a, b) {
+    if (a === REPOS_SEM_CATEGORIA) return 1;
+    if (b === REPOS_SEM_CATEGORIA) return -1;
+    return a.localeCompare(b, 'pt-BR');
+  });
+
+  el.innerHTML = categoriasOrdenadas.map(function(cat) {
+    const itensCat = porCategoria[cat];
+    return '<div style="margin-bottom:18px">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      + '<span style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px">' + cat + '</span>'
+      + '<span style="font-size:11px;color:var(--text3)">(' + itensCat.length + ')</span>'
+      + '<div style="flex:1;height:1px;background:rgba(var(--fg-rgb),calc(var(--kb)*.06))"></div>'
+      + '</div>'
+      + itensCat.map(function(p) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.05))">'
+          + '<div style="min-width:0">'
+          + '<div style="font-size:13px;color:var(--text1);font-weight:500">' + p.nome + ' <span style="color:var(--text3);font-weight:400">· ' + p.quantidade + ' un.</span></div>'
+          + (p.fornecedor || p.observacao ? '<div style="font-size:11px;color:var(--text3)">' + [p.fornecedor, p.observacao].filter(Boolean).join(' · ') + '</div>' : '')
+          + '</div>'
+          + '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + acoesPorLinha(p) + '</div>'
+          + '</div>';
+      }).join('')
+      + '</div>';
+  }).join('');
 }
 
 // Puxa os itens sem estoque / estoque baixo pra dentro da lista, sem duplicar
@@ -6812,7 +6874,7 @@ async function reposAdicionarDosAlertas() {
   if (!novos.length) { toast('Todos os itens em falta já estão na lista.', 'info'); return; }
 
   const payload = novos.map(function(i) {
-    return { company_id: state.companyId, item_id: i.id, nome: i.nome, quantidade: Math.max(1, limite - parseInt(i.estoque || 0) + 5), status: 'a_pedir' };
+    return { company_id: state.companyId, item_id: i.id, nome: i.nome, categoria: i.categoria || null, quantidade: Math.max(1, limite - parseInt(i.estoque || 0) + 5), status: 'a_pedir' };
   });
   const { error } = await db.from('pedidos_reposicao').insert(payload);
   if (error) { toast('Erro: ' + error.message, 'error'); return; }
@@ -6824,6 +6886,7 @@ async function reposAdicionarDosAlertas() {
 function reposAbrirModalManual() {
   document.getElementById('repav-nome').value = '';
   document.getElementById('repav-qtd').value = '1';
+  document.getElementById('repav-cat').value = '';
   document.getElementById('repav-fornecedor').value = '';
   document.getElementById('repav-obs').value = '';
   openModal('modalReposAvulso');
@@ -6833,11 +6896,13 @@ function reposAbrirModalManual() {
 async function reposSalvarAvulso() {
   const nome = document.getElementById('repav-nome').value.trim();
   const qtd  = parseInt(document.getElementById('repav-qtd').value) || 1;
+  const cat  = document.getElementById('repav-cat').value.trim();
   if (!nome) { toast('Informe o nome do produto', 'error'); return; }
   setBtn('btnReposAvulso', true, 'Adicionando...');
   try {
+    if (cat) salvarCategoria(cat); // categoria nova digitada na hora, sem passar pelo dropdown
     const { error } = await db.from('pedidos_reposicao').insert({
-      company_id: state.companyId, item_id: null, nome, quantidade: qtd,
+      company_id: state.companyId, item_id: null, nome, categoria: cat || null, quantidade: qtd,
       fornecedor: document.getElementById('repav-fornecedor').value.trim() || null,
       observacao: document.getElementById('repav-obs').value.trim() || null,
       status: 'a_pedir',
@@ -6898,9 +6963,25 @@ async function reposRemover(id) {
 function reposAbrirLista() {
   const lista = (state.pedidosReposicao || []).filter(function(p) { return p.status === 'a_pedir'; });
   if (!lista.length) { toast('Nada na lista "A pedir" agora.', 'info'); return; }
-  const neg    = (state.config && state.config.nome_negocio) || 'nossa loja';
-  const linhas = lista.map(function(p) { return '- ' + p.nome + ' — ' + p.quantidade + ' un.' + (p.observacao ? ' (' + p.observacao + ')' : ''); }).join('\n');
-  document.getElementById('reposListaTexto').value = 'Pedido de reposição — ' + neg + '\n\n' + linhas;
+  const neg = (state.config && state.config.nome_negocio) || 'nossa loja';
+
+  // Mesmo agrupamento por categoria da tela, pro fornecedor receber organizado.
+  const porCategoria = {};
+  lista.forEach(function(p) {
+    const cat = p.categoria || REPOS_SEM_CATEGORIA;
+    (porCategoria[cat] = porCategoria[cat] || []).push(p);
+  });
+  const categoriasOrdenadas = Object.keys(porCategoria).sort(function(a, b) {
+    if (a === REPOS_SEM_CATEGORIA) return 1;
+    if (b === REPOS_SEM_CATEGORIA) return -1;
+    return a.localeCompare(b, 'pt-BR');
+  });
+  const blocos = categoriasOrdenadas.map(function(cat) {
+    const linhas = porCategoria[cat].map(function(p) { return '- ' + p.nome + ' — ' + p.quantidade + ' un.' + (p.observacao ? ' (' + p.observacao + ')' : ''); }).join('\n');
+    return cat.toUpperCase() + ':\n' + linhas;
+  });
+
+  document.getElementById('reposListaTexto').value = 'Pedido de reposição — ' + neg + '\n\n' + blocos.join('\n\n');
   document.getElementById('reposListaTel').value = '';
   openModal('modalReposLista');
 }
@@ -6961,6 +7042,46 @@ function itBuscarCat(q) {
 function itSelecionarCat(cat, criar) {
   document.getElementById('it-cat').value = cat;
   document.getElementById('it-cat-drop').style.display = 'none';
+  if (criar) salvarCategoria(cat);
+}
+
+// Mesmo autocomplete de categoria do modal de Item (it-cat), só que pro campo
+// do item avulso em Pedidos de Reposição — usa getCategorias()/salvarCategoria(),
+// as categorias já existentes no sistema, e cria categoria nova se digitar uma
+// que ainda não existe.
+function reposBuscarCat(q) {
+  const drop = document.getElementById('repav-cat-drop');
+  if (!drop) return;
+  const cats = getCategorias();
+  const ql   = (q||'').toLowerCase().trim();
+  const filtradas = cats.filter(c => !ql || c.toLowerCase().includes(ql));
+
+  let html = '';
+  const jaExiste = cats.some(c => c.toLowerCase() === ql);
+  if (ql && !jaExiste) {
+    html += `<div onclick="reposSelecionarCat('${q.replace(/'/g,"\\'")}',true)"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.06));color:var(--accent);font-size:13px"
+      onmouseover="this.style.background='rgba(var(--fg-rgb),calc(var(--kb)*.04))'" onmouseout="this.style.background=''">
+      + Criar categoria "<b>${q}</b>"
+    </div>`;
+  }
+  if (!filtradas.length && !ql) {
+    html += `<div style="padding:10px 14px;font-size:12px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.3)))">Nenhuma categoria. Digite para criar.</div>`;
+  } else {
+    html += filtradas.map(c => `
+      <div onclick="reposSelecionarCat('${c.replace(/'/g,"\\'")}',false)"
+        style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(var(--fg-rgb),calc(var(--kb)*.04));font-size:13px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.75)))"
+        onmouseover="this.style.background='rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.04)))'" onmouseout="this.style.background=''">
+        ${c}
+      </div>`).join('');
+  }
+  drop.innerHTML = html;
+  drop.style.display = html ? '' : 'none';
+}
+
+function reposSelecionarCat(cat, criar) {
+  document.getElementById('repav-cat').value = cat;
+  document.getElementById('repav-cat-drop').style.display = 'none';
   if (criar) salvarCategoria(cat);
 }
 
@@ -13998,18 +14119,19 @@ function rsvWppEnviar() {
     <div class="md-nav-section-label">Vendas</div>
     <div class="md-nav-item" onclick="mNav('vendas')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Vendas</div>
     <div class="md-nav-item" onclick="mNav('itens')"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Produtos/Serviços</div>
+    <div class="md-nav-item" onclick="mNav('reposicao')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Pedidos de Reposição</div>
     <div class="md-nav-item" onclick="mNav('entregas')"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Entregas</div>
     <div class="md-nav-item" onclick="mNav('reservas')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Reservas</div>
     <div class="md-nav-item" onclick="mNav('devedores')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cobranças</div>
 
     <div class="md-nav-section-label">Inteligência</div>
     <div class="md-nav-item" onclick="mNav('relatorios')" data-admin="1"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios</div>
+    <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
     <div class="md-nav-item" onclick="mNav('calendario')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</div>
 
     <div class="md-nav-section-label">Sistema</div>
     <div class="md-nav-item" onclick="mNav('assinaturas')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Assinaturas</div>
     <div class="md-nav-item" onclick="mNav('integracoes')" data-admin="1"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 3v6M15 3v6M9 21v-6M15 21v-6M3 9h6M15 9h6M3 15h6M15 15h6"/></svg>Integrações</div>
-    <div class="md-nav-item" onclick="mNav('funcionarios')" data-admin="1"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>Funcionários</div>
     <div class="md-nav-item" onclick="mNav('config')" data-admin="1"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
   </div>
   <div class="md-bottom">
