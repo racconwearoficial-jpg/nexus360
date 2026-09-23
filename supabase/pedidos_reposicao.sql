@@ -8,6 +8,7 @@ create table if not exists pedidos_reposicao (
   company_id   uuid not null,
   item_id      bigint,        -- referência opcional a itens.id — null se for item avulso/não catalogado
   nome         text not null,
+  categoria    text,          -- mesmas categorias de itens.categoria/getCategorias() — não é lista separada
   quantidade   integer not null default 1,
   fornecedor   text,
   observacao   text,
