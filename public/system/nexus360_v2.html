@@ -6889,7 +6889,7 @@ function renderPedidosReposicao() {
     catTabsEl.innerHTML = categoriasOrdenadas.map(function(cat) {
       const ativo = cat === _reposCatAtual;
       return '<button class="btn ' + (ativo ? 'btn-primary' : 'btn-ghost') + '" style="font-size:12px;white-space:nowrap;flex-shrink:0" onclick="reposCatAba(\'' + cat.replace(/'/g,"\\'") + '\')">'
-        + cat + ' (' + porCategoria[cat].length + ')</button>';
+        + cat + '</button>';
     }).join('');
   }
 
