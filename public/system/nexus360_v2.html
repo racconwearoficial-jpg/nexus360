@@ -3811,14 +3811,17 @@ function applyConfig() {
     SENHA_ADMIN = localStorage.getItem('nexus360_senha_admin') || 'admin123';
   }
   state.rankingInicio   = c.ranking_inicio   || null;
-  // Prioriza localStorage (salvo localmente ao encerrar) sobre Supabase
-  // pois ranking_inicio_ts pode não existir como coluna no Supabase
-  const tsLocal = localStorage.getItem('nexus360_ranking_ts');
+  // As chaves de localStorage abaixo são por-empresa (sufixo company_id).
+  // ERA sem sufixo antes: como localStorage é por origem (nexus360.app.br)
+  // e não por empresa, encerrar o ranking de uma empresa vazava a data/
+  // timestamp pra sessão de QUALQUER outra empresa aberta no mesmo
+  // navegador, fazendo o ranking de uma empresa "resetar" o de outra.
+  const tsLocal = localStorage.getItem('nexus360_ranking_ts_' + state.companyId);
   const tsSupab = c.ranking_inicio_ts ? parseInt(c.ranking_inicio_ts) : 0;
   state.rankingInicioTs = tsLocal ? Math.max(parseInt(tsLocal), tsSupab) : tsSupab;
   // Sincroniza rankingInicio com localStorage se Supabase não tem
   if (!state.rankingInicio) {
-    state.rankingInicio = localStorage.getItem('nexus360_ranking_inicio') || null;
+    state.rankingInicio = localStorage.getItem('nexus360_ranking_inicio_' + state.companyId) || null;
   }
   if (c.msg_reativacao)    document.getElementById('cfg-msg-reativacao').value    = c.msg_reativacao;
   if (c.msg_aniversario)   document.getElementById('cfg-msg-aniversario').value   = c.msg_aniversario;
@@ -7912,7 +7915,7 @@ async function rmEncerrarMes() {
 
     // 3. Salva histórico ANTES de atualizar rankingInicio
     let hist = [];
-    try { hist = JSON.parse(localStorage.getItem('nexus360_rm_hist') || '[]'); } catch(e) {}
+    try { hist = JSON.parse(localStorage.getItem('nexus360_rm_hist_' + state.companyId) || '[]'); } catch(e) {}
     hist.unshift({
       dataEncerramento: novoInicio,
       ranking: ranking.slice(0,3).map(r => {
@@ -7920,13 +7923,13 @@ async function rmEncerrarMes() {
         return { nome: cli?.nome||'—', pts: r.pts };
       }),
     });
-    try { localStorage.setItem('nexus360_rm_hist', JSON.stringify(hist.slice(0,12))); } catch(e) {}
+    try { localStorage.setItem('nexus360_rm_hist_' + state.companyId, JSON.stringify(hist.slice(0,12))); } catch(e) {}
 
     // 4. Atualiza state com timestamp exato do encerramento
     state.rankingInicio   = novoInicio;
     state.rankingInicioTs = Date.now();
-    localStorage.setItem('nexus360_ranking_inicio', novoInicio);
-    localStorage.setItem('nexus360_ranking_ts', String(state.rankingInicioTs)); // timestamp preciso para filtrar vendas
+    localStorage.setItem('nexus360_ranking_inicio_' + state.companyId, novoInicio);
+    localStorage.setItem('nexus360_ranking_ts_' + state.companyId, String(state.rankingInicioTs)); // timestamp preciso para filtrar vendas
 
     // 5. Salva no Supabase (silencioso se falhar)
     try {
@@ -7959,7 +7962,7 @@ function rmVerHistorico() {
   if (wrap.style.display === 'none') return;
 
   let hist = [];
-  try { hist = JSON.parse(localStorage.getItem('nexus360_rm_hist') || '[]'); } catch(e) {}
+  try { hist = JSON.parse(localStorage.getItem('nexus360_rm_hist_' + state.companyId) || '[]'); } catch(e) {}
 
   if (!hist.length) {
     el.innerHTML = '<div style="font-size:13px;color:rgba(var(--fg-rgb),calc(max(var(--kmin),var(--kt) + var(--ks)*.3)));padding:12px 0">Nenhum ciclo encerrado ainda.</div>';
