@@ -6857,6 +6857,8 @@ function renderPedidosReposicao() {
     const catTabsElVazio = document.getElementById('reposCatTabs');
     if (catTabsElVazio) catTabsElVazio.innerHTML = ''; // limpa abas de categoria "fantasma" de quando a aba esvaziou
     _reposCatAtual = null;
+    _reposSelecionados.clear();
+    renderReposBulkBar(); // esconde a barra de seleção "fantasma" junto
     el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">' +
       (_reposAbaAtual === 'a_pedir' ? 'Nada pra pedir agora. Clique em "+ Adicionar itens em falta" ou "+ Item avulso".'
         : _reposAbaAtual === 'pedido' ? 'Nenhum pedido em andamento.'
