@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { enviarTextoZapi } from "@/lib/zapi";
 import { ehPedidoDeSaida, ehPedidoDeVolta, MSG_SAIDA_CONFIRMADA, MSG_VOLTA_CONFIRMADA, JANELA_HORAS } from "@/lib/optout";
+import { classificarSexoPorNome } from "@/lib/sexoPorNome";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,32 @@ function normalizarTelefone(numero: string) {
 function chaveTelefone(numero: string) {
   const d = (numero || "").replace(/\D/g, "");
   return d.length >= 8 ? d.slice(-8) : "";
+}
+
+// Cliente já cadastrado com o mesmo telefone (mesma chaveTelefone). Filtra no
+// banco pelos 4 últimos dígitos (o telefone cru pode ter máscara no meio, mas
+// termina neles) e confere a chave aqui. Se houver mais de um, fica com o de mais
+// pontos — é o cadastro "de verdade", com histórico de compras.
+async function buscarClientePorTelefone(companyId: string, telefone: string, campos: string) {
+  const chave = chaveTelefone(telefone);
+  if (!chave) return null;
+  const { data } = await supabaseAdmin
+    .from("clientes")
+    .select(campos)
+    .eq("company_id", companyId)
+    .like("telefone", `%${chave.slice(-4)}%`);
+  const iguais = (data || []).filter((c: any) => chaveTelefone(c.telefone) === chave);
+  if (!iguais.length) return null;
+  iguais.sort((a: any, b: any) => (b.pontos || 0) - (a.pontos || 0) || a.id - b.id);
+  return iguais[0];
+}
+
+// Sexo pelo nome só quando o cliente ainda não tem (não sobrescreve o que o
+// balcão escolheu). Usado quando o chatbot descobre o nome completo.
+function sexoSeFaltar(cliente: any, nome: string) {
+  if (cliente?.sexo) return {};
+  const sexo = classificarSexoPorNome(nome);
+  return sexo ? { sexo } : {};
 }
 
 // "sair" é uma palavra comum demais para valer sozinha, a qualquer hora: um cliente
@@ -243,7 +270,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const telNormalizado = normalizarTelefone(telefoneCliente);
-    const camposCliente = "id, nome, telefone, pontos, status, ultima_compra, fidelidade_status, fidelidade_convite_em";
+    const camposCliente = "id, nome, telefone, pontos, status, ultima_compra, fidelidade_status, fidelidade_convite_em, sexo";
 
     // Upsert atômico por (company_id, telefone_normalizado) — antes disso o
     // código buscava todo mundo, procurava em memória e só depois inseria,
@@ -253,41 +280,51 @@ export async function POST(req: NextRequest) {
     // ignoreDuplicates faz o Postgres não sobrescrever nome/pontos de quem
     // já existe — se o conflito acontecer, o upsert não retorna a linha,
     // então busca ela em seguida.
-    let cliente: any = null;
     let clienteNovo = false;
     const nomeWhatsapp = String(payload.senderName || payload.chatName || "").trim().slice(0, 80) || "Cliente WhatsApp";
-    const { data: upsertado, error: erroUpsert } = await supabaseAdmin
-      .from("clientes")
-      .upsert(
-        { company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, telefone_normalizado: telNormalizado || null, status: "ativo", pontos: 0 },
-        { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
-      )
-      .select(camposCliente)
-      .single();
 
-    if (upsertado) {
-      cliente = upsertado;
-      clienteNovo = true;
-      console.log("[zapi-webhook] cliente novo cadastrado automaticamente:", { nome: nomeWhatsapp, telefone: telefoneCliente });
-    } else {
-      // Erro 42P10 = a trava única em (company_id, telefone_normalizado) não
-      // existe ou não é utilizável como alvo de ON CONFLICT (índice parcial,
-      // por exemplo) — nesse caso o upsert nunca chegou a criar nada, então
-      // a busca abaixo vai dar em branco e o cliente simplesmente não é
-      // cadastrado. Loga alto pra não passar batido de novo como em 08/09/2026.
-      if (erroUpsert?.code === "42P10") {
-        console.error("[zapi-webhook] ERRO DE CONFIGURAÇÃO: índice único (company_id, telefone_normalizado) ausente ou não utilizável como alvo de ON CONFLICT — cadastro automático não vai funcionar até corrigir o índice:", erroUpsert.message);
-      } else if (erroUpsert) {
-        console.log("[zapi-webhook] upsert não criou linha (provável conflito, buscando existente):", erroUpsert.message);
-      }
-      const { data: existente, error: erroBusca } = await supabaseAdmin
+    // Antes de criar, procura quem já tem o mesmo telefone pelos últimos 8 dígitos
+    // do telefone cru. O upsert abaixo só enxerga telefone_normalizado, que fica
+    // vazio ou diferente em quem foi cadastrado no balcão (sem DDD, com "+55" etc.)
+    // — era isso que criava um cadastro novo, com 0 pontos e o nome do perfil do
+    // WhatsApp, cada vez que um cliente antigo chamava (97 grupos duplicados em
+    // 18/10/2026).
+    let cliente: any = await buscarClientePorTelefone(companyId, telefoneCliente, camposCliente);
+
+    if (!cliente) {
+      const { data: upsertado, error: erroUpsert } = await supabaseAdmin
         .from("clientes")
+        .upsert(
+          { company_id: companyId, nome: nomeWhatsapp, telefone: telefoneCliente, telefone_normalizado: telNormalizado || null, status: "ativo", pontos: 0, sexo: classificarSexoPorNome(nomeWhatsapp) },
+          { onConflict: "company_id,telefone_normalizado", ignoreDuplicates: true }
+        )
         .select(camposCliente)
-        .eq("company_id", companyId)
-        .eq("telefone_normalizado", telNormalizado)
-        .maybeSingle();
-      if (existente) cliente = existente;
-      else console.error("[zapi-webhook] falha ao cadastrar/buscar cliente:", erroBusca?.message);
+        .single();
+
+      if (upsertado) {
+        cliente = upsertado;
+        clienteNovo = true;
+        console.log("[zapi-webhook] cliente novo cadastrado automaticamente:", { nome: nomeWhatsapp, telefone: telefoneCliente });
+      } else {
+        // Erro 42P10 = a trava única em (company_id, telefone_normalizado) não
+        // existe ou não é utilizável como alvo de ON CONFLICT (índice parcial,
+        // por exemplo) — nesse caso o upsert nunca chegou a criar nada, então
+        // a busca abaixo vai dar em branco e o cliente simplesmente não é
+        // cadastrado. Loga alto pra não passar batido de novo como em 08/09/2026.
+        if (erroUpsert?.code === "42P10") {
+          console.error("[zapi-webhook] ERRO DE CONFIGURAÇÃO: índice único (company_id, telefone_normalizado) ausente ou não utilizável como alvo de ON CONFLICT — cadastro automático não vai funcionar até corrigir o índice:", erroUpsert.message);
+        } else if (erroUpsert) {
+          console.log("[zapi-webhook] upsert não criou linha (provável conflito, buscando existente):", erroUpsert.message);
+        }
+        const { data: existente, error: erroBusca } = await supabaseAdmin
+          .from("clientes")
+          .select(camposCliente)
+          .eq("company_id", companyId)
+          .eq("telefone_normalizado", telNormalizado)
+          .maybeSingle();
+        if (existente) cliente = existente;
+        else console.error("[zapi-webhook] falha ao cadastrar/buscar cliente:", erroBusca?.message);
+      }
     }
 
     // Reservas em aberto do cliente (produto separado aguardando retirada) —
@@ -350,7 +387,7 @@ Responda ESTRITAMENTE em JSON, sem nenhum texto antes ou depois, em uma destas 4
 
           if (acao.acao === "completo" && typeof acao.nome === "string" && acao.nome.trim() && typeof acao.aniversario === "string" && /^\d{4}-\d{2}-\d{2}$/.test(acao.aniversario)) {
             const nomeFinal = acao.nome.trim().slice(0, 120);
-            await supabaseAdmin.from("clientes").update({ nome: nomeFinal, aniversario: acao.aniversario, fidelidade_status: "completo" }).eq("id", cliente.id);
+            await supabaseAdmin.from("clientes").update({ nome: nomeFinal, aniversario: acao.aniversario, fidelidade_status: "completo", ...sexoSeFaltar(cliente, nomeFinal) }).eq("id", cliente.id);
             await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: `Prontinho, ${nomeFinal}! Você já faz parte do nosso programa de fidelidade em ${negocio}.` });
           } else if (acao.acao === "pedir_dados") {
             await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Show! Pra concluir seu cadastro no programa de fidelidade, me manda seu nome completo e sua data de nascimento." });
@@ -536,7 +573,10 @@ Sua resposta:`;
         } else if (valorAcao.startsWith("{")) {
           const dados = JSON.parse(valorAcao);
           const updateCliente: Record<string, any> = { fidelidade_status: "completo" };
-          if (typeof dados.nome === "string" && dados.nome.trim()) updateCliente.nome = dados.nome.trim().slice(0, 120);
+          if (typeof dados.nome === "string" && dados.nome.trim()) {
+            updateCliente.nome = dados.nome.trim().slice(0, 120);
+            Object.assign(updateCliente, sexoSeFaltar(cliente, updateCliente.nome));
+          }
           if (typeof dados.aniversario === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dados.aniversario)) updateCliente.aniversario = dados.aniversario;
           await supabaseAdmin.from("clientes").update(updateCliente).eq("id", cliente.id);
         }

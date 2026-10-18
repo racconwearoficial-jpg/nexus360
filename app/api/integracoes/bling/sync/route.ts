@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidAccessToken, BLING_API_BASE } from "@/lib/bling";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,9 @@ export async function POST(req: NextRequest) {
   if (!company_id) {
     return NextResponse.json({ error: "company_id é obrigatório" }, { status: 400 });
   }
+
+  const negado = await exigirEmpresa(req, company_id);
+  if (negado) return negado;
 
   try {
     const token = await getValidAccessToken(company_id);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { testarChaveAsaas } from "@/lib/asaas";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,9 @@ export async function POST(req: NextRequest) {
   if (!company_id || !api_key) {
     return NextResponse.json({ error: "company_id e api_key são obrigatórios" }, { status: 400 });
   }
+
+  const negado = await exigirEmpresa(req, company_id);
+  if (negado) return negado;
 
   try {
     await testarChaveAsaas(api_key, Boolean(sandbox)); // valida a chave antes de salvar

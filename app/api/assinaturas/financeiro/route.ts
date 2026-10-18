@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCredenciaisAsaas, consultarSaldo, consultarExtrato } from "@/lib/asaas";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,9 @@ export async function GET(req: NextRequest) {
   const companyId = req.nextUrl.searchParams.get("company_id");
   const tipo = req.nextUrl.searchParams.get("tipo") || "saldo";
   if (!companyId) return NextResponse.json({ error: "company_id é obrigatório" }, { status: 400 });
+
+  const negado = await exigirEmpresa(req, companyId);
+  if (negado) return negado;
 
   try {
     const cred = await getCredenciaisAsaas(companyId);

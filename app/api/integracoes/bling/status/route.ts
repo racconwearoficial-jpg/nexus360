@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, supabaseAdminConfigurado } from "@/lib/supabaseAdmin";
 import { blingEnvConfigurado } from "@/lib/bling";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 // Sem isso, o Next/Netlify pode cachear a resposta e mostrar "conectado"
 // mesmo depois de desconectar (ou vice-versa).
@@ -12,6 +13,9 @@ export async function GET(req: NextRequest) {
   if (!companyId) {
     return NextResponse.json({ error: "company_id é obrigatório" }, { status: 400 });
   }
+
+  const negado = await exigirEmpresa(req, companyId);
+  if (negado) return negado;
   const headers = { "Cache-Control": "no-store, max-age=0" };
 
   if (!supabaseAdminConfigurado || !blingEnvConfigurado()) {

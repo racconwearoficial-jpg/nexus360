@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { cancelarAssinaturaAsaas, cancelarPagamentoAsaas, getCredenciaisAsaas } from "@/lib/asaas";
+import { exigirEmpresa } from "@/lib/authEmpresa";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,9 @@ export async function POST(req: NextRequest) {
   if (!assinatura_id || !company_id) {
     return NextResponse.json({ error: "assinatura_id e company_id são obrigatórios" }, { status: 400 });
   }
+
+  const negado = await exigirEmpresa(req, company_id);
+  if (negado) return negado;
   try {
     const { data: assinatura, error } = await supabaseAdmin
       .from("assinaturas").select("*").eq("id", assinatura_id).eq("company_id", company_id).single();

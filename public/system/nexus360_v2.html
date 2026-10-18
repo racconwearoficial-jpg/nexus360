@@ -3120,7 +3120,7 @@ async function loadIntegracoes() {
   if (!badge) return;
 
   try {
-    const r = await fetch(`/api/integracoes/bling/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetch(`/api/integracoes/bling/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store', headers: await apiAuthHeaders() });
     const d = await r.json();
 
     if (!d.disponivel) {
@@ -3169,7 +3169,7 @@ async function loadIntegracaoAsaas() {
   if (!badge) return;
 
   try {
-    const r = await fetch(`/api/integracoes/asaas/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetch(`/api/integracoes/asaas/status?company_id=${state.companyId}&_=${Date.now()}`, { cache: 'no-store', headers: await apiAuthHeaders() });
     const d = await r.json();
     _asaasConectado = Boolean(d.conectado);
 
@@ -3203,7 +3203,7 @@ async function conectarAsaas() {
   btn.disabled = true; btn.textContent = 'Validando...';
   try {
     const r = await fetch('/api/integracoes/asaas/conectar', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, api_key, sandbox }),
     });
     const d = await r.json();
@@ -3222,7 +3222,7 @@ async function desconectarAsaas() {
   if (!confirm('Desconectar o Asaas? Assinaturas existentes continuam ativas lá, mas o Nexus360 não vai mais gerenciar novas.')) return;
   try {
     const r = await fetch('/api/integracoes/asaas/desconectar', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId }),
     });
     if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao desconectar'); }
@@ -3355,7 +3355,7 @@ async function desconectarBling() {
   btn.disabled = true; btn.textContent = 'Desconectando...';
   try {
     const r = await fetch('/api/integracoes/bling/disconnect', {
-      method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'},
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId }),
     });
     const d = await r.json().catch(() => ({}));
@@ -3376,7 +3376,7 @@ async function sincronizarBling() {
   btn.disabled = true; btn.textContent = 'Sincronizando...';
   try {
     const r = await fetch('/api/integracoes/bling/sync', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId }),
     });
     const d = await r.json();
@@ -3500,7 +3500,7 @@ async function criarAssinaturaCliente() {
   btn.disabled = true; btn.textContent = 'Criando...';
   try {
     const r = await fetch('/api/assinaturas/criar', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, cliente_id, plano_id }),
     });
     const d = await r.json();
@@ -3518,7 +3518,7 @@ async function cancelarAssinaturaCliente(assinatura_id) {
   if (!confirm('Cancelar essa assinatura? O cliente para de ser cobrado.')) return;
   try {
     const r = await fetch('/api/assinaturas/cancelar', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
     });
     if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || 'Falha ao cancelar'); }
@@ -3539,7 +3539,7 @@ async function atualizarStatusAssinatura(assinatura_id) {
   btn.disabled = true; btn.textContent = 'Consultando...';
   try {
     const r = await fetch('/api/assinaturas/atualizar-status', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
     });
     const d = await r.json();
@@ -3563,7 +3563,7 @@ async function editarValorAssinatura(assinatura_id) {
   if (!novo || novo <= 0) { toast('Valor inválido', 'error'); return; }
   try {
     const r = await fetch('/api/assinaturas/editar', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, assinatura_id, valor: novo }),
     });
     const d = await r.json();
@@ -3578,7 +3578,7 @@ async function editarValorAssinatura(assinatura_id) {
 async function reenviarCobrancaAssinatura(assinatura_id) {
   try {
     const r = await fetch('/api/assinaturas/reenviar-cobranca', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
     });
     const d = await r.json();
@@ -3599,7 +3599,7 @@ async function reenviarCobrancaAssinatura(assinatura_id) {
 async function ativarNotifWppAssinatura(assinatura_id) {
   try {
     const r = await fetch('/api/assinaturas/notificacao-whatsapp', {
-      method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', cache: 'no-store', headers: await apiAuthHeaders(),
       body: JSON.stringify({ company_id: state.companyId, assinatura_id }),
     });
     const d = await r.json();
@@ -3617,7 +3617,7 @@ async function abrirExtratoAsaas() {
   box.style.display = 'block';
   box.innerHTML = '<div style="color:var(--text3);font-size:12px">Carregando...</div>';
   try {
-    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=extrato&_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=extrato&_=${Date.now()}`, { cache: 'no-store', headers: await apiAuthHeaders() });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Falha ao consultar extrato');
     const mov = d.movimentacoes || [];
@@ -3636,7 +3636,7 @@ async function carregarSaldoAsaas() {
   const el = document.getElementById('asnSaldoValor');
   if (!el || !_asaasConectado) return;
   try {
-    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=saldo&_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetch(`/api/assinaturas/financeiro?company_id=${state.companyId}&tipo=saldo&_=${Date.now()}`, { cache: 'no-store', headers: await apiAuthHeaders() });
     const d = await r.json();
     el.textContent = (r.ok && d.saldo != null) ? 'R$ ' + parseFloat(d.saldo).toFixed(2) : '—';
   } catch (e) {
@@ -3787,6 +3787,12 @@ function _classificarSexoPorNome(nomeCompleto) {
   if (n.endsWith('o')) return 'M';
   return null;
 }
+
+// Mesma pessoa = mesmos últimos 8 dígitos do telefone. Tolera "+55", DDD ausente e
+// 9º dígito gravados de jeitos diferentes, que faziam a comparação por dígitos exatos
+// deixar passar cadastro duplicado.
+function _chaveTel(t) { const d = String(t || '').replace(/\D/g, ''); return d.length >= 8 ? d.slice(-8) : ''; }
+function _mesmoTel(a, b) { const k = _chaveTel(a); return !!k && k === _chaveTel(b); }
 
 function calcularStatus(c) {
   const pontos = parseInt(c.pontos || 0);
@@ -5733,7 +5739,7 @@ async function saveCliente() {
     const telLimpo = tel.replace(/\D/g,'');
     const dupTel = state.clientes.find(c => {
       if (id && String(c.id) === String(id)) return false;
-      return c.telefone && c.telefone.replace(/\D/g,'') === telLimpo;
+      return _mesmoTel(c.telefone, telLimpo);
     });
     if (dupTel) {
       toast('Telefone já cadastrado para ' + dupTel.nome, 'error');
@@ -8700,8 +8706,8 @@ async function ffIndRegistrar() {
   if (!nomeAmigo) { toast('Informe o nome do amigo', 'error'); return; }
   if (!telAmigo)  { toast('Informe o telefone do amigo', 'error'); return; }
   const quem = state.clientes.find(c => c.id == quemId);
-  if (quem && (quem.telefone||'').replace(/\D/g,'') === telAmigo) { toast('Auto-indicação não permitida', 'error'); return; }
-  if (state.clientes.find(c => (c.telefone||'').replace(/\D/g,'') === telAmigo)) { toast('Telefone já cadastrado', 'error'); return; }
+  if (quem && _mesmoTel(quem.telefone, telAmigo)) { toast('Auto-indicação não permitida', 'error'); return; }
+  if (state.clientes.find(c => _mesmoTel(c.telefone, telAmigo))) { toast('Telefone já cadastrado', 'error'); return; }
   try {
     const telFmt  = '+55' + telAmigo;
     // Só salva a indicação — cliente será cadastrado na validação
@@ -8735,8 +8741,8 @@ async function fidIndRegistrar() {
   if (!nomeAmigo) { toast('Informe o nome do amigo', 'error'); return; }
   if (!telAmigo)  { toast('Informe o telefone do amigo', 'error'); return; }
   const quem = state.clientes.find(c => c.id == quemId);
-  if (quem && (quem.telefone||'').replace(/\D/g,'') === telAmigo) { toast('Auto-indicação não permitida', 'error'); return; }
-  if (state.clientes.find(c => (c.telefone||'').replace(/\D/g,'') === telAmigo)) { toast('Telefone já cadastrado', 'error'); return; }
+  if (quem && _mesmoTel(quem.telefone, telAmigo)) { toast('Auto-indicação não permitida', 'error'); return; }
+  if (state.clientes.find(c => _mesmoTel(c.telefone, telAmigo))) { toast('Telefone já cadastrado', 'error'); return; }
   try {
     const telFmt  = '+55' + telAmigo;
     // Só salva a indicação — cliente será cadastrado na validação
@@ -8836,8 +8842,8 @@ async function ind2Registrar() {
   if (!telAmigo)  { toast('Informe o telefone do amigo', 'error'); return; }
 
   const quem = state.clientes.find(c => c.id == quemId);
-  if (quem && (quem.telefone||'').replace(/\D/g,'') === telAmigo) { toast('Auto-indicação não permitida', 'error'); return; }
-  const jaExiste = state.clientes.find(c => (c.telefone||'').replace(/\D/g,'') === telAmigo);
+  if (quem && _mesmoTel(quem.telefone, telAmigo)) { toast('Auto-indicação não permitida', 'error'); return; }
+  const jaExiste = state.clientes.find(c => _mesmoTel(c.telefone, telAmigo));
   if (jaExiste) { toast('Este telefone já está cadastrado', 'error'); return; }
 
   try {
@@ -8888,8 +8894,8 @@ async function indRegistrar() {
   if (!telAmigo)  { toast('Informe o telefone do amigo', 'error'); return; }
 
   const quem = state.clientes.find(c => c.id == quemId);
-  if (quem && (quem.telefone||'').replace(/\D/g,'') === telAmigo) { toast('Auto-indicacao nao permitida', 'error'); return; }
-  const jaExiste = state.clientes.find(c => (c.telefone||'').replace(/\D/g,'') === telAmigo);
+  if (quem && _mesmoTel(quem.telefone, telAmigo)) { toast('Auto-indicacao nao permitida', 'error'); return; }
+  const jaExiste = state.clientes.find(c => _mesmoTel(c.telefone, telAmigo));
   if (jaExiste) { toast('Este telefone ja esta cadastrado', 'error'); return; }
 
   try {
@@ -8983,7 +8989,7 @@ async function indVerificarIndicacao(indId) {
         .eq('company_id', state.companyId);
       const jaExiste = (existentes||[]).find(c => {
         const t = (c.telefone||'').replace(/\D/g,'');
-        return t && t === telLimpo;
+        return _mesmoTel(t, telLimpo);
       });
       if (jaExiste) {
         amigoId = jaExiste.id;
