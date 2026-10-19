@@ -613,6 +613,21 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 // para não tomar o lugar das campanhas quando muita gente já tem saldo (1ª vez).
 const LIMITE_MARCOS_DIA = 10;
 const DIAS_SILENCIO_APOS_RESGATE = 3;
+// Intervalo mínimo entre dois avisos de marco para o MESMO cliente: quem compra
+// muito passaria de um marco a cada compra; espaçar protege o número de denúncia.
+const DIAS_ENTRE_AVISOS_MARCO = 7;
+
+// Marco atual do cliente: os níveis da tabela de benefícios e, acima do último
+// nível, a cada "passo" (o 1º nível, 100 por padrão) um marco novo: 400, 500...
+// Benefício anunciado = o maior nível que o saldo já cobre.
+function marcoDoCliente(pontos, niveis) {
+  const beneficio = niveis.filter((n) => n.pontos <= pontos).pop();
+  if (!beneficio) return null;
+  const topo = niveis[niveis.length - 1].pontos;
+  const passo = niveis[0].pontos;
+  const marco = pontos < topo ? beneficio.pontos : topo + Math.floor((pontos - topo) / passo) * passo;
+  return { marco, beneficio };
+}
 
 function recompensasDaConfig(config) {
   try {
@@ -658,14 +673,17 @@ async function rodarMarcosPontos(integ, credZapi) {
     try {
       if (!cliente.telefone || pediuSaida(cliente) || telsSaida.has(chaveTel(cliente))) continue;
       const pontos = parseInt(cliente.pontos) || 0;
-      const nivel = niveis.filter((n) => n.pontos <= pontos).pop();
-      if (!nivel) continue;
+      const atual = marcoDoCliente(pontos, niveis);
+      if (!atual) continue;
+      const nivel = atual.beneficio;
 
       const resgate = ultimoResgate[cliente.id] || 0;
       if (resgate && Date.now() - resgate < DIAS_SILENCIO_APOS_RESGATE * 86400000) continue;
-      const jaAvisado = (logs || []).some((l) => l.cliente_id === cliente.id && l.referencia_id === String(nivel.pontos)
-        && new Date(l.enviado_em).getTime() > resgate);
+      const avisosCliente = (logs || []).filter((l) => l.cliente_id === cliente.id);
+      const jaAvisado = avisosCliente.some((l) => l.referencia_id === String(atual.marco) && new Date(l.enviado_em).getTime() > resgate);
       if (jaAvisado) continue;
+      const ultimoAviso = Math.max(0, ...avisosCliente.map((l) => new Date(l.enviado_em).getTime()));
+      if (ultimoAviso && Date.now() - ultimoAviso < DIAS_ENTRE_AVISOS_MARCO * 86400000) continue;
       const k = chaveTel(cliente);
       if (k && telsAvisadosAgora.has(k)) continue;
 
@@ -678,8 +696,8 @@ async function rodarMarcosPontos(integ, credZapi) {
       ]) + rodapeOptout(cliente);
 
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
-      await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "marco_pontos", referenciaId: nivel.pontos });
-      console.log("[rotina-diaria] marco de pontos avisado:", cliente.id, nivel.pontos);
+      await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "marco_pontos", referenciaId: atual.marco });
+      console.log("[rotina-diaria] marco de pontos avisado:", cliente.id, atual.marco);
       if (k) telsAvisadosAgora.add(k);
       restantes--;
       gastarOrcamento();
