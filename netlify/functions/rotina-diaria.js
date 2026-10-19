@@ -157,7 +157,7 @@ async function contarEnviadosHoje(companyId) {
   const inicio = new Date(Date.UTC(ano, mes - 1, dia, 3, 0, 0)).toISOString();
   const [log, reat] = await Promise.all([
     supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
-      .eq("company_id", companyId).in("tipo", ["recompra", "fiado_lembrete", "aniversario", "campanha_auto"]).gte("enviado_em", inicio),
+      .eq("company_id", companyId).in("tipo", ["recompra", "fiado_lembrete", "aniversario", "campanha_auto", "marco_pontos"]).gte("enviado_em", inicio),
     supabaseAdmin.from("clientes").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).gte("reativacao_enviada_em", inicio),
   ]);
@@ -605,6 +605,92 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
   }
 }
 
+// #11 — Marco de pontos: quando o cliente atinge um nível da tabela de benefícios
+// (100/200/300 pontos por padrão), avisa UMA vez por nível que ele já pode trocar.
+// Dedupe: tipo "marco_pontos", referencia_id = pontos do nível. Depois de um
+// resgate (fidelidade_resgates) o aviso volta a valer: quem trocou e juntou de novo
+// é avisado outra vez. Teto próprio (LIMITE_MARCOS_DIA) dentro do teto geral do dia,
+// para não tomar o lugar das campanhas quando muita gente já tem saldo (1ª vez).
+const LIMITE_MARCOS_DIA = 10;
+const DIAS_SILENCIO_APOS_RESGATE = 3;
+
+function recompensasDaConfig(config) {
+  try {
+    const f = JSON.parse(config?.fidelidade_config || "{}");
+    const lista = [[f.r1Pts, f.r1Val], [f.r2Pts, f.r2Val], [f.r3Pts, f.r3Val]]
+      .filter(([p, v]) => Number(p) > 0 && Number(v) > 0)
+      .map(([p, v]) => ({ pontos: Number(p), label: `R$${Number(v)} de desconto`, valor: Number(v) }));
+    if (lista.length) return { lista: lista.sort((a, b) => a.pontos - b.pontos), minCompra: Number(f.minDesconto) || 0 };
+  } catch {}
+  return { lista: FID_RECOMPENSAS, minCompra: 0 };
+}
+
+async function rodarMarcosPontos(integ, credZapi) {
+  if (!temOrcamento()) return;
+  const { count: jaHoje } = await supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
+    .eq("company_id", integ.company_id).eq("tipo", "marco_pontos").gte("enviado_em", inicioDoDiaBrasilia());
+  let restantes = LIMITE_MARCOS_DIA - (jaHoje || 0);
+  if (restantes <= 0) return;
+
+  const { data: config } = await supabaseAdmin.from("configuracoes").select("nome_negocio, fidelidade_config").eq("company_id", integ.company_id).single();
+  const neg = config?.nome_negocio || "nossa loja";
+  const { lista: niveis, minCompra } = recompensasDaConfig(config);
+  if (!niveis.length) return;
+
+  const [{ data: clientes }, { data: logs }, resgatesResp] = await Promise.all([
+    supabaseAdmin.from("clientes").select("*").eq("company_id", integ.company_id).gte("pontos", niveis[0].pontos),
+    supabaseAdmin.from("automacoes_whatsapp_log").select("cliente_id, referencia_id, enviado_em")
+      .eq("company_id", integ.company_id).eq("tipo", "marco_pontos"),
+    // A tabela pode ainda não existir (supabase/fidelidade_resgates.sql): sem ela,
+    // cada nível é avisado uma vez só, como se ninguém tivesse resgatado.
+    supabaseAdmin.from("fidelidade_resgates").select("cliente_id, created_at").eq("company_id", integ.company_id),
+  ]);
+  const ultimoResgate = {};
+  for (const r of (resgatesResp && !resgatesResp.error && resgatesResp.data) || []) {
+    const t = new Date(r.created_at).getTime();
+    if (!ultimoResgate[r.cliente_id] || t > ultimoResgate[r.cliente_id]) ultimoResgate[r.cliente_id] = t;
+  }
+  const telsSaida = telefonesQueSairam(clientes);
+  const telsAvisadosAgora = new Set();
+
+  for (const cliente of embaralhar(clientes || [])) {
+    if (restantes <= 0 || !temOrcamento()) break;
+    try {
+      if (!cliente.telefone || pediuSaida(cliente) || telsSaida.has(chaveTel(cliente))) continue;
+      const pontos = parseInt(cliente.pontos) || 0;
+      const nivel = niveis.filter((n) => n.pontos <= pontos).pop();
+      if (!nivel) continue;
+
+      const resgate = ultimoResgate[cliente.id] || 0;
+      if (resgate && Date.now() - resgate < DIAS_SILENCIO_APOS_RESGATE * 86400000) continue;
+      const jaAvisado = (logs || []).some((l) => l.cliente_id === cliente.id && l.referencia_id === String(nivel.pontos)
+        && new Date(l.enviado_em).getTime() > resgate);
+      if (jaAvisado) continue;
+      const k = chaveTel(cliente);
+      if (k && telsAvisadosAgora.has(k)) continue;
+
+      const nome = String(cliente.nome || "").trim().split(/\s+/)[0] || "";
+      const regra = minCompra > 0 ? ` (em compras a partir de R$${minCompra})` : "";
+      const mensagem = escolher([
+        `Oi, ${nome}! Você já juntou ${pontos} pontos na ${neg} e pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
+        `${nome}, boa notícia: com seus ${pontos} pontos na ${neg}, você já tem ${nivel.label} pra usar${regra}. É só pedir no caixa na próxima compra.`,
+        `Olá, ${nome}! Seus ${pontos} pontos na ${neg} já valem ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
+      ]) + rodapeOptout(cliente);
+
+      await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
+      await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "marco_pontos", referenciaId: nivel.pontos });
+      console.log("[rotina-diaria] marco de pontos avisado:", cliente.id, nivel.pontos);
+      if (k) telsAvisadosAgora.add(k);
+      restantes--;
+      gastarOrcamento();
+      if (temOrcamento()) await pausaAleatoria();
+    } catch (e) {
+      console.error("[rotina-diaria] erro marco de pontos cliente", cliente.id, e.message);
+      await tratarFalha(integ, e);
+    }
+  }
+}
+
 exports.handler = async function () {
   const { data: integracoes, error } = await supabaseAdmin
     .from("integracoes_zapi").select("company_id, instance_id, token, client_token, connected_at");
@@ -654,6 +740,7 @@ exports.handler = async function () {
       if (!domingo) {
         if (hora === 8 && minuto < 20) await rodarRecompra(integ, credZapi);
         await rodarCampanhasAutomaticas(integ, credZapi);
+        await rodarMarcosPontos(integ, credZapi);
         await rodarReativacao(integ, credZapi);
       }
     } catch (e) {

@@ -1136,6 +1136,11 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
           <div class="section-title mb12">Histórico de Pontos</div>
           <div id="fid-historico"><div style="color:var(--text3);font-size:12.5px">Selecione um cliente para ver o histórico.</div></div>
         </div>
+        <!-- Resgates de pontos (fidelidade_resgates) -->
+        <div class="card" style="margin-top:20px">
+          <div class="section-title mb12">Resgates recentes</div>
+          <div id="fid-resgates" style="overflow-x:auto"><div style="color:var(--text3);font-size:13px">Carregando...</div></div>
+        </div>
       </div>
 
       <!-- ABA: INDICAÇÕES -->
@@ -7758,6 +7763,7 @@ async function ffrConfirmar() {
     const { error } = await db.from('clientes').update({ pontos: novosPontos }).eq('id', cliId);
     if (error) throw error;
     cli.pontos = novosPontos;
+    fidRegistrarResgate(cli, custoPontos, label, (_ffrPendente || {}).valor, novosPontos);
     toast('Resgate confirmado! ' + custoPontos + ' pontos descontados.', 'success');
     document.getElementById('ffr-cli-pontos').textContent = novosPontos.toLocaleString('pt-BR');
     document.getElementById('ffr-confirmacao').style.display = 'none';
@@ -8219,6 +8225,7 @@ async function fidVerificarBonusVip(cli) {
 
 // ── Ranking ───────────────────────────────────────────────────────────────────
 function renderFidelidade() {
+  try { fidCarregarResgates(); } catch (e) {}
   const cl = state.clientes;
   const byEl = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   // Métricas de nível removidas a pedido
@@ -8482,6 +8489,38 @@ function fidAtualizarResgatar(cliId, pontos, cli) {
     + proxHtml;
 }
 
+// Grava o resgate (quem, quanto, quando). Nunca bloqueia o resgate: se a tabela
+// fidelidade_resgates ainda não existir, só avisa no console.
+async function fidRegistrarResgate(cli, pontos, label, valor, saldoDepois) {
+  try {
+    const v = valor != null ? valor : ((FID_RECOMPENSAS.find(r => r.pontos == pontos) || {}).valor ?? null);
+    const { error } = await db.from('fidelidade_resgates').insert({
+      company_id: state.companyId, cliente_id: cli.id, cliente_nome: cli.nome || null,
+      pontos: pontos, beneficio: label || null, valor: v, saldo_depois: saldoDepois,
+      modo: (typeof MODO_ATUAL !== 'undefined' ? MODO_ATUAL : null),
+    });
+    if (error) console.warn('[fidelidade] resgate não registrado:', error.message);
+  } catch (e) { console.warn('[fidelidade] resgate não registrado:', e.message); }
+  try { fidCarregarResgates(); } catch (e) {}
+}
+
+// Lista "Resgates recentes" na aba de Fidelidade.
+async function fidCarregarResgates() {
+  const el = document.getElementById('fid-resgates');
+  if (!el || !state.companyId) return;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const { data, error } = await db.from('fidelidade_resgates')
+    .select('cliente_nome, pontos, beneficio, valor, modo, created_at')
+    .eq('company_id', state.companyId).order('created_at', { ascending: false }).limit(20);
+  if (error) { el.innerHTML = '<div style="color:var(--text3);font-size:13px">Histórico de resgates ainda não disponível.</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum resgate registrado ainda.</div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Data</th><th>Cliente</th><th>Benefício</th><th style="text-align:right">Pontos</th><th>Onde</th></tr></thead><tbody>'
+    + data.map(r => '<tr><td>' + new Date(r.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) + '</td>'
+      + '<td>' + esc(r.cliente_nome) + '</td><td>' + esc(r.beneficio || (r.valor ? 'R$' + r.valor + ' de desconto' : '')) + '</td>'
+      + '<td style="text-align:right">' + (r.pontos || 0) + '</td><td>' + (r.modo === 'admin' ? 'Admin' : 'Balcão') + '</td></tr>').join('')
+    + '</tbody></table>';
+}
+
 async function fidResgatar(cliId, custoPontos, label) {
   const cli = state.clientes.find(c => c.id == cliId);
   if (!cli) return;
@@ -8491,6 +8530,7 @@ async function fidResgatar(cliId, custoPontos, label) {
     const { error } = await db.from('clientes').update({ pontos: novosPontos }).eq('id', cliId);
     if (error) throw error;
     cli.pontos = novosPontos;
+    fidRegistrarResgate(cli, custoPontos, label, null, novosPontos);
     toast('Beneficio "' + label + '" resgatado! Restam ' + novosPontos + ' pontos.', 'success');
     fidSelecionarCliente(cliId, cli.nome, cli.telefone, novosPontos);
     renderFidelidade();
