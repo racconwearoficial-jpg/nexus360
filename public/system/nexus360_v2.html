@@ -1354,7 +1354,7 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start">
+      <div class="cal-layout" style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start">
         <div>
           <div id="calView"></div>
 
@@ -16815,4 +16815,15 @@ html[data-theme="light"] td{border-bottom:1px solid #D5DBF0}
 html[data-theme="light"] tbody tr:nth-child(even) td{background:#F6F7FE}
 html:not([data-theme="light"]) th{border-bottom:2px solid rgba(255,255,255,.14)}
 html:not([data-theme="light"]) td{border-bottom-color:rgba(255,255,255,.08)}
+/* tablet (769-1024px): o menu lateral continua e sobram ~550-780px; as telas
+   com muitas colunas passam a quebrar em linhas em vez de espremer */
+@media (min-width:769px) and (max-width:1024px){
+  #fn-kpis{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
+  .fn-charts-grid{grid-template-columns:minmax(0,1fr)!important}
+  .rel-kpis-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important}
+  .rel-insights-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))!important}
+  .rel-row2{grid-template-columns:minmax(0,1fr)!important}
+  .rel-row3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important}
+  .cal-layout{grid-template-columns:minmax(0,1fr)!important}
+}
 </style>
