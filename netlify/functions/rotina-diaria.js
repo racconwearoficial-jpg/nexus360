@@ -611,15 +611,15 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
 //     que já pode trocar. Depois de um resgate (fidelidade_resgates) o nível volta
 //     a valer: quem trocou e juntou de novo é avisado outra vez.
 //  b) LEMBRETE DE SALDO: quem já tem pontos para trocar (>= 1º nível) e não trocou
-//     recebe de novo, a cada DIAS_ENTRE_LEMBRETES_SALDO, quantos pontos tem e por
-//     quanto pode trocar.
+//     recebe de novo, a cada DIAS_ENTRE_LEMBRETES_SALDO, quantos pontos tem e o
+//     desconto que pode resgatar com eles.
 // Ordem: marcos primeiro, depois lembretes. Teto próprio (LIMITE_MARCOS_DIA)
 // dentro do teto geral do dia e no máximo uma mensagem de fidelidade por cliente a
 // cada DIAS_MIN_ENTRE_AVISOS, para não virar mensagem a cada compra.
 const LIMITE_MARCOS_DIA = 10;
 const DIAS_SILENCIO_APOS_RESGATE = 3;
 const DIAS_MIN_ENTRE_AVISOS = 7;
-const DIAS_ENTRE_LEMBRETES_SALDO = 15;
+const DIAS_ENTRE_LEMBRETES_SALDO = 30;
 const TIPOS_FIDELIDADE = ["marco_pontos", "lembrete_pontos"];
 
 function recompensasDaConfig(config) {
@@ -696,15 +696,16 @@ async function rodarMarcosPontos(integ, credZapi) {
       const k = chaveTel(cliente);
       if (k && telsAvisadosAgora.has(k)) continue;
       const nome = String(cliente.nome || "").trim().split(/\s+/)[0] || "";
-      const regra = minCompra > 0 ? ` (em compras a partir de R$${minCompra})` : "";
+      // Texto curto, sem tabela de troca: só o saldo e o desconto que ele já dá
+      // (o maior nível que o saldo cobre).
+      const ptsTxt = pontos.toLocaleString("pt-BR");
+      const minimo = minCompra > 0 ? ` Vale em compras acima de R$${minCompra}.` : "";
       const mensagem = (tipo === "marco_pontos" ? escolher([
-        `Oi, ${nome}! Você atingiu ${pontos} pontos na ${neg} e já pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
-        `${nome}, boa notícia: você chegou a ${pontos} pontos na ${neg} e já tem ${nivel.label} pra usar${regra}. É só pedir no caixa na próxima compra.`,
-        `Olá, ${nome}! Com seus ${pontos} pontos na ${neg}, você já ganhou ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
+        `Oi, ${nome}! Você atingiu ${ptsTxt} pontos na ${neg} e já ganhou R$${nivel.valor} de desconto na próxima compra.${minimo} É só avisar no balcão.`,
+        `${nome}, boa notícia! Você atingiu ${ptsTxt} pontos na ${neg} e já pode usar R$${nivel.valor} de desconto.${minimo} É só pedir no caixa na próxima compra.`,
       ]) : escolher([
-        `Oi, ${nome}! Passando pra lembrar: você tem ${pontos} pontos na ${neg} e pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
-        `${nome}, seus ${pontos} pontos na ${neg} estão esperando por você: dá pra trocar por ${nivel.label}${regra}. É só pedir no caixa.`,
-        `Olá, ${nome}! Lembrete da ${neg}: você já tem ${pontos} pontos, que valem ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
+        `Oi, ${nome}! Você tem ${ptsTxt} pontos na ${neg} e pode resgatar R$${nivel.valor} de desconto.${minimo} É só avisar no balcão na próxima compra.`,
+        `${nome}, seus ${ptsTxt} pontos na ${neg} já dão R$${nivel.valor} de desconto pra você resgatar.${minimo} É só pedir no caixa.`,
       ])) + rodapeOptout(cliente);
 
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
