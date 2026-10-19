@@ -1412,9 +1412,13 @@ input:checked+.slider:before{transform:translateX(18px);background:#fff}
             <option value="6">Últimos 6 meses</option>
             <option value="12">Últimos 12 meses</option>
           </select>
-          <button class="btn btn-ghost rel-btn-export" onclick="relExportar('pdf')">
+          <button class="btn btn-ghost rel-btn-export" onclick="relExportar('pdf','retrato')" title="Relatório completo em A4 em pé">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            PDF
+            PDF vertical
+          </button>
+          <button class="btn btn-ghost rel-btn-export" onclick="relExportar('pdf','paisagem')" title="Relatório completo em A4 deitado">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            PDF horizontal
           </button>
           <button class="btn btn-ghost rel-btn-export" onclick="relExportar('excel')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -9775,7 +9779,8 @@ function renderRelatorios() {
 // Monta o relatório completo do período escolhido em #rel-print-root e chama window.print();
 // durante a impressão só esse bloco fica visível (ver estilo #redesign-print).
 // ═══════════════════════════════════════════════════════════════════════════
-async function relGerarPdf() {
+async function relGerarPdf(orientacao) {
+  const paisagem = orientacao === 'paisagem';
   try { if (!(fnState.funcionarios||[]).length && typeof fnLoadAll === 'function') await fnLoadAll(); } catch(e) { console.warn('[PDF] funcionários:', e); }
   try { renderRelatorios(); } catch(e) {}                       // sincroniza cartões/insights da tela com o período escolhido
 
@@ -9896,7 +9901,7 @@ async function relGerarPdf() {
   const vazio = txt => `<p class="rp-vazio">${esc(txt)}</p>`;
 
   let h = '';
-  h += `<div class="rp"><header class="rp-head"><div><div class="rp-brand">NEXUS<span>360</span></div><div class="rp-sub">Relatório de desempenho${empresa && empresa !== 'Carregando...' ? ' · ' + esc(empresa) : ''}</div></div>
+  h += `<div class="rp${paisagem ? ' rp-paisagem' : ''}"><header class="rp-head"><div><div class="rp-brand">NEXUS<span>360</span></div><div class="rp-sub">Relatório de desempenho${empresa && empresa !== 'Carregando...' ? ' · ' + esc(empresa) : ''}</div></div>
     <div class="rp-meta"><b>Período: ${esc(P.label)}</b><br>${dmy(P.ini)} a ${dmy(P.fim)}${P.incluiHoje ? ' (até ' + dmy(P.cmpFim) + ')' : ''}<br>Comparação: ${dmy(P.prevIni)} a ${dmy(P.prevFim)}<br>Gerado em ${esc(hoje.toLocaleString('pt-BR'))}</div></header>`;
 
   h += secao('Resumo do período', `<div class="rp-kpis">` + [
@@ -9962,17 +9967,23 @@ async function relGerarPdf() {
   if (!root) { root = document.createElement('div'); root.id = 'rel-print-root'; document.body.appendChild(root); }
   root.innerHTML = h;
   const marcar = on => { document.documentElement.classList.toggle('rel-imprimindo', on); document.body.classList.toggle('rel-imprimindo', on); };
-  const limpar = () => { marcar(false); window.removeEventListener('afterprint', limpar); };
+  // Orientação da página: o @page não muda por classe, então entra um estilo só durante a impressão,
+  // no fim do body para vir depois do @page{size:A4} padrão (#redesign-print).
+  let estiloPagina = document.getElementById('rel-print-page');
+  if (!estiloPagina) { estiloPagina = document.createElement('style'); estiloPagina.id = 'rel-print-page'; }
+  document.body.appendChild(estiloPagina);
+  estiloPagina.textContent = paisagem ? '@media print{@page{size:A4 landscape;margin:9mm 11mm}}' : '';
+  const limpar = () => { marcar(false); estiloPagina.textContent = ''; window.removeEventListener('afterprint', limpar); };
   marcar(true);
   window.addEventListener('afterprint', limpar);
   setTimeout(limpar, 300000);
   requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
 }
 
-function relExportar(tipo) {
+function relExportar(tipo, orientacao) {
   if (tipo === 'pdf') {
     // Gera um relatório próprio para impressão/PDF (não imprime mais a tela do sistema)
-    relGerarPdf().catch(e => { console.error('[PDF]', e); toast('Não foi possível gerar o PDF: ' + e.message, 'error'); });
+    relGerarPdf(orientacao).catch(e => { console.error('[PDF]', e); toast('Não foi possível gerar o PDF: ' + e.message, 'error'); });
     return;
   }
 
@@ -16815,6 +16826,8 @@ html[data-theme="light"] td{border-bottom:1px solid #D5DBF0}
 html[data-theme="light"] tbody tr:nth-child(even) td{background:#F6F7FE}
 html:not([data-theme="light"]) th{border-bottom:2px solid rgba(255,255,255,.14)}
 html:not([data-theme="light"]) td{border-bottom-color:rgba(255,255,255,.08)}
+/* PDF horizontal: aproveita a largura do A4 deitado */
+@media print{.rp-paisagem .rp-kpis{grid-template-columns:repeat(6,1fr)}.rp-paisagem .rp-kpi b{font-size:12pt}}
 /* tablet (769-1024px): o menu lateral continua e sobram ~550-780px; as telas
    com muitas colunas passam a quebrar em linhas em vez de espremer */
 @media (min-width:769px) and (max-width:1024px){
