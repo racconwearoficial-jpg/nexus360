@@ -696,16 +696,19 @@ async function rodarMarcosPontos(integ, credZapi) {
       const k = chaveTel(cliente);
       if (k && telsAvisadosAgora.has(k)) continue;
       const nome = String(cliente.nome || "").trim().split(/\s+/)[0] || "";
-      // Texto curto, sem tabela de troca: só o saldo e o desconto que ele já dá
-      // (o maior nível que o saldo cobre).
+      // Texto curto: saldo, desconto que ele já dá e quanto custa cada desconto em
+      // pontos ("Lembrando: 100 pontos valem R$5, 200 valem R$10 e 300 valem R$20 de desconto.").
       const ptsTxt = pontos.toLocaleString("pt-BR");
       const minimo = minCompra > 0 ? ` Vale em compras acima de R$${minCompra}.` : "";
+      const valem = niveis.map((n, i) => (i === 0 ? `${n.pontos} pontos valem R$${n.valor}` : `${n.pontos} valem R$${n.valor}`))
+        .join(", ").replace(/, ([^,]*)$/, " e $1");
+      const lembrando = ` Lembrando: ${valem} de desconto.`;
       const mensagem = (tipo === "marco_pontos" ? escolher([
-        `Oi, ${nome}! Você atingiu ${ptsTxt} pontos na ${neg} e já ganhou R$${nivel.valor} de desconto na próxima compra.${minimo} É só avisar no balcão.`,
-        `${nome}, boa notícia! Você atingiu ${ptsTxt} pontos na ${neg} e já pode usar R$${nivel.valor} de desconto.${minimo} É só pedir no caixa na próxima compra.`,
+        `Oi, ${nome}! Você atingiu ${ptsTxt} pontos na ${neg} e já ganhou R$${nivel.valor} de desconto na próxima compra.${lembrando}${minimo} É só avisar no balcão.`,
+        `${nome}, boa notícia! Você atingiu ${ptsTxt} pontos na ${neg} e já pode usar R$${nivel.valor} de desconto.${lembrando}${minimo} É só pedir no caixa na próxima compra.`,
       ]) : escolher([
-        `Oi, ${nome}! Você tem ${ptsTxt} pontos na ${neg} e pode resgatar R$${nivel.valor} de desconto.${minimo} É só avisar no balcão na próxima compra.`,
-        `${nome}, seus ${ptsTxt} pontos na ${neg} já dão R$${nivel.valor} de desconto pra você resgatar.${minimo} É só pedir no caixa.`,
+        `Oi, ${nome}! Você tem ${ptsTxt} pontos na ${neg} e pode resgatar R$${nivel.valor} de desconto.${lembrando}${minimo} É só avisar no balcão na próxima compra.`,
+        `${nome}, seus ${ptsTxt} pontos na ${neg} já dão R$${nivel.valor} de desconto pra você resgatar.${lembrando}${minimo} É só pedir no caixa.`,
       ])) + rodapeOptout(cliente);
 
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
