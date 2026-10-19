@@ -157,7 +157,7 @@ async function contarEnviadosHoje(companyId) {
   const inicio = new Date(Date.UTC(ano, mes - 1, dia, 3, 0, 0)).toISOString();
   const [log, reat] = await Promise.all([
     supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
-      .eq("company_id", companyId).in("tipo", ["recompra", "fiado_lembrete", "aniversario", "campanha_auto", "marco_pontos"]).gte("enviado_em", inicio),
+      .eq("company_id", companyId).in("tipo", ["recompra", "fiado_lembrete", "aniversario", "campanha_auto", "marco_pontos", "lembrete_pontos"]).gte("enviado_em", inicio),
     supabaseAdmin.from("clientes").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).gte("reativacao_enviada_em", inicio),
   ]);
@@ -605,29 +605,22 @@ async function rodarCampanhasAutomaticas(integ, credZapi) {
   }
 }
 
-// #11 — Marco de pontos: quando o cliente atinge um nível da tabela de benefícios
-// (100/200/300 pontos por padrão), avisa UMA vez por nível que ele já pode trocar.
-// Dedupe: tipo "marco_pontos", referencia_id = pontos do nível. Depois de um
-// resgate (fidelidade_resgates) o aviso volta a valer: quem trocou e juntou de novo
-// é avisado outra vez. Teto próprio (LIMITE_MARCOS_DIA) dentro do teto geral do dia,
-// para não tomar o lugar das campanhas quando muita gente já tem saldo (1ª vez).
+// #11 — Fidelidade pelo WhatsApp, duas mensagens:
+//  a) MARCO: quando o cliente atinge um nível da tabela de benefícios (100, 200 e
+//     300 pontos por padrão — só esses níveis, nada acima), avisa UMA vez por nível
+//     que já pode trocar. Depois de um resgate (fidelidade_resgates) o nível volta
+//     a valer: quem trocou e juntou de novo é avisado outra vez.
+//  b) LEMBRETE DE SALDO: quem já tem pontos para trocar (>= 1º nível) e não trocou
+//     recebe de novo, a cada DIAS_ENTRE_LEMBRETES_SALDO, quantos pontos tem e por
+//     quanto pode trocar.
+// Ordem: marcos primeiro, depois lembretes. Teto próprio (LIMITE_MARCOS_DIA)
+// dentro do teto geral do dia e no máximo uma mensagem de fidelidade por cliente a
+// cada DIAS_MIN_ENTRE_AVISOS, para não virar mensagem a cada compra.
 const LIMITE_MARCOS_DIA = 10;
 const DIAS_SILENCIO_APOS_RESGATE = 3;
-// Intervalo mínimo entre dois avisos de marco para o MESMO cliente: quem compra
-// muito passaria de um marco a cada compra; espaçar protege o número de denúncia.
-const DIAS_ENTRE_AVISOS_MARCO = 7;
-
-// Marco atual do cliente: os níveis da tabela de benefícios e, acima do último
-// nível, a cada "passo" (o 1º nível, 100 por padrão) um marco novo: 400, 500...
-// Benefício anunciado = o maior nível que o saldo já cobre.
-function marcoDoCliente(pontos, niveis) {
-  const beneficio = niveis.filter((n) => n.pontos <= pontos).pop();
-  if (!beneficio) return null;
-  const topo = niveis[niveis.length - 1].pontos;
-  const passo = niveis[0].pontos;
-  const marco = pontos < topo ? beneficio.pontos : topo + Math.floor((pontos - topo) / passo) * passo;
-  return { marco, beneficio };
-}
+const DIAS_MIN_ENTRE_AVISOS = 7;
+const DIAS_ENTRE_LEMBRETES_SALDO = 15;
+const TIPOS_FIDELIDADE = ["marco_pontos", "lembrete_pontos"];
 
 function recompensasDaConfig(config) {
   try {
@@ -640,10 +633,26 @@ function recompensasDaConfig(config) {
   return { lista: FID_RECOMPENSAS, minCompra: 0 };
 }
 
+// Decide o que (se algo) mandar para o cliente agora. Pura, para poder testar.
+//   avisos: [{ tipo, referencia_id, enviado_em }] do cliente; resgate: ms do último resgate (0 se nenhum)
+function decidirAvisoFidelidade(pontos, niveis, avisos, resgate, agora) {
+  const nivel = niveis.filter((n) => n.pontos <= pontos).pop();
+  if (!nivel) return null;
+  const dia = 86400000;
+  if (resgate && agora - resgate < DIAS_SILENCIO_APOS_RESGATE * dia) return null;
+  const ultimoAviso = Math.max(0, ...avisos.map((a) => new Date(a.enviado_em).getTime()));
+  if (ultimoAviso && agora - ultimoAviso < DIAS_MIN_ENTRE_AVISOS * dia) return null;
+  const marcoJaAvisado = avisos.some((a) => a.tipo === "marco_pontos" && a.referencia_id === String(nivel.pontos)
+    && new Date(a.enviado_em).getTime() > resgate);
+  if (!marcoJaAvisado) return { tipo: "marco_pontos", nivel };
+  if (agora - ultimoAviso >= DIAS_ENTRE_LEMBRETES_SALDO * dia) return { tipo: "lembrete_pontos", nivel };
+  return null;
+}
+
 async function rodarMarcosPontos(integ, credZapi) {
   if (!temOrcamento()) return;
   const { count: jaHoje } = await supabaseAdmin.from("automacoes_whatsapp_log").select("id", { count: "exact", head: true })
-    .eq("company_id", integ.company_id).eq("tipo", "marco_pontos").gte("enviado_em", inicioDoDiaBrasilia());
+    .eq("company_id", integ.company_id).in("tipo", TIPOS_FIDELIDADE).gte("enviado_em", inicioDoDiaBrasilia());
   let restantes = LIMITE_MARCOS_DIA - (jaHoje || 0);
   if (restantes <= 0) return;
 
@@ -654,8 +663,8 @@ async function rodarMarcosPontos(integ, credZapi) {
 
   const [{ data: clientes }, { data: logs }, resgatesResp] = await Promise.all([
     supabaseAdmin.from("clientes").select("*").eq("company_id", integ.company_id).gte("pontos", niveis[0].pontos),
-    supabaseAdmin.from("automacoes_whatsapp_log").select("cliente_id, referencia_id, enviado_em")
-      .eq("company_id", integ.company_id).eq("tipo", "marco_pontos"),
+    supabaseAdmin.from("automacoes_whatsapp_log").select("cliente_id, tipo, referencia_id, enviado_em")
+      .eq("company_id", integ.company_id).in("tipo", TIPOS_FIDELIDADE),
     // A tabela pode ainda não existir (supabase/fidelidade_resgates.sql): sem ela,
     // cada nível é avisado uma vez só, como se ninguém tivesse resgatado.
     supabaseAdmin.from("fidelidade_resgates").select("cliente_id, created_at").eq("company_id", integ.company_id),
@@ -665,45 +674,48 @@ async function rodarMarcosPontos(integ, credZapi) {
     const t = new Date(r.created_at).getTime();
     if (!ultimoResgate[r.cliente_id] || t > ultimoResgate[r.cliente_id]) ultimoResgate[r.cliente_id] = t;
   }
+  const avisosPorCliente = {};
+  for (const l of logs || []) (avisosPorCliente[l.cliente_id] = avisosPorCliente[l.cliente_id] || []).push(l);
+
   const telsSaida = telefonesQueSairam(clientes);
-  const telsAvisadosAgora = new Set();
-
+  const agora = Date.now();
+  const marcos = [], lembretes = [];
   for (const cliente of embaralhar(clientes || [])) {
-    if (restantes <= 0 || !temOrcamento()) break;
-    try {
-      if (!cliente.telefone || pediuSaida(cliente) || telsSaida.has(chaveTel(cliente))) continue;
-      const pontos = parseInt(cliente.pontos) || 0;
-      const atual = marcoDoCliente(pontos, niveis);
-      if (!atual) continue;
-      const nivel = atual.beneficio;
+    if (!cliente.telefone || pediuSaida(cliente) || telsSaida.has(chaveTel(cliente))) continue;
+    const pontos = parseInt(cliente.pontos) || 0;
+    const decisao = decidirAvisoFidelidade(pontos, niveis, avisosPorCliente[cliente.id] || [], ultimoResgate[cliente.id] || 0, agora);
+    if (!decisao) continue;
+    (decisao.tipo === "marco_pontos" ? marcos : lembretes).push({ cliente, pontos, ...decisao });
+  }
 
-      const resgate = ultimoResgate[cliente.id] || 0;
-      if (resgate && Date.now() - resgate < DIAS_SILENCIO_APOS_RESGATE * 86400000) continue;
-      const avisosCliente = (logs || []).filter((l) => l.cliente_id === cliente.id);
-      const jaAvisado = avisosCliente.some((l) => l.referencia_id === String(atual.marco) && new Date(l.enviado_em).getTime() > resgate);
-      if (jaAvisado) continue;
-      const ultimoAviso = Math.max(0, ...avisosCliente.map((l) => new Date(l.enviado_em).getTime()));
-      if (ultimoAviso && Date.now() - ultimoAviso < DIAS_ENTRE_AVISOS_MARCO * 86400000) continue;
+  const telsAvisadosAgora = new Set();
+  for (const item of [...marcos, ...lembretes]) {
+    if (restantes <= 0 || !temOrcamento()) break;
+    const { cliente, pontos, tipo, nivel } = item;
+    try {
       const k = chaveTel(cliente);
       if (k && telsAvisadosAgora.has(k)) continue;
-
       const nome = String(cliente.nome || "").trim().split(/\s+/)[0] || "";
       const regra = minCompra > 0 ? ` (em compras a partir de R$${minCompra})` : "";
-      const mensagem = escolher([
-        `Oi, ${nome}! Você já juntou ${pontos} pontos na ${neg} e pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
-        `${nome}, boa notícia: com seus ${pontos} pontos na ${neg}, você já tem ${nivel.label} pra usar${regra}. É só pedir no caixa na próxima compra.`,
-        `Olá, ${nome}! Seus ${pontos} pontos na ${neg} já valem ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
-      ]) + rodapeOptout(cliente);
+      const mensagem = (tipo === "marco_pontos" ? escolher([
+        `Oi, ${nome}! Você atingiu ${pontos} pontos na ${neg} e já pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
+        `${nome}, boa notícia: você chegou a ${pontos} pontos na ${neg} e já tem ${nivel.label} pra usar${regra}. É só pedir no caixa na próxima compra.`,
+        `Olá, ${nome}! Com seus ${pontos} pontos na ${neg}, você já ganhou ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
+      ]) : escolher([
+        `Oi, ${nome}! Passando pra lembrar: você tem ${pontos} pontos na ${neg} e pode trocar por ${nivel.label} na sua próxima compra${regra}. É só avisar no balcão.`,
+        `${nome}, seus ${pontos} pontos na ${neg} estão esperando por você: dá pra trocar por ${nivel.label}${regra}. É só pedir no caixa.`,
+        `Olá, ${nome}! Lembrete da ${neg}: você já tem ${pontos} pontos, que valem ${nivel.label}${regra}. Quando passar aqui, é só pedir pra usar.`,
+      ])) + rodapeOptout(cliente);
 
       await enviarTextoZapi({ ...credZapi, telefone: cliente.telefone, mensagem });
-      await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo: "marco_pontos", referenciaId: atual.marco });
-      console.log("[rotina-diaria] marco de pontos avisado:", cliente.id, atual.marco);
+      await registrarEnvio({ companyId: integ.company_id, clienteId: cliente.id, tipo, referenciaId: nivel.pontos });
+      console.log("[rotina-diaria] fidelidade enviada:", tipo, cliente.id, pontos);
       if (k) telsAvisadosAgora.add(k);
       restantes--;
       gastarOrcamento();
       if (temOrcamento()) await pausaAleatoria();
     } catch (e) {
-      console.error("[rotina-diaria] erro marco de pontos cliente", cliente.id, e.message);
+      console.error("[rotina-diaria] erro fidelidade cliente", cliente.id, e.message);
       await tratarFalha(integ, e);
     }
   }
