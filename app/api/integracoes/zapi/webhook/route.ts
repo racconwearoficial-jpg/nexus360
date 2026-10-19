@@ -390,7 +390,11 @@ Responda ESTRITAMENTE em JSON, sem nenhum texto antes ou depois, em uma destas 4
             await supabaseAdmin.from("clientes").update({ nome: nomeFinal, aniversario: acao.aniversario, fidelidade_status: "completo", ...sexoSeFaltar(cliente, nomeFinal) }).eq("id", cliente.id);
             await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: `Prontinho, ${nomeFinal}! Você já faz parte do nosso programa de fidelidade em ${negocio}.` });
           } else if (acao.acao === "pedir_dados") {
-            await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Show! Pra concluir seu cadastro no programa de fidelidade, me manda seu nome completo e sua data de nascimento." });
+            // Não envia mais "Show! Pra concluir seu cadastro... me manda seu nome
+            // completo e sua data de nascimento." (removido 19/10/2026 a pedido do
+            // dono): a IA classificava mensagens comuns de clientes "convidados"
+            // como aceite e o pedido de dados chegava fora de contexto.
+            console.log("[zapi-webhook] pedir_dados ignorado (mensagem desativada):", cliente.id);
           } else if (acao.acao === "recusado") {
             await supabaseAdmin.from("clientes").update({ fidelidade_status: "recusado" }).eq("id", cliente.id);
             await enviarTextoZapi({ instanceId: integracao.instance_id, token: integracao.token, clientToken: integracao.client_token, telefone: telefoneCliente, mensagem: "Tudo bem! Se mudar de ideia, é só chamar por aqui." });
